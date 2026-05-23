@@ -33,7 +33,108 @@
   <h1>Pick a Dragon</h1>
   <p class="sub">Wake up the sleepy zombies with your fire puff!</p>
   <div class="dragon-grid" id="dragonGrid"></div>
+  <button class="castle-btn" id="visitCastleBtn">
+    <span class="castle-btn-icon">🏰</span>
+    <span class="castle-btn-label">Visit the Castle</span>
+  </button>
   <button class="secondary-btn" id="dpSwitchPlayer">Switch Player</button>
+</div>
+
+<!-- Castle bedroom — a peaceful scene for the player's dragon to hang out -->
+<div class="overlay castle-overlay hidden" id="castleScreen">
+  <div class="castle-room">
+    <!-- Back wall with stone-block texture -->
+    <div class="castle-wall">
+      <div class="castle-stones"></div>
+
+      <!-- Window onto the world outside -->
+      <div class="castle-window">
+        <div class="window-frame">
+          <div class="window-sky">
+            <div class="cloud cloud-1"></div>
+            <div class="cloud cloud-2"></div>
+            <div class="cloud cloud-3"></div>
+          </div>
+          <div class="window-rooftops">
+            <div class="rooftop r1"></div>
+            <div class="rooftop r2"></div>
+            <div class="rooftop r3"></div>
+            <div class="rooftop r4"></div>
+            <div class="rooftop r5"></div>
+          </div>
+          <div class="window-mullion-h"></div>
+          <div class="window-mullion-v"></div>
+        </div>
+        <div class="window-sill"></div>
+      </div>
+
+      <!-- Framed picture: tiny dragon-in-flight -->
+      <div class="castle-picture">
+        <div class="picture-mat">
+          <div class="picture-sky"></div>
+          <div class="picture-dragon" id="castlePictureDragon"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wood plank floor -->
+    <div class="castle-floor"></div>
+
+    <!-- Door back to the dragon picker -->
+    <button class="castle-door" id="castleDoorBtn" aria-label="Back to the dragon picker">
+      <div class="door-arch">
+        <div class="door-wood">
+          <div class="door-plank"></div>
+          <div class="door-plank"></div>
+          <div class="door-plank"></div>
+          <div class="door-hinge top"></div>
+          <div class="door-hinge bot"></div>
+          <div class="door-handle"></div>
+        </div>
+      </div>
+      <div class="door-sign">← Back</div>
+    </button>
+
+    <!-- Rug, then bed (with bedside table + chest) -->
+    <div class="castle-rug" id="castleRug"></div>
+
+    <div class="castle-bed">
+      <div class="bed-frame-back"></div>
+      <div class="bed-frame-front"></div>
+      <div class="bed-mattress"></div>
+      <div class="bed-pillow"></div>
+      <div class="bed-blanket" id="castleBlanket"></div>
+    </div>
+
+    <div class="bedside-table">
+      <div class="table-top"></div>
+      <div class="table-leg left"></div>
+      <div class="table-leg right"></div>
+      <div class="candle">
+        <div class="candle-base"></div>
+        <div class="candle-glow"></div>
+        <div class="candle-flame"></div>
+      </div>
+      <div class="sparkle sparkle-1"></div>
+      <div class="sparkle sparkle-2"></div>
+      <div class="sparkle sparkle-3"></div>
+    </div>
+
+    <!-- Chest at foot of bed -->
+    <div class="castle-chest">
+      <div class="chest-body"></div>
+      <div class="chest-lid"></div>
+      <div class="chest-clasp"></div>
+      <div class="chest-band band-1"></div>
+      <div class="chest-band band-2"></div>
+    </div>
+
+    <!-- The dragon, big at Elder size, resting -->
+    <div class="castle-dragon" id="castleDragon"></div>
+  </div>
+
+  <!-- Fade overlay used on entry/exit -->
+  <div class="castle-fade" id="castleFade"></div>
 </div>
 
 <div class="overlay hidden" id="controlPickerScreen">

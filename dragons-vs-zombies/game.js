@@ -2549,6 +2549,16 @@ const ui = {
   napStage:      document.getElementById('napStage'),
   napPlayAgain:  document.getElementById('napPlayAgain'),
   napPickDragon: document.getElementById('napPickDragon'),
+
+  // Castle bedroom
+  visitCastleBtn:      document.getElementById('visitCastleBtn'),
+  castleScreen:        document.getElementById('castleScreen'),
+  castleDoorBtn:       document.getElementById('castleDoorBtn'),
+  castleDragon:        document.getElementById('castleDragon'),
+  castleBlanket:       document.getElementById('castleBlanket'),
+  castleRug:           document.getElementById('castleRug'),
+  castlePictureDragon: document.getElementById('castlePictureDragon'),
+  castleFade:          document.getElementById('castleFade'),
 };
 
 function updateScoreUI() { ui.score.textContent = game.score; }
@@ -2588,6 +2598,7 @@ function showScreen(name) {
   ui.dragonPicker.classList.toggle('hidden',  name !== 'dragonPicker');
   ui.controlPicker.classList.toggle('hidden', name !== 'controlPicker');
   ui.napScreen.classList.toggle('hidden',     name !== 'nap');
+  ui.castleScreen.classList.toggle('hidden',  name !== 'castle');
   ui.hud.classList.toggle('hidden',           name !== 'playing');
 }
 
@@ -2695,6 +2706,236 @@ function showControlPicker() {
   ui.modeAim.classList.toggle('favorite', fav === 'aim');
 }
 
+/* ============================================================
+   CASTLE BEDROOM
+   A peaceful, optional scene reached from the dragon picker.
+   Pure CSS animations + a static SVG dragon with class-based
+   blink and yawn hooks. No game loop runs while we're in here.
+   ============================================================ */
+function dragonRestingSVG(cfg, id) {
+  // The dragon sits peacefully facing right. Body group carries the
+  // breathing animation; eye and mouth subgroups carry blink/yawn.
+  const isRainbow = !!cfg.rainbow;
+  const bodyFill  = isRainbow ? `url(#gr_${id})` : cfg.color;
+  const bellyFill = isRainbow ? '#fff8e8' : cfg.belly;
+  const wingFill  = isRainbow ? '#5a4998' : cfg.wing;
+  const irisColor = isRainbow ? '#a23ec6' : cfg.wing;
+  const lidFill   = isRainbow ? cfg.wing  : cfg.color;
+  const gradient  = isRainbow ? `
+    <defs>
+      <linearGradient id="gr_${id}" x1="80" y1="0" x2="-60" y2="0" gradientUnits="userSpaceOnUse">
+        <stop offset="0%"    stop-color="#ff4d4d"/>
+        <stop offset="16%"   stop-color="#ff8c30"/>
+        <stop offset="33%"   stop-color="#ffd200"/>
+        <stop offset="50%"   stop-color="#3ed03e"/>
+        <stop offset="66%"   stop-color="#3aa7f0"/>
+        <stop offset="83%"   stop-color="#6c5cd9"/>
+        <stop offset="100%"  stop-color="#a23ec6"/>
+      </linearGradient>
+    </defs>
+  ` : '';
+  return `<svg viewBox="-90 -90 180 180" xmlns="http://www.w3.org/2000/svg">
+    ${gradient}
+    <!-- ground shadow -->
+    <ellipse cx="0" cy="60" rx="62" ry="7" fill="rgba(0,0,0,0.18)"/>
+
+    <!-- tail wrapping around to the front -->
+    <g class="dragon-tail">
+      <path d="M -38 4 Q -64 24 -46 50 Q -14 64 24 54"
+            stroke="${bodyFill}" stroke-width="14" stroke-linecap="round" fill="none"/>
+      <path d="M 22 50 L 38 60 L 32 50 L 38 40 Z" fill="${bodyFill}"/>
+    </g>
+
+    <!-- folded wings (peeking up behind body) -->
+    <path d="M -16 -20 Q -34 -52 -38 -36 Q -22 -18 -14 -20 Z" fill="${wingFill}"/>
+    <path d="M -2 -24 Q -10 -58 -22 -42 Q -10 -22 -2 -22 Z" fill="${wingFill}"/>
+
+    <!-- breathing group: scales the whole body subtly -->
+    <g class="dragon-breathe">
+
+      <!-- back spines (visible above body line) -->
+      <path d="M -20 -20 L -16 -32 L -12 -20 Z
+               M -8 -26  L -3 -38  L 2  -26 Z
+               M 6  -28  L 11 -42  L 16 -28 Z
+               M 20 -24  L 24 -36  L 28 -24 Z" fill="${wingFill}"/>
+
+      <!-- main body -->
+      <ellipse cx="0" cy="10" rx="44" ry="32" fill="${bodyFill}"/>
+      <ellipse cx="2" cy="22" rx="32" ry="20" fill="${bellyFill}"/>
+
+      <!-- subtle scale texture -->
+      <ellipse cx="-14" cy="4" rx="3.5" ry="2" fill="rgba(0,0,0,0.07)"/>
+      <ellipse cx="0"   cy="0" rx="3.5" ry="2" fill="rgba(0,0,0,0.07)"/>
+      <ellipse cx="14"  cy="4" rx="3.5" ry="2" fill="rgba(0,0,0,0.07)"/>
+
+      <!-- front paws -->
+      <ellipse cx="-22" cy="40" rx="9"  ry="7" fill="${bodyFill}"/>
+      <ellipse cx="14"  cy="42" rx="9"  ry="7" fill="${bodyFill}"/>
+      <path d="M -27 44 L -25 47 L -23 44 M -23 44 L -21 47 L -19 44" stroke="#2d2438" stroke-width="1" fill="none"/>
+      <path d="M  10 46 L  12 49 L  14 46 M  14 46 L  16 49 L  18 46" stroke="#2d2438" stroke-width="1" fill="none"/>
+
+      <!-- neck -->
+      <path d="M 26 -6 Q 46 -32 58 -38 L 52 -22 L 36 -6 Z" fill="${bodyFill}"/>
+
+      <!-- head -->
+      <ellipse cx="58" cy="-42" rx="18" ry="15" fill="${bodyFill}"/>
+
+      <!-- snout -->
+      <path d="M 70 -44 L 84 -40 Q 88 -36 84 -32 L 70 -32 Z" fill="${bodyFill}"/>
+      <circle cx="82" cy="-37" r="1.2" fill="rgba(45,36,56,0.55)"/>
+
+      <!-- horns -->
+      <path d="M 48 -55 L 46 -70 L 53 -55 Z" fill="${wingFill}"/>
+      <path d="M 58 -57 L 60 -74 L 66 -57 Z" fill="${wingFill}"/>
+
+      <!-- eye (peaceful, with a lid that scales for blinking) -->
+      <g class="dragon-eye">
+        <ellipse cx="60" cy="-44" rx="8" ry="7" fill="#fff"/>
+        <circle  cx="62" cy="-43" r="4.4" fill="${irisColor}"/>
+        <ellipse cx="62.6" cy="-43" rx="1.2" ry="3.8" fill="#2d2438"/>
+        <circle  cx="64" cy="-45" r="1.4" fill="#fff"/>
+        ${isRainbow ? `<circle cx="59.5" cy="-42" r="0.9" fill="#fff"/>` : ``}
+        <ellipse class="dragon-eye-lid" cx="60" cy="-44" rx="8.5" ry="7.5" fill="${lidFill}"/>
+      </g>
+
+      <!-- mouth (closed by default, opens on yawn) -->
+      <g class="dragon-mouth">
+        <path class="dragon-mouth-closed"
+              d="M 70 -32 Q 76 -28 82 -32"
+              stroke="#2d2438" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <g class="dragon-mouth-open">
+          <ellipse cx="76" cy="-32" rx="5" ry="6" fill="#2d2438"/>
+          <ellipse cx="76" cy="-29" rx="3" ry="2" fill="#d04860"/>
+        </g>
+      </g>
+
+      <!-- 'z' puff during yawn -->
+      <g class="dragon-zzz">
+        <text x="78" y="-60" font-size="16" font-weight="800"
+              fill="${irisColor}" text-anchor="middle"
+              font-family="-apple-system, BlinkMacSystemFont, sans-serif">z</text>
+      </g>
+    </g>
+  </svg>`;
+}
+
+// Tints used to color the blanket and rug per dragon. These are picked
+// to match the dragon's wing/accent color so the room feels coordinated.
+const CASTLE_TINTS = {
+  ember:  { blanket: '#d9342a', trim: '#7c1d16', rug: '#e74c3c', rugTrim: '#7c1d16' },
+  frost:  { blanket: '#3173b8', trim: '#1f4f80', rug: '#5fa3e0', rugTrim: '#1f4f80' },
+  sprout: { blanket: '#27ae60', trim: '#196f3d', rug: '#52c47e', rugTrim: '#196f3d' },
+  sunny:  { blanket: '#e8b620', trim: '#a07a10', rug: '#f1c44c', rugTrim: '#a07a10' },
+  prism:  { blanket: 'rainbow', trim: '#5a4998', rug: 'rainbow', rugTrim: '#5a4998' },
+};
+
+let castleBlinkTimer = null;
+let castleYawnTimer  = null;
+
+function openCastle() {
+  // Determine which dragon to show. selectedDragonId is already 'ember'
+  // by default, but be defensive in case the saved id is unknown.
+  const id = (CONFIG.dragons[selectedDragonId] ? selectedDragonId : 'ember');
+  const cfg = CONFIG.dragons[id];
+  const tints = CASTLE_TINTS[id] || CASTLE_TINTS.ember;
+
+  // Inject the dragons (room + framed picture)
+  ui.castleDragon.innerHTML = dragonRestingSVG(cfg, 'big');
+  ui.castlePictureDragon.innerHTML = dragonPickerSVG(cfg, 'pic');
+
+  // Tint the blanket and rug. Rainbow uses a CSS gradient.
+  applyCastleTint(tints);
+
+  // Soft warm chord on entry (respects mute via the tone() helper)
+  warmChord();
+
+  // Fade in
+  ui.castleFade.classList.add('show');
+  showScreen('castle');
+  // Pause briefly so the fade is visible, then clear it
+  setTimeout(() => ui.castleFade.classList.remove('show'), 30);
+
+  // Start ambient timers
+  scheduleCastleBlink();
+  scheduleCastleYawn();
+}
+
+function applyCastleTint(t) {
+  const rainbowGradient = 'linear-gradient(90deg, #ff4d4d 0%, #ff8c30 16%, #ffd200 33%, #3ed03e 50%, #3aa7f0 66%, #6c5cd9 83%, #a23ec6 100%)';
+  // Blanket
+  if (t.blanket === 'rainbow') {
+    ui.castleBlanket.style.background = rainbowGradient;
+    ui.castleBlanket.style.setProperty('--blanket-color', '#7a6fd0');
+  } else {
+    ui.castleBlanket.style.background = '';
+    ui.castleBlanket.style.setProperty('--blanket-color', t.blanket);
+  }
+  // Rug
+  if (t.rug === 'rainbow') {
+    ui.castleRug.style.background = rainbowGradient;
+    ui.castleRug.style.setProperty('--rug-color', '#7a6fd0');
+  } else {
+    ui.castleRug.style.background = '';
+    ui.castleRug.style.setProperty('--rug-color', t.rug);
+  }
+  ui.castleRug.style.setProperty('--rug-trim', t.rugTrim);
+}
+
+function closeCastle() {
+  // Stop ambient timers
+  if (castleBlinkTimer) { clearTimeout(castleBlinkTimer); castleBlinkTimer = null; }
+  if (castleYawnTimer)  { clearTimeout(castleYawnTimer);  castleYawnTimer  = null; }
+
+  // Fade out, then switch screens
+  ui.castleFade.classList.add('show');
+  setTimeout(() => {
+    showScreen('dragonPicker');
+    renderDragonPicker();
+    ui.castleFade.classList.remove('show');
+  }, 200);
+}
+
+function scheduleCastleBlink() {
+  const delay = 4000 + Math.random() * 3000;
+  castleBlinkTimer = setTimeout(() => {
+    if (screen !== 'castle') return;
+    const eye = ui.castleDragon.querySelector('.dragon-eye');
+    if (eye) {
+      eye.classList.add('blink');
+      setTimeout(() => {
+        eye.classList.remove('blink');
+        scheduleCastleBlink();
+      }, 160);
+    }
+  }, delay);
+}
+
+function scheduleCastleYawn() {
+  const delay = 15000 + Math.random() * 10000;
+  castleYawnTimer = setTimeout(() => {
+    if (screen !== 'castle') return;
+    const mouth = ui.castleDragon.querySelector('.dragon-mouth');
+    const zzz   = ui.castleDragon.querySelector('.dragon-zzz');
+    if (mouth) {
+      mouth.classList.add('yawn');
+      if (zzz) zzz.classList.add('show');
+      setTimeout(() => {
+        mouth.classList.remove('yawn');
+      }, 900);
+      setTimeout(() => {
+        if (zzz) zzz.classList.remove('show');
+        scheduleCastleYawn();
+      }, 1700);
+    }
+  }, delay);
+}
+
+function warmChord() {
+  // Three gentle sine notes — barely there, like a soft door-chime
+  if (muted || !actx) return;
+  [392, 494, 587].forEach((f, i) => setTimeout(() => tone(f, 0.55, 'sine', 0.04, 0.08), i * 60));
+}
+
 ui.modeAuto.addEventListener('click', () => { onAnyTap(); pickMode('auto'); });
 ui.modeAim .addEventListener('click', () => { onAnyTap(); pickMode('aim'); });
 function pickMode(m) {
@@ -2710,6 +2951,10 @@ ui.dpSwitch.addEventListener('click', () => {
 });
 ui.napPlayAgain.addEventListener('click', () => { onAnyTap(); startNewRun(); });
 ui.napPickDragon.addEventListener('click', () => { onAnyTap(); showScreen('dragonPicker'); renderDragonPicker(); });
+
+// Castle bedroom — entry from dragon picker, exit via the door
+ui.visitCastleBtn.addEventListener('click', () => { onAnyTap(); openCastle(); });
+ui.castleDoorBtn .addEventListener('click', () => { onAnyTap(); closeCastle(); });
 
 ui.muteBtn.addEventListener('click', () => {
   onAnyTap();
@@ -2801,6 +3046,8 @@ function loop(now) {
   if (screen === 'playing' || screen === 'nap') {
     update(dt);
     render();
+  } else if (screen === 'castle') {
+    // Castle bedroom is a pure CSS/SVG scene — no canvas work needed
   } else {
     // Idle background so the canvas doesn't look blank on overlays
     drawBackground();
