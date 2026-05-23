@@ -121,7 +121,28 @@ localStorage.setItem(`pup-patrol:${player}:highScore`, String(newScore));
 
 ---
 
-## 8. Privacy & security
+## 8. Navigation pattern
+
+Every game needs two ways out: back to its own start screen, and back to the arcade. Both live in a small **nav bar in the top-right corner**, visible only during active gameplay (not on menu or win screens).
+
+**Two buttons, always in this order, left to right:**
+
+- ↩ **Menu** — returns to the game's own start screen (in-page screen switch, no URL change)
+- 🏠 **Arcade** — `window.location.href = '/'` to the landing page
+
+Each button is 64×64 px minimum with 12 px between them.
+
+**Mid-game safeguard.** If gameplay is active when either button is tapped, show a soft confirm dialog: *"Leave game? Your score won't be saved."* with two big buttons — "Keep Playing" and "Yes, Leave." This protects Michael from accidental taps mid-run.
+
+If the player is on the game's own menu or win screen, no confirm is needed — go straight back.
+
+**On menu and win screens**, include a large **"← Back to Arcade"** button as part of the layout itself, in addition to the (hidden) nav bar. The kid-obvious way out needs to be a full-size button, not just a corner icon.
+
+**Reference implementation:** see `nav-pattern-demo/` for the working template. Copy and adapt the screen system, the nav bar, and the confirm modal into new games rather than re-inventing.
+
+---
+
+## 9. Privacy & security
 
 - Zero third-party network requests at runtime. Verify in browser DevTools → Network tab: nothing should appear except the page itself and same-origin resources.
 - No cookies. localStorage only.
@@ -134,7 +155,7 @@ localStorage.setItem(`pup-patrol:${player}:highScore`, String(newScore));
 
 ---
 
-## 9. Git & deployment
+## 10. Git & deployment
 
 **Repo:** `github.com/darrenbender/bender-arcade`
 **Live site:** `https://games.darrenbender.com`
@@ -158,13 +179,14 @@ git push
 
 ---
 
-## 10. Definition of "done" for a new game
+## 11. Definition of "done" for a new game
 
 A new game is ready to deploy when:
 
 - [ ] It works in Safari on a Mac.
 - [ ] It works in Safari on an iPad (touch-tested).
 - [ ] The player picker pattern is wired up (redirects to `/` if no player selected).
+- [ ] The navigation pattern is wired up (Menu + Arcade buttons in the corner, mid-game confirm dialog, full-size "Back to Arcade" button on menu and win screens).
 - [ ] Per-player save data uses the localStorage key convention.
 - [ ] A button has been added to the landing page (`/index.html`).
 - [ ] The folder name follows naming convention (lowercase, hyphens).
@@ -174,7 +196,7 @@ A new game is ready to deploy when:
 
 ---
 
-## 11. When working with Claude on this project
+## 12. When working with Claude on this project
 
 - Always work inside the **Bender Arcade** project so the project's custom instructions apply.
 - Use **one chat per game**; keep this current "infrastructure" chat for hosting/repo/DNS work.
@@ -183,7 +205,7 @@ A new game is ready to deploy when:
 
 ---
 
-## 12. Open ideas / future games
+## 13. Open ideas / future games
 
 A running list of game ideas to pull from:
 
