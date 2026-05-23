@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dragons vs Zombies">
+<title>Dragons vs. Zombies</title>
+<style>
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;
+    background: linear-gradient(180deg, #cfe8ff 0%, #ffe6c4 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", "Avenir", sans-serif;
+    color: #2d2438;
+  }
+  canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* ============ HUD ============ */
+  .hud {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .hud.hidden { display: none; }
+  .hud-score {
+    position: absolute;
+    top: env(safe-area-inset-top, 12px);
+    left: 12px;
+    padding: 10px 18px;
+    background: rgba(255, 255, 255, 0.94);
+    border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(45, 36, 56, 0.18);
+    font-weight: 800;
+    font-size: 26px;
+    color: #2d2438;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+  }
+  .hud-stage {
+    position: absolute;
+    top: env(safe-area-inset-top, 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 18px;
+    background: rgba(45, 36, 56, 0.85);
+    color: white;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 18px;
+    margin-top: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .hud-meter {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 12px) + 76px);
+    right: 12px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.94);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(45, 36, 56, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+  }
+  .hud-meter-label { font-weight: 700; font-size: 14px; color: #5a4a6e; }
+  .hud-meter-bar {
+    width: 140px;
+    height: 14px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    overflow: hidden;
+  }
+  .hud-meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6ab0e8 0%, #a78bfa 100%);
+    width: 0%;
+    transition: width 0.18s ease;
+  }
+  .mute-btn {
+    position: absolute;
+    top: env(safe-area-inset-top, 12px);
+    right: 12px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.94);
+    border: none;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(45, 36, 56, 0.18);
+    cursor: pointer;
+    pointer-events: auto;
+    margin-top: 12px;
+    z-index: 60;
+    font-family: inherit;
+  }
+  .mute-btn:active { transform: scale(0.95); }
+
+  /* ============ POP BANNERS ============ */
+  .wave-banner, .grew-banner {
+    position: absolute;
+    top: 38%;
+    left: 50%;
+    padding: 14px 30px;
+    border-radius: 24px;
+    font-weight: 900;
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    z-index: 11;
+    transform: translate(-50%, -50%) scale(0.5);
+    transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+  }
+  .wave-banner {
+    background: linear-gradient(135deg, #ffd76b, #f29849);
+    color: white;
+    font-size: 36px;
+    text-shadow: 2px 2px 0 rgba(45, 36, 56, 0.3);
+  }
+  .grew-banner {
+    background: white;
+    color: #2d2438;
+    font-size: 30px;
+    top: 32%;
+  }
+  .wave-banner.show, .grew-banner.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  /* ============ OVERLAY SCREENS ============ */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 70px 20px 24px;
+    text-align: center;
+    background: linear-gradient(180deg, #cfe8ff 0%, #ffe6c4 100%);
+    overflow-y: auto;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h1 {
+    font-size: clamp(34px, 6vw, 52px);
+    font-weight: 900;
+    margin: 4px 0 14px;
+    color: #2d2438;
+    text-shadow: 3px 3px 0 white, 6px 6px 0 rgba(45, 36, 56, 0.12);
+  }
+  .overlay .sub {
+    font-size: clamp(16px, 2.4vw, 22px);
+    font-weight: 600;
+    color: #5a4a6e;
+    margin: 0 0 24px;
+    max-width: 540px;
+    line-height: 1.4;
+  }
+
+  .player-banner {
+    position: absolute;
+    top: env(safe-area-inset-top, 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 12px;
+    background: white;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 16px;
+    color: #5a4a6e;
+    box-shadow: 0 4px 12px rgba(45, 36, 56, 0.1);
+    white-space: nowrap;
+  }
+
+  /* ============ DRAGON PICKER ============ */
+  .dragon-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    width: 100%;
+    max-width: 540px;
+    margin-bottom: 18px;
+  }
+  .dragon-card {
+    background: white;
+    border: 4px solid transparent;
+    border-radius: 24px;
+    padding: 14px 10px 16px;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(45, 36, 56, 0.12);
+    transition: transform 0.12s ease, border-color 0.12s ease;
+    position: relative;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-family: inherit;
+    color: #2d2438;
+  }
+  .dragon-card:active:not(.locked) { transform: scale(0.96); }
+  .dragon-card.favorite { border-color: #ffd76b; }
+  .dragon-card .name { font-weight: 800; font-size: 22px; margin-top: 6px; }
+  .dragon-card .tag  { font-size: 14px; color: #5a4a6e; font-weight: 600; line-height: 1.3; padding: 0 6px; }
+  .dragon-card svg { width: 96px; height: 84px; }
+  .dragon-card.locked {
+    background: #efeaf2;
+    cursor: not-allowed;
+  }
+  .dragon-card.locked .name { color: #9da0a8; }
+  .dragon-card.locked .tag  { color: #b0b3bc; }
+  .dragon-card.locked svg { opacity: 0.35; filter: grayscale(1); }
+  .lock-overlay {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 26px;
+  }
+  .new-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ef6b6b;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 900;
+    font-size: 12px;
+    box-shadow: 0 4px 10px rgba(239, 107, 107, 0.5);
+    animation: sparkle 1.4s ease-in-out infinite;
+  }
+  @keyframes sparkle {
+    0%, 100% { transform: scale(1) rotate(-4deg); }
+    50%      { transform: scale(1.15) rotate(4deg); }
+  }
+
+  /* ============ CONTROL PICKER ============ */
+  .mode-buttons {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    width: 100%;
+    max-width: 520px;
+  }
+  @media (min-width: 600px) {
+    .mode-buttons { grid-template-columns: 1fr 1fr; }
+  }
+  .mode-btn {
+    font-family: inherit;
+    font-size: 24px;
+    font-weight: 800;
+    padding: 28px 16px;
+    border: 4px solid transparent;
+    border-radius: 24px;
+    cursor: pointer;
+    background: white;
+    color: #2d2438;
+    box-shadow: 0 6px 16px rgba(45, 36, 56, 0.12);
+    transition: transform 0.12s ease, border-color 0.12s ease;
+    min-height: 160px;
+  }
+  .mode-btn:active { transform: scale(0.96); }
+  .mode-btn.favorite { border-color: #ffd76b; }
+  .mode-btn .emoji { display: block; font-size: 44px; margin-bottom: 6px; }
+  .mode-btn .tag   { display: block; font-weight: 600; color: #5a4a6e; font-size: 16px; margin-top: 6px; }
+
+  /* ============ BUTTONS ============ */
+  .big-btn {
+    font-family: inherit;
+    background: linear-gradient(135deg, #ffd76b, #f29849);
+    color: white;
+    border: none;
+    font-size: 22px;
+    font-weight: 800;
+    padding: 18px 30px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(242, 152, 73, 0.4);
+    transition: transform 0.12s ease;
+    min-height: 64px;
+  }
+  .big-btn:active { transform: scale(0.96); }
+  .secondary-btn {
+    font-family: inherit;
+    background: white;
+    color: #2d2438;
+    border: 3px solid #2d2438;
+    font-size: 18px;
+    font-weight: 800;
+    padding: 14px 22px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    min-height: 56px;
+  }
+  .secondary-btn:active { transform: scale(0.96); }
+  .btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 6px;
+  }
+
+  /* ============ NAP SCREEN ============ */
+  .nap-card {
+    background: white;
+    border-radius: 28px;
+    padding: 28px 24px;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+    animation: pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes pop-in {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  .nap-card h2 {
+    font-size: 36px;
+    margin: 8px 0 12px;
+    color: #2d2438;
+  }
+  .nap-card .score {
+    font-size: 24px;
+    font-weight: 700;
+    color: #2d2438;
+    margin: 8px 0;
+  }
+  .nap-card .new-high {
+    display: inline-block;
+    background: linear-gradient(135deg, #ffd76b, #f29849);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-weight: 900;
+    font-size: 18px;
+    margin: 8px 0;
+    animation: sparkle 1.4s ease-in-out infinite;
+  }
+  .nap-card .best {
+    font-size: 18px;
+    color: #5a4a6e;
+    font-weight: 700;
+    margin: 8px 0;
+  }
+  .nap-card .stage-row {
+    font-size: 20px;
+    color: #2d2438;
+    font-weight: 700;
+    margin: 14px 0 22px;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div class="hud hidden" id="hud">
+  <div class="hud-score">🌟 <span id="scoreCount">0</span></div>
+  <div class="hud-stage" id="hudStage">🐉 Hatchling</div>
+  <div class="hud-meter">
+    <div class="hud-meter-label">💤 Sleepy</div>
+    <div class="hud-meter-bar"><div class="hud-meter-fill" id="meterFill"></div></div>
+  </div>
+</div>
+
+<button class="mute-btn" id="muteBtn" aria-label="Mute">🔇</button>
+
+<div class="wave-banner" id="waveBanner">Wave 2…</div>
+<div class="grew-banner" id="grewBanner"><span>✨</span><span>You grew up!</span><span>✨</span></div>
+
+<div class="overlay" id="dragonPickerScreen">
+  <div class="player-banner">Playing as <span id="dpPlayerName">—</span></div>
+  <h1>Pick a Dragon</h1>
+  <p class="sub">Wake up the sleepy zombies with your fire puff!</p>
+  <div class="dragon-grid" id="dragonGrid"></div>
+  <button class="secondary-btn" id="dpSwitchPlayer">Switch Player</button>
+</div>
+
+<div class="overlay hidden" id="controlPickerScreen">
+  <div class="player-banner">Playing as <span id="cpPlayerName">—</span> · <span id="cpDragonName">—</span></div>
+  <h1>How will you play?</h1>
+  <p class="sub">You can change this any time.</p>
+  <div class="mode-buttons">
+    <button class="mode-btn" id="modeAuto" data-mode="auto">
+      <span class="emoji">🎯</span>
+      Auto-aim
+      <span class="tag">Easy. Just steer your dragon.</span>
+    </button>
+    <button class="mode-btn" id="modeAim" data-mode="aim">
+      <span class="emoji">🔥</span>
+      I'll aim
+      <span class="tag">Tap or click to shoot fire.</span>
+    </button>
+  </div>
+  <div style="height: 22px;"></div>
+  <button class="secondary-btn" id="cpBack">← Pick a different dragon</button>
+</div>
+
+<div class="overlay hidden" id="napScreen">
+  <div class="nap-card">
+    <div style="font-size: 64px;">💤</div>
+    <h2>Nap time!</h2>
+    <div class="score">You cured <span id="napCount">0</span> villagers!</div>
+    <div id="napHighWrap"></div>
+    <div class="stage-row">Biggest you got: <span id="napStage">🐉 Hatchling</span></div>
+    <div class="btn-row">
+      <button class="big-btn" id="napPlayAgain">Play Again</button>
+      <button class="secondary-btn" id="napPickDragon">Pick a different dragon</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ====================================================================
+   DRAGONS VS. ZOMBIES
+   A baby dragon's fire puff turns sleepy zombies back into villagers.
+   Cure → grow → cure more. Endless score chase ends in a nap.
+   Tuned for Michael (6) and James (9): no fail state harsher than nap.
+   ==================================================================== */
+
+/* ============================================================
+   CONFIG — TWEAK THESE AFTER PLAYTESTING
+   ============================================================ */
+const CONFIG = {
+  // Stage advancement (cumulative cures needed to reach each stage)
+  // Stage 1 is start. These are the thresholds for reaching 2, 3, 4, 5.
+  cureThresholds: [5, 10, 20, 35],
+
+  // Sleepy meter. Higher = longer runs.
+  sleepyMeterMax: 100,
+  // How much one zombie touch fills the meter.
+  zombieTouchPenalty: 8,
+  // Seconds a zombie can't tick the meter again after a touch.
+  touchCooldownSec: 0.9,
+  // How fast the touched zombie is pushed back.
+  bounceBackSpeed: 220,
+  bounceBackDurationSec: 0.45,
+
+  // Wave timing. Banner pops on each new wave; spawn rate ramps with waves.
+  waveDurationSec: 30,
+  // Spawn interval (sec) on wave 1 → ramps down to minSpawnInterval.
+  baseSpawnInterval: 1.7,
+  minSpawnInterval: 0.40,
+  // Each wave multiplies the spawn interval by this (smaller = faster).
+  spawnDecayPerWave: 0.82,
+
+  // Zombie speed. Ramps up by wave.
+  baseZombieSpeed: 28,
+  maxZombieSpeed: 68,
+  zombieSpeedGrowthPerWave: 1.08,
+
+  // Zombie chatter
+  chatterChancePerSec: 0.18,
+  chatterDurationSec: 1.7,
+  chatter: [
+    "…sandwich?", "…cookies?", "…nap time?", "…blanket?", "zzz…",
+    "…pillow?", "…snore…", "…pancakes?", "…teddy?", "…story?",
+  ],
+
+  // Cured person walking off
+  curedExitDurationSec: 3.2,
+
+  // Frost slow aura
+  frostSlowRadius: 90,
+  frostSlowFactor: 0.35,
+  frostSlowDurationSec: 2.0,
+
+  // Fireball
+  fireballLifespanSec: 2.2,
+  fireballHitPadding: 6, // extra forgiveness on hit detection (px)
+
+  // Dragon roster. Tweak per-dragon stats here.
+  dragons: {
+    ember:  { name: 'Ember',  color: '#e74c3c', wing: '#a93226', belly: '#fadbd8', shootInterval: 0.45, moveSpeed: 240, fireballSpeed: 420, fireballSize: 9,  emoji: '🔴' },
+    frost:  { name: 'Frost',  color: '#3498db', wing: '#1f618d', belly: '#d6eaf8', shootInterval: 0.85, moveSpeed: 220, fireballSpeed: 380, fireballSize: 10, emoji: '🔵', slowAura: true },
+    sprout: { name: 'Sprout', color: '#27ae60', wing: '#196f3d', belly: '#d4efdf', shootInterval: 0.85, moveSpeed: 220, fireballSpeed: 380, fireballSize: 7,  emoji: '🟢', doublePuff: true },
+    sunny:  { name: 'Sunny',  color: '#f1c40f', wing: '#b7950b', belly: '#fcf3cf', shootInterval: 0.65, moveSpeed: 300, fireballSpeed: 460, fireballSize: 13, emoji: '🟡' },
+  },
+  dragonOrder: ['ember', 'frost', 'sprout', 'sunny'],
+  dragonTags: {
+    ember:  'Fast fire',
+    frost:  'Chilly puffs',
+    sprout: 'Double puff',
+    sunny:  'Speedy & strong',
+  },
+
+  // Dragon stage scaling. Index 0 = stage 1.
+  stageScales:           [1.0, 1.3, 1.6, 1.9, 2.3],
+  stageFireballSizeMul:  [1.0, 1.15, 1.30, 1.50, 1.75],
+  stageFireballSpeedMul: [1.0, 1.05, 1.10, 1.15, 1.20],
+  stageNames: ['Hatchling', 'Kid', 'Teen', 'Adult', 'Elder'],
+};
+
+/* ============================================================
+   PLAYER CHECK — per the standards, redirect if no player
+   ============================================================ */
+const player = localStorage.getItem('arcade-current-player');
+if (!player) {
+  window.location.href = '/';
+  throw new Error('No player selected — redirecting.');
+}
+
+/* ============================================================
+   LOCAL STORAGE HELPERS
+   ============================================================ */
+const KEYS = {
+  highScore:        () => `dragons-vs-zombies:${player}:highScore`,
+  totalCured:       () => `dragons-vs-zombies:${player}:totalCured`,
+  biggestStage:     () => `dragons-vs-zombies:${player}:biggestStage`,
+  controlMode:      () => `dragons-vs-zombies:${player}:controlMode`,
+  favoriteDragon:   () => `dragons-vs-zombies:${player}:favoriteDragon`,
+  muted:            () => `dragons-vs-zombies:${player}:muted`,
+  sunnyAck:         () => `dragons-vs-zombies:${player}:sunnyAck`,
+  sunnyUnlocked:    () => `dragons-vs-zombies:sunnyUnlocked`,
+};
+function readNum(key, def = 0) { const v = localStorage.getItem(key); return v == null ? def : Number(v) || 0; }
+function readStr(key, def = '') { const v = localStorage.getItem(key); return v == null ? def : v; }
+function readBool(key, def = false) { const v = localStorage.getItem(key); if (v == null) return def; return v === 'true'; }
+function writeStr(key, val) { localStorage.setItem(key, String(val)); }
+
+/* ============================================================
+   AUDIO — Web Audio API only. Default muted until first tap.
+   ============================================================ */
+let actx = null;
+let audioUnlocked = false;
+let muted = readBool(KEYS.muted(), true);
+let bgHumGain = null;
+let bgHumOsc = null;
+
+function ensureAudio() {
+  if (actx) return;
+  const C = window.AudioContext || window.webkitAudioContext;
+  if (!C) return;
+  actx = new C();
+}
+function unlockAudioOnGesture() {
+  ensureAudio();
+  if (!actx) return;
+  if (actx.state === 'suspended') actx.resume();
+  audioUnlocked = true;
+  startBgHum();
+}
+function tone(freq, dur, type = 'sine', vol = 0.12, attack = 0.01) {
+  if (muted || !actx) return;
+  const t = actx.currentTime;
+  const o = actx.createOscillator();
+  const g = actx.createGain();
+  o.type = type;
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + attack);
+  g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+  o.connect(g);
+  g.connect(actx.destination);
+  o.start(t);
+  o.stop(t + dur + 0.05);
+}
+function slide(freqStart, freqEnd, dur, type = 'sine', vol = 0.12) {
+  if (muted || !actx) return;
+  const t = actx.currentTime;
+  const o = actx.createOscillator();
+  const g = actx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(freqStart, t);
+  o.frequency.exponentialRampToValueAtTime(Math.max(40, freqEnd), t + dur);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.04);
+  g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+  o.connect(g);
+  g.connect(actx.destination);
+  o.start(t);
+  o.stop(t + dur + 0.05);
+}
+const sfx = {
+  puff: () => tone(360 + Math.random() * 80, 0.14, 'triangle', 0.08, 0.005),
+  cure: () => {
+    [523, 659, 784].forEach((f, i) => setTimeout(() => tone(f, 0.18, 'sine', 0.09), i * 40));
+  },
+  levelUp: () => {
+    [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.22, 'triangle', 0.11), i * 90));
+  },
+  yawn: () => slide(420, 160, 0.9, 'sine', 0.16),
+  thud: () => tone(120, 0.10, 'sine', 0.06),
+};
+function startBgHum() {
+  if (muted || !actx || bgHumOsc) return;
+  bgHumOsc = actx.createOscillator();
+  bgHumGain = actx.createGain();
+  bgHumOsc.type = 'sine';
+  bgHumOsc.frequency.value = 110;
+  bgHumGain.gain.value = 0.012;
+  bgHumOsc.connect(bgHumGain);
+  bgHumGain.connect(actx.destination);
+  bgHumOsc.start();
+}
+function stopBgHum() {
+  if (bgHumOsc) {
+    try { bgHumOsc.stop(); } catch (e) {}
+    bgHumOsc = null;
+    bgHumGain = null;
+  }
+}
+
+/* ============================================================
+   CANVAS / RESIZE
+   ============================================================ */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let cssW = 0, cssH = 0, dpr = 1;
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  cssW = window.innerWidth;
+  cssH = window.innerHeight;
+  canvas.width  = Math.floor(cssW * dpr);
+  canvas.height = Math.floor(cssH * dpr);
+  canvas.style.width  = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+/* ============================================================
+   GAME STATE
+   ============================================================ */
+let screen = 'dragonPicker'; // 'dragonPicker' | 'controlPicker' | 'playing' | 'nap'
+let selectedDragonId = readStr(KEYS.favoriteDragon(), 'ember');
+let selectedMode = readStr(KEYS.controlMode(), 'auto'); // 'auto' | 'aim'
+
+const game = {
+  dragon: null,
+  zombies: [],
+  fireballs: [],
+  cured: [],
+  particles: [],
+  speeches: [], // {targetId, text, until}
+
+  score: 0,             // cures this run
+  stage: 1,             // 1..5
+  meter: 0,             // 0..sleepyMeterMax
+  meterCooldown: 0,     // not currently used; per-zombie cooldown used instead
+
+  spawnTimer: 0,
+  shootTimer: 0,
+  manualCooldown: 0,    // gate on player-triggered shots in manual mode
+  wave: 1,
+  waveTimer: 0,
+  elapsed: 0,
+  napping: false,       // true once nap sequence starts
+  napFlyUpStart: 0,
+};
+
+let nextEntityId = 1;
+
+/* ============================================================
+   ENTITY FACTORIES
+   ============================================================ */
+function makeDragon() {
+  const d = CONFIG.dragons[selectedDragonId];
+  return {
+    id: nextEntityId++,
+    x: cssW / 2,
+    y: cssH / 2,
+    targetX: cssW / 2,
+    targetY: cssH / 2,
+    radius: 24,               // recomputed each frame based on stage
+    wingPhase: 0,
+    facing: 1,
+    yawnT: 0,
+    config: d,
+    flyUpProgress: 0,
+  };
+}
+function makeZombie() {
+  // Spawn on a random edge, walk toward dragon
+  const side = Math.floor(Math.random() * 4);
+  const m = 30;
+  let x, y;
+  if (side === 0)      { x = -m; y = Math.random() * cssH; }
+  else if (side === 1) { x = cssW + m; y = Math.random() * cssH; }
+  else if (side === 2) { x = Math.random() * cssW; y = -m; }
+  else                 { x = Math.random() * cssW; y = cssH + m; }
+  return {
+    id: nextEntityId++,
+    x, y,
+    radius: 20,
+    speed: zombieSpeedForWave(game.wave),
+    walkPhase: Math.random() * Math.PI * 2,
+    color: '#5cae5c',
+    chatterCooldown: 1 + Math.random() * 3,
+    touchCooldown: 0,
+    bounceVx: 0,
+    bounceVy: 0,
+    bounceT: 0,
+  };
+}
+function makeFireball(x, y, vx, vy, size, color) {
+  return {
+    id: nextEntityId++,
+    x, y, vx, vy,
+    radius: size,
+    color,
+    life: 0,
+    maxLife: CONFIG.fireballLifespanSec,
+    spin: Math.random() * Math.PI * 2,
+  };
+}
+function makeCured(x, y, stage, color, slowAura = false) {
+  // Pick an exit direction roughly away from center
+  const ang = Math.atan2(y - cssH / 2, x - cssW / 2);
+  return {
+    id: nextEntityId++,
+    x, y,
+    vx: Math.cos(ang) * 40,
+    vy: Math.sin(ang) * 40,
+    stage,
+    color,
+    walkPhase: 0,
+    age: 0,
+    maxAge: CONFIG.curedExitDurationSec,
+    slowAura,
+    slowAuraUntil: slowAura ? (game.elapsed + CONFIG.frostSlowDurationSec) : 0,
+  };
+}
+function makeSparkle(x, y, color = '#ffd76b') {
+  for (let i = 0; i < 8; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = 50 + Math.random() * 80;
+    game.particles.push({
+      x, y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp - 30,
+      life: 0.6 + Math.random() * 0.3,
+      maxLife: 0.6 + Math.random() * 0.3,
+      size: 4 + Math.random() * 3,
+      color,
+      type: 'sparkle',
+    });
+  }
+}
+function makePuff(x, y, color = '#ffffff') {
+  for (let i = 0; i < 6; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = 30 + Math.random() * 40;
+    game.particles.push({
+      x, y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp,
+      life: 0.4 + Math.random() * 0.2,
+      maxLife: 0.4 + Math.random() * 0.2,
+      size: 6 + Math.random() * 4,
+      color,
+      type: 'cloud',
+    });
+  }
+}
+
+function zombieSpeedForWave(wave) {
+  const s = CONFIG.baseZombieSpeed * Math.pow(CONFIG.zombieSpeedGrowthPerWave, wave - 1);
+  return Math.min(CONFIG.maxZombieSpeed, s);
+}
+function spawnIntervalForWave(wave) {
+  const v = CONFIG.baseSpawnInterval * Math.pow(CONFIG.spawnDecayPerWave, wave - 1);
+  return Math.max(CONFIG.minSpawnInterval, v);
+}
+
+/* ============================================================
+   INPUT
+   ============================================================ */
+const heldKeys = new Set();
+const pointer = {
+  active: false,
+  x: cssW / 2,
+  y: cssH / 2,
+  hadPointerEvent: false, // becomes true once a mouse moves or a touch happens
+};
+
+window.addEventListener('keydown', (e) => {
+  if (screen !== 'playing') return;
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D',' '].includes(e.key)) {
+    e.preventDefault();
+  }
+  heldKeys.add(e.key);
+  if (e.key === ' ' && selectedMode === 'aim') {
+    shootTowardPointer();
+  }
+});
+window.addEventListener('keyup', (e) => {
+  heldKeys.delete(e.key);
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  pointer.x = e.clientX;
+  pointer.y = e.clientY;
+  pointer.hadPointerEvent = true;
+});
+canvas.addEventListener('mousedown', (e) => {
+  if (screen !== 'playing') return;
+  pointer.x = e.clientX;
+  pointer.y = e.clientY;
+  pointer.hadPointerEvent = true;
+  if (selectedMode === 'aim') shootTowardPointer();
+});
+
+canvas.addEventListener('touchstart', (e) => {
+  if (screen !== 'playing') return;
+  e.preventDefault();
+  const t = e.touches[0];
+  pointer.active = true;
+  pointer.x = t.clientX;
+  pointer.y = t.clientY;
+  pointer.hadPointerEvent = true;
+  if (selectedMode === 'aim') shootTowardPointer();
+}, { passive: false });
+canvas.addEventListener('touchmove', (e) => {
+  if (screen !== 'playing') return;
+  e.preventDefault();
+  const t = e.touches[0];
+  pointer.x = t.clientX;
+  pointer.y = t.clientY;
+}, { passive: false });
+canvas.addEventListener('touchend', (e) => {
+  if (screen !== 'playing') return;
+  e.preventDefault();
+  pointer.active = false;
+}, { passive: false });
+canvas.addEventListener('touchcancel', (e) => {
+  if (screen !== 'playing') return;
+  e.preventDefault();
+  pointer.active = false;
+}, { passive: false });
+
+function shootTowardPointer() {
+  if (!game.dragon || game.napping) return;
+  // Manual mode rate-limiter so holding spacebar / spam-tapping can't beat the dragon's natural cadence
+  if (game.manualCooldown > 0) return;
+  fireFromDragon(pointer.x, pointer.y);
+  game.manualCooldown = game.dragon.config.shootInterval * 0.6;
+}
+
+function fireFromDragon(targetX, targetY) {
+  const d = game.dragon;
+  let dx = targetX - d.x;
+  let dy = targetY - d.y;
+  let dist = Math.hypot(dx, dy);
+  if (dist < 4) {
+    // Pointer is right on top of the dragon — fall back to facing direction
+    dx = d.facing;
+    dy = 0;
+    dist = 1;
+  }
+  const nx = dx / dist;
+  const ny = dy / dist;
+  const stageIdx = d.flyUpProgress > 0 ? 4 : (game.stage - 1);
+  const cfg = d.config;
+  const sizeMul = CONFIG.stageFireballSizeMul[game.stage - 1];
+  const speedMul = CONFIG.stageFireballSpeedMul[game.stage - 1];
+  const size  = cfg.fireballSize * sizeMul;
+  const speed = cfg.fireballSpeed * speedMul;
+  const color = cfg.color;
+  // Update facing based on shoot direction
+  if (Math.abs(nx) > 0.05) d.facing = nx > 0 ? 1 : -1;
+  if (cfg.doublePuff) {
+    const spread = 0.18; // radians
+    const ang = Math.atan2(ny, nx);
+    [-spread, spread].forEach(off => {
+      const a = ang + off;
+      game.fireballs.push(makeFireball(d.x, d.y, Math.cos(a) * speed, Math.sin(a) * speed, size * 0.85, color));
+    });
+  } else {
+    game.fireballs.push(makeFireball(d.x, d.y, nx * speed, ny * speed, size, color));
+  }
+  makePuff(d.x + nx * 18, d.y + ny * 18, '#ffffff');
+  sfx.puff();
+}
+
+/* ============================================================
+   UPDATE LOOP
+   ============================================================ */
+function update(dt) {
+  game.elapsed += dt;
+
+  if (game.napping) {
+    updateNapFlyUp(dt);
+    updateParticles(dt);
+    updateCured(dt);
+    return;
+  }
+
+  game.manualCooldown = Math.max(0, game.manualCooldown - dt);
+  updateDragon(dt);
+  updateSpawning(dt);
+  updateZombies(dt);
+  updateFireballs(dt);
+  updateCollisions(dt);
+  updateCured(dt);
+  updateParticles(dt);
+  updateChatter(dt);
+  updateWaves(dt);
+  updateShooting(dt);
+}
+
+function updateDragon(dt) {
+  const d = game.dragon;
+  if (!d) return;
+
+  // Determine movement input
+  let dx = 0, dy = 0;
+  if (heldKeys.has('ArrowLeft')  || heldKeys.has('a') || heldKeys.has('A')) dx -= 1;
+  if (heldKeys.has('ArrowRight') || heldKeys.has('d') || heldKeys.has('D')) dx += 1;
+  if (heldKeys.has('ArrowUp')    || heldKeys.has('w') || heldKeys.has('W')) dy -= 1;
+  if (heldKeys.has('ArrowDown')  || heldKeys.has('s') || heldKeys.has('S')) dy += 1;
+
+  // Touch-drag movement (any time touch is active)
+  if (pointer.active) {
+    const tx = pointer.x, ty = pointer.y;
+    const ddx = tx - d.x;
+    const ddy = ty - d.y;
+    const dist = Math.hypot(ddx, ddy);
+    if (dist > 8) {
+      dx = ddx / dist;
+      dy = ddy / dist;
+    } else {
+      dx = 0; dy = 0;
+    }
+  } else if (dx !== 0 || dy !== 0) {
+    const m = Math.hypot(dx, dy) || 1;
+    dx /= m; dy /= m;
+  }
+
+  const speed = d.config.moveSpeed;
+  d.x += dx * speed * dt;
+  d.y += dy * speed * dt;
+
+  // Stay on screen with margin
+  const m = 28 * CONFIG.stageScales[game.stage - 1];
+  d.x = Math.max(m, Math.min(cssW - m, d.x));
+  d.y = Math.max(m, Math.min(cssH - m, d.y));
+
+  if (Math.abs(dx) > 0.05) d.facing = dx > 0 ? 1 : -1;
+  d.wingPhase += dt * 9;
+
+  d.radius = 24 * CONFIG.stageScales[game.stage - 1];
+}
+
+function updateSpawning(dt) {
+  game.spawnTimer -= dt;
+  if (game.spawnTimer <= 0) {
+    game.zombies.push(makeZombie());
+    game.spawnTimer = spawnIntervalForWave(game.wave);
+  }
+}
+
+function updateZombies(dt) {
+  const d = game.dragon;
+  for (let i = game.zombies.length - 1; i >= 0; i--) {
+    const z = game.zombies[i];
+    z.touchCooldown = Math.max(0, z.touchCooldown - dt);
+    z.bounceT = Math.max(0, z.bounceT - dt);
+    z.chatterCooldown -= dt;
+
+    // Compute speed (frost slow check)
+    let speedMul = 1;
+    if (z.bounceT > 0) speedMul = 0; // bouncing — don't pursue this frame
+    for (const c of game.cured) {
+      if (!c.slowAura) continue;
+      if (game.elapsed > c.slowAuraUntil) continue;
+      if (Math.hypot(c.x - z.x, c.y - z.y) < CONFIG.frostSlowRadius) {
+        speedMul *= CONFIG.frostSlowFactor;
+        break;
+      }
+    }
+
+    if (z.bounceT > 0) {
+      // Apply bounce velocity
+      z.x += z.bounceVx * dt;
+      z.y += z.bounceVy * dt;
+      z.bounceVx *= 0.9;
+      z.bounceVy *= 0.9;
+    } else if (d) {
+      // Shuffle toward dragon
+      const dx = d.x - z.x;
+      const dy = d.y - z.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      z.x += (dx / dist) * z.speed * speedMul * dt;
+      z.y += (dy / dist) * z.speed * speedMul * dt;
+    }
+
+    z.walkPhase += dt * 4.5 * speedMul;
+
+    // Despawn if very far off-screen (shouldn't happen but a safety)
+    if (z.x < -200 || z.x > cssW + 200 || z.y < -200 || z.y > cssH + 200) {
+      game.zombies.splice(i, 1);
+    }
+  }
+}
+
+function updateFireballs(dt) {
+  for (let i = game.fireballs.length - 1; i >= 0; i--) {
+    const f = game.fireballs[i];
+    f.life += dt;
+    f.x += f.vx * dt;
+    f.y += f.vy * dt;
+    f.spin += dt * 8;
+    if (f.life > f.maxLife || f.x < -50 || f.x > cssW + 50 || f.y < -50 || f.y > cssH + 50) {
+      game.fireballs.splice(i, 1);
+    }
+  }
+}
+
+function updateCollisions(dt) {
+  const d = game.dragon;
+  if (!d) return;
+
+  // Fireball ↔ zombie
+  for (let i = game.fireballs.length - 1; i >= 0; i--) {
+    const f = game.fireballs[i];
+    let consumed = false;
+    for (let j = game.zombies.length - 1; j >= 0; j--) {
+      const z = game.zombies[j];
+      if (Math.hypot(f.x - z.x, f.y - z.y) < f.radius + z.radius + CONFIG.fireballHitPadding) {
+        cureZombie(z, j);
+        consumed = true;
+        break;
+      }
+    }
+    if (consumed) game.fireballs.splice(i, 1);
+  }
+
+  // Zombie ↔ dragon (touch)
+  for (const z of game.zombies) {
+    if (z.touchCooldown > 0) continue;
+    if (Math.hypot(z.x - d.x, z.y - d.y) < z.radius + d.radius - 4) {
+      // Add to meter
+      game.meter = Math.min(CONFIG.sleepyMeterMax, game.meter + CONFIG.zombieTouchPenalty);
+      updateMeterUI();
+      // Bounce zombie away
+      const ang = Math.atan2(z.y - d.y, z.x - d.x);
+      z.bounceVx = Math.cos(ang) * CONFIG.bounceBackSpeed;
+      z.bounceVy = Math.sin(ang) * CONFIG.bounceBackSpeed;
+      z.bounceT = CONFIG.bounceBackDurationSec;
+      z.touchCooldown = CONFIG.touchCooldownSec;
+      sfx.thud();
+      if (game.meter >= CONFIG.sleepyMeterMax) {
+        triggerNap();
+        return;
+      }
+    }
+  }
+}
+
+function cureZombie(z, idx) {
+  // Drop a cured person where the zombie was
+  const palette = ['#ff9ec4', '#7fc9d9', '#ffd76b', '#a78bfa', '#8de0a4', '#f29849', '#e89cc7'];
+  const color = palette[Math.floor(Math.random() * palette.length)];
+  const slowAura = !!game.dragon.config.slowAura;
+  game.cured.push(makeCured(z.x, z.y, game.stage, color, slowAura));
+  game.zombies.splice(idx, 1);
+  // Remove any speech bubbles attached to this zombie
+  game.speeches = game.speeches.filter(s => s.targetId !== z.id);
+
+  game.score++;
+  updateScoreUI();
+  sfx.cure();
+  makeSparkle(z.x, z.y, '#ffd76b');
+
+  // Persist lifetime cures
+  writeStr(KEYS.totalCured(), readNum(KEYS.totalCured(), 0) + 1);
+
+  // Check for stage advancement
+  const nextThreshold = CONFIG.cureThresholds[game.stage - 1];
+  if (nextThreshold != null && game.score >= nextThreshold) {
+    advanceStage();
+  }
+}
+
+function advanceStage() {
+  game.stage++;
+  if (game.stage > 5) game.stage = 5; // clamp
+  updateStageUI();
+  showGrewBanner();
+  sfx.levelUp();
+  // Burst of sparkles around the dragon
+  const d = game.dragon;
+  for (let i = 0; i < 4; i++) {
+    setTimeout(() => makeSparkle(d.x + (Math.random() - 0.5) * 50, d.y + (Math.random() - 0.5) * 50, '#ffd76b'), i * 80);
+  }
+  // Save biggest stage ever
+  const best = readNum(KEYS.biggestStage(), 1);
+  if (game.stage > best) {
+    writeStr(KEYS.biggestStage(), game.stage);
+  }
+  // First time hitting stage 5 on this device unlocks Sunny
+  if (game.stage === 5 && !readBool(KEYS.sunnyUnlocked(), false)) {
+    writeStr(KEYS.sunnyUnlocked(), 'true');
+  }
+}
+
+function updateCured(dt) {
+  for (let i = game.cured.length - 1; i >= 0; i--) {
+    const c = game.cured[i];
+    c.age += dt;
+    c.walkPhase += dt * 6;
+    // Movement style per stage
+    let speedMul = 1;
+    if (c.stage === 1) speedMul = 0.55;       // baby crawl
+    else if (c.stage === 2) speedMul = 1.2;   // skip
+    else if (c.stage === 3) speedMul = 1.4;   // jog
+    else if (c.stage === 4) speedMul = 1.0;   // walk
+    else speedMul = 0.45;                     // elder shuffle
+    c.x += c.vx * speedMul * dt;
+    c.y += c.vy * speedMul * dt;
+    if (c.age >= c.maxAge) {
+      game.cured.splice(i, 1);
+    }
+  }
+}
+
+function updateParticles(dt) {
+  for (let i = game.particles.length - 1; i >= 0; i--) {
+    const p = game.particles[i];
+    p.life -= dt;
+    if (p.life <= 0) { game.particles.splice(i, 1); continue; }
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.vx *= 0.92;
+    p.vy *= 0.92;
+    if (p.type === 'sparkle') {
+      p.vy += 80 * dt; // a bit of gravity
+    }
+  }
+}
+
+function updateChatter(dt) {
+  // Sometimes give a zombie a speech bubble
+  for (const z of game.zombies) {
+    if (z.chatterCooldown > 0) continue;
+    if (Math.random() < CONFIG.chatterChancePerSec * dt * 12) {
+      const text = CONFIG.chatter[Math.floor(Math.random() * CONFIG.chatter.length)];
+      game.speeches.push({
+        targetId: z.id,
+        text,
+        until: game.elapsed + CONFIG.chatterDurationSec,
+      });
+      z.chatterCooldown = 4 + Math.random() * 5;
+    }
+  }
+  // Drop expired speeches
+  game.speeches = game.speeches.filter(s => s.until > game.elapsed);
+}
+
+function updateWaves(dt) {
+  game.waveTimer += dt;
+  if (game.waveTimer >= CONFIG.waveDurationSec) {
+    game.waveTimer = 0;
+    game.wave++;
+    // Update existing zombies' base speed for the new wave
+    const ns = zombieSpeedForWave(game.wave);
+    for (const z of game.zombies) z.speed = ns;
+    showWaveBanner();
+  }
+}
+
+function updateShooting(dt) {
+  if (selectedMode !== 'auto' || !game.dragon) return;
+  const d = game.dragon;
+  game.shootTimer -= dt;
+  if (game.shootTimer > 0) return;
+  // Find nearest zombie
+  let nearest = null;
+  let nearestDist = Infinity;
+  for (const z of game.zombies) {
+    const dd = Math.hypot(z.x - d.x, z.y - d.y);
+    if (dd < nearestDist) { nearest = z; nearestDist = dd; }
+  }
+  if (!nearest) {
+    // No target — wait a short bit
+    game.shootTimer = 0.15;
+    return;
+  }
+  fireFromDragon(nearest.x, nearest.y);
+  game.shootTimer = d.config.shootInterval;
+}
+
+function updateNapFlyUp(dt) {
+  if (screen !== 'playing') return; // stop animating once nap screen is up
+  const d = game.dragon;
+  if (!d) return;
+  d.flyUpProgress += dt;
+  // Yawn for 0.7s, then float up
+  if (d.flyUpProgress > 0.7) {
+    const t = d.flyUpProgress - 0.7;
+    d.y -= (60 + t * 220) * dt;
+  }
+  d.wingPhase += dt * 12;
+  // Once dragon is off the top, show nap screen
+  if (d.y < -120) {
+    showNapScreen();
+  }
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render() {
+  // Background
+  drawBackground();
+
+  if (screen !== 'playing') return;
+
+  // Sort renderables by y to fake depth
+  const items = [];
+  for (const c of game.cured)    items.push({ y: c.y, draw: () => drawCured(c) });
+  for (const z of game.zombies)  items.push({ y: z.y, draw: () => drawZombie(z) });
+  if (game.dragon) items.push({ y: game.dragon.y, draw: () => drawDragon(game.dragon) });
+  for (const f of game.fireballs)items.push({ y: f.y + 1000, draw: () => drawFireball(f) }); // fireballs over everyone
+  items.sort((a, b) => a.y - b.y);
+  for (const it of items) it.draw();
+
+  // Particles on top
+  for (const p of game.particles) drawParticle(p);
+
+  // Speech bubbles on top of everything
+  for (const s of game.speeches) {
+    const z = game.zombies.find(zz => zz.id === s.targetId);
+    if (!z) continue;
+    drawSpeechBubble(z.x, z.y - z.radius - 18, s.text);
+  }
+}
+
+function drawBackground() {
+  // Sky gradient (drawn so we cover canvas; CSS bg shows during transitions)
+  const sky = ctx.createLinearGradient(0, 0, 0, cssH);
+  sky.addColorStop(0, '#cfe8ff');
+  sky.addColorStop(0.7, '#ffe6c4');
+  sky.addColorStop(1, '#ffd0a3');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, cssW, cssH);
+
+  // Sun
+  const sunX = cssW - 90;
+  const sunY = 90;
+  const sunR = 50;
+  ctx.fillStyle = 'rgba(255, 230, 140, 0.5)';
+  ctx.beginPath();
+  ctx.arc(sunX, sunY, sunR * 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffd76b';
+  ctx.beginPath();
+  ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fff5d0';
+  ctx.beginPath();
+  ctx.arc(sunX - 8, sunY - 10, sunR * 0.45, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Distant hills (soft pastel)
+  ctx.fillStyle = '#bcd9b0';
+  ctx.beginPath();
+  const hillY = cssH * 0.72;
+  ctx.moveTo(0, hillY + 40);
+  for (let x = 0; x <= cssW; x += 40) {
+    const h = Math.sin(x * 0.012) * 18 + Math.sin(x * 0.03) * 8;
+    ctx.lineTo(x, hillY - h);
+  }
+  ctx.lineTo(cssW, cssH);
+  ctx.lineTo(0, cssH);
+  ctx.closePath();
+  ctx.fill();
+
+  // Village silhouette (simple rooftops + walls)
+  const baseY = cssH - 60;
+  // Ground
+  ctx.fillStyle = '#9bc78a';
+  ctx.fillRect(0, baseY, cssW, 60);
+  // Houses
+  drawVillage(baseY);
+}
+
+function drawVillage(baseY) {
+  // Deterministic but pleasant arrangement based on screen width
+  const houseW = 80;
+  const houseColors = [['#f4a99a','#c46b5a'], ['#f4d28a','#c49a4a'], ['#a8c6e8','#5d83b0'], ['#e8b8d6','#a07090']];
+  const startX = -20;
+  let i = 0;
+  for (let x = startX; x < cssW + 100; x += houseW * 0.85) {
+    const colors = houseColors[i % houseColors.length];
+    const wallColor = colors[0];
+    const roofColor = colors[1];
+    const h = 40 + ((i * 13) % 28);
+    const w = 50 + ((i * 7) % 24);
+    // Wall
+    ctx.fillStyle = wallColor;
+    ctx.fillRect(x, baseY - h, w, h);
+    // Roof
+    ctx.fillStyle = roofColor;
+    ctx.beginPath();
+    ctx.moveTo(x - 4, baseY - h);
+    ctx.lineTo(x + w / 2, baseY - h - 18);
+    ctx.lineTo(x + w + 4, baseY - h);
+    ctx.closePath();
+    ctx.fill();
+    // Window
+    ctx.fillStyle = '#fff5d0';
+    ctx.fillRect(x + w * 0.25, baseY - h * 0.65, w * 0.18, h * 0.22);
+    ctx.fillRect(x + w * 0.57, baseY - h * 0.65, w * 0.18, h * 0.22);
+    // Door
+    ctx.fillStyle = '#5a4a3a';
+    ctx.fillRect(x + w * 0.4, baseY - h * 0.35, w * 0.2, h * 0.35);
+    i++;
+  }
+}
+
+function drawDragon(d) {
+  const scale = CONFIG.stageScales[game.stage - 1];
+  const cfg = d.config;
+  const x = d.x;
+  const y = d.y;
+  const face = d.facing;
+  const wingFlap = Math.sin(d.wingPhase) * 0.5;
+  const bob = Math.sin(d.wingPhase * 0.5) * 2;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+  ctx.beginPath();
+  ctx.ellipse(x, y + 26 * scale, 24 * scale, 6 * scale, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.save();
+  ctx.translate(x, y + bob);
+  ctx.scale(face * scale, scale);
+
+  // Wings (drawn behind body) — drawn first
+  ctx.fillStyle = cfg.wing;
+  ctx.beginPath();
+  ctx.moveTo(-6, -8);
+  ctx.quadraticCurveTo(-30, -28 + wingFlap * 18, -24, -2);
+  ctx.quadraticCurveTo(-18, -4, -6, -2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(6, -10);
+  ctx.quadraticCurveTo(30, -34 + wingFlap * 22, 26, -4);
+  ctx.quadraticCurveTo(16, -6, 8, -4);
+  ctx.closePath();
+  ctx.fill();
+
+  // Tail
+  ctx.fillStyle = cfg.color;
+  ctx.beginPath();
+  ctx.moveTo(-12, 10);
+  ctx.quadraticCurveTo(-26, 6, -28, 18);
+  ctx.quadraticCurveTo(-22, 16, -12, 14);
+  ctx.closePath();
+  ctx.fill();
+
+  // Body
+  ctx.fillStyle = cfg.color;
+  ctx.beginPath();
+  ctx.ellipse(0, 4, 18, 18, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Belly
+  ctx.fillStyle = cfg.belly;
+  ctx.beginPath();
+  ctx.ellipse(2, 8, 11, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Legs (stubby)
+  ctx.fillStyle = cfg.color;
+  ctx.beginPath();
+  ctx.ellipse(-7, 22, 5, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(7, 22, 5, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Head
+  ctx.fillStyle = cfg.color;
+  ctx.beginPath();
+  ctx.arc(14, -6, 14, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Tiny horns
+  ctx.fillStyle = '#fff5d0';
+  ctx.beginPath();
+  ctx.moveTo(10, -18);
+  ctx.lineTo(8, -25);
+  ctx.lineTo(13, -19);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(18, -18);
+  ctx.lineTo(20, -26);
+  ctx.lineTo(22, -19);
+  ctx.closePath();
+  ctx.fill();
+
+  // Snout (lighter)
+  ctx.fillStyle = cfg.belly;
+  ctx.beginPath();
+  ctx.ellipse(22, -2, 6, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Nostrils
+  ctx.fillStyle = 'rgba(45, 36, 56, 0.5)';
+  ctx.beginPath();
+  ctx.arc(25, -3, 0.8, 0, Math.PI * 2);
+  ctx.arc(25, -1, 0.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Big friendly eyes (or yawn)
+  const yawning = d.flyUpProgress > 0 && d.flyUpProgress < 0.7;
+  if (yawning) {
+    // Closed eyes (sleepy curves)
+    ctx.strokeStyle = '#2d2438';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(11, -6, 3, 0.2, Math.PI - 0.2);
+    ctx.stroke();
+    // Yawning mouth (O shape)
+    ctx.fillStyle = '#2d2438';
+    ctx.beginPath();
+    ctx.ellipse(22, 2, 4, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // Big eye
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(13, -8, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2d2438';
+    ctx.beginPath();
+    ctx.arc(14, -8, 2.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(15, -9, 0.9, 0, Math.PI * 2);
+    ctx.fill();
+    // Smile
+    ctx.strokeStyle = '#2d2438';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(22, 1, 2.5, 0.1, Math.PI - 0.1);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawZombie(z) {
+  const x = z.x;
+  const y = z.y;
+  const sway = Math.sin(z.walkPhase) * 2;
+  const legLift = Math.sin(z.walkPhase) * 2;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+  ctx.beginPath();
+  ctx.ellipse(x, y + 22, 18, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Body
+  ctx.fillStyle = z.color;
+  ctx.beginPath();
+  ctx.ellipse(x + sway * 0.3, y + 2, 14, 16, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Legs
+  ctx.fillStyle = '#4a8a4a';
+  ctx.fillRect(x - 6, y + 14 + Math.max(0, legLift), 4, 8);
+  ctx.fillRect(x + 2, y + 14 + Math.max(0, -legLift), 4, 8);
+
+  // Arms out front
+  ctx.fillStyle = z.color;
+  ctx.fillRect(x - 16, y - 4, 6, 4);
+  ctx.fillRect(x + 10, y - 4, 6, 4);
+  // Hands
+  ctx.fillStyle = '#7ac27a';
+  ctx.beginPath();
+  ctx.arc(x - 18, y - 2, 3.5, 0, Math.PI * 2);
+  ctx.arc(x + 18, y - 2, 3.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Head
+  ctx.fillStyle = z.color;
+  ctx.beginPath();
+  ctx.arc(x + sway * 0.3, y - 12, 10, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Half-closed eyes (sleepy lines)
+  ctx.strokeStyle = '#2d2438';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(x - 3 + sway * 0.3, y - 12, 2.5, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(x + 3 + sway * 0.3, y - 12, 2.5, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+
+  // Sleepy smile
+  ctx.beginPath();
+  ctx.arc(x + sway * 0.3, y - 9, 2.5, 0.1, Math.PI - 0.1);
+  ctx.stroke();
+}
+
+function drawCured(c) {
+  const x = c.x;
+  const y = c.y;
+  const ageT = c.age / c.maxAge;
+  const alpha = ageT < 0.85 ? 1 : (1 - (ageT - 0.85) / 0.15);
+  ctx.globalAlpha = alpha;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+  ctx.beginPath();
+  ctx.ellipse(x, y + 16, 10, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Stage-specific shape and motion
+  const phase = c.walkPhase;
+  const bounce = Math.abs(Math.sin(phase)) * (c.stage === 2 ? 6 : c.stage === 3 ? 4 : 1.5);
+  const bodyY = y - bounce;
+
+  if (c.stage === 1) {
+    // Baby crawling — low oval
+    ctx.fillStyle = c.color;
+    ctx.beginPath();
+    ctx.ellipse(x, bodyY + 6, 10, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + 5, bodyY + 2, 6, 0, Math.PI * 2);
+    ctx.fill();
+    // Smile
+    drawSmiley(x + 5, bodyY + 2, 4);
+  } else if (c.stage === 2) {
+    // Kid skipping — small blob
+    ctx.fillStyle = c.color;
+    ctx.beginPath();
+    ctx.ellipse(x, bodyY + 6, 8, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, bodyY - 4, 7, 0, Math.PI * 2);
+    ctx.fill();
+    drawSmiley(x, bodyY - 4, 5);
+    // Legs
+    ctx.fillStyle = '#5a3d1f';
+    ctx.fillRect(x - 4, bodyY + 14, 3, 5 - bounce * 0.3);
+    ctx.fillRect(x + 1, bodyY + 14, 3, 5 + bounce * 0.3);
+  } else if (c.stage === 3) {
+    // Teen jogging
+    ctx.fillStyle = c.color;
+    ctx.beginPath();
+    ctx.ellipse(x, bodyY + 8, 9, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, bodyY - 5, 8, 0, Math.PI * 2);
+    ctx.fill();
+    drawSmiley(x, bodyY - 5, 6);
+    // Arms swinging
+    ctx.fillStyle = c.color;
+    ctx.fillRect(x - 11, bodyY + 4 + bounce * 0.4, 4, 8);
+    ctx.fillRect(x + 7, bodyY + 4 - bounce * 0.4, 4, 8);
+    // Legs
+    ctx.fillStyle = '#5a3d1f';
+    ctx.fillRect(x - 5, bodyY + 18, 3, 6);
+    ctx.fillRect(x + 2, bodyY + 18, 3, 6);
+  } else if (c.stage === 4) {
+    // Adult walking with a wave
+    ctx.fillStyle = c.color;
+    ctx.beginPath();
+    ctx.ellipse(x, bodyY + 10, 10, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, bodyY - 6, 9, 0, Math.PI * 2);
+    ctx.fill();
+    drawSmiley(x, bodyY - 6, 7);
+    // Waving arm
+    const waveT = Math.sin(phase * 2);
+    ctx.fillStyle = c.color;
+    ctx.save();
+    ctx.translate(x + 9, bodyY + 4);
+    ctx.rotate(-0.8 + waveT * 0.4);
+    ctx.fillRect(0, -2, 10, 4);
+    ctx.restore();
+    // Other arm
+    ctx.fillRect(x - 13, bodyY + 4, 4, 9);
+    // Legs
+    ctx.fillStyle = '#3a4a6a';
+    ctx.fillRect(x - 5, bodyY + 22, 4, 7);
+    ctx.fillRect(x + 1, bodyY + 22, 4, 7);
+  } else {
+    // Elder shuffle with cane
+    ctx.fillStyle = c.color;
+    ctx.beginPath();
+    ctx.ellipse(x, bodyY + 10, 10, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, bodyY - 6, 9, 0, Math.PI * 2);
+    ctx.fill();
+    drawSmiley(x, bodyY - 6, 7);
+    // White hair tuft
+    ctx.fillStyle = '#f0f0f0';
+    ctx.beginPath();
+    ctx.arc(x, bodyY - 12, 6, Math.PI, 0);
+    ctx.fill();
+    // Cane
+    ctx.strokeStyle = '#8b6f4a';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x + 12, bodyY + 6);
+    ctx.lineTo(x + 14, bodyY + 26);
+    ctx.stroke();
+    // Cane hook
+    ctx.beginPath();
+    ctx.moveTo(x + 12, bodyY + 6);
+    ctx.quadraticCurveTo(x + 9, bodyY + 4, x + 9, bodyY + 8);
+    ctx.stroke();
+    // Slow shuffle legs
+    ctx.fillStyle = '#3a4a6a';
+    ctx.fillRect(x - 5, bodyY + 22, 4, 7);
+    ctx.fillRect(x + 1, bodyY + 22, 4, 7);
+  }
+
+  // Slow aura ring (frost cure)
+  if (c.slowAura && game.elapsed < c.slowAuraUntil) {
+    const t = (c.slowAuraUntil - game.elapsed) / CONFIG.frostSlowDurationSec;
+    ctx.globalAlpha = alpha * 0.35 * t;
+    ctx.strokeStyle = '#7fc9d9';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x, y + 4, CONFIG.frostSlowRadius * (1 - t * 0.2), 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawSmiley(cx, cy, r) {
+  ctx.fillStyle = '#2d2438';
+  ctx.beginPath();
+  ctx.arc(cx - r * 0.35, cy - r * 0.15, 0.9, 0, Math.PI * 2);
+  ctx.arc(cx + r * 0.35, cy - r * 0.15, 0.9, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#2d2438';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy + r * 0.05, r * 0.45, 0.1, Math.PI - 0.1);
+  ctx.stroke();
+}
+
+function drawFireball(f) {
+  const x = f.x, y = f.y;
+  // Outer glow
+  ctx.globalAlpha = 0.4;
+  ctx.fillStyle = f.color;
+  ctx.beginPath();
+  ctx.arc(x, y, f.radius * 1.9, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  // Body
+  ctx.fillStyle = f.color;
+  ctx.beginPath();
+  ctx.arc(x, y, f.radius, 0, Math.PI * 2);
+  ctx.fill();
+  // Hot center
+  ctx.fillStyle = '#fff5d0';
+  ctx.beginPath();
+  ctx.arc(x - f.radius * 0.3, y - f.radius * 0.3, f.radius * 0.5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawParticle(p) {
+  const alpha = Math.max(0, p.life / p.maxLife);
+  ctx.globalAlpha = alpha;
+  if (p.type === 'sparkle') {
+    ctx.fillStyle = p.color;
+    const r = p.size * (0.7 + alpha * 0.6);
+    drawStar(p.x, p.y, r);
+  } else {
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * (2 - alpha), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawStar(cx, cy, r) {
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a1 = (i / 5) * Math.PI * 2 - Math.PI / 2;
+    const a2 = ((i + 0.5) / 5) * Math.PI * 2 - Math.PI / 2;
+    if (i === 0) ctx.moveTo(cx + Math.cos(a1) * r, cy + Math.sin(a1) * r);
+    else ctx.lineTo(cx + Math.cos(a1) * r, cy + Math.sin(a1) * r);
+    ctx.lineTo(cx + Math.cos(a2) * r * 0.45, cy + Math.sin(a2) * r * 0.45);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawSpeechBubble(x, y, text) {
+  ctx.font = '700 14px -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif';
+  const padX = 8, padY = 5;
+  const tw = ctx.measureText(text).width;
+  const bw = tw + padX * 2;
+  const bh = 22;
+  const bx = x - bw / 2;
+  const by = y - bh;
+  // Bubble
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+  roundRect(bx, by, bw, bh, 8);
+  ctx.fill();
+  // Tail
+  ctx.beginPath();
+  ctx.moveTo(x - 4, by + bh);
+  ctx.lineTo(x, by + bh + 6);
+  ctx.lineTo(x + 4, by + bh);
+  ctx.closePath();
+  ctx.fill();
+  // Text
+  ctx.fillStyle = '#2d2438';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, x, by + bh / 2);
+  ctx.textAlign = 'start';
+  ctx.textBaseline = 'alphabetic';
+}
+
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+/* ============================================================
+   HUD UI
+   ============================================================ */
+const ui = {
+  hud:        document.getElementById('hud'),
+  score:      document.getElementById('scoreCount'),
+  stage:      document.getElementById('hudStage'),
+  meter:      document.getElementById('meterFill'),
+  muteBtn:    document.getElementById('muteBtn'),
+  waveBanner: document.getElementById('waveBanner'),
+  grewBanner: document.getElementById('grewBanner'),
+
+  dragonPicker: document.getElementById('dragonPickerScreen'),
+  dpPlayerName: document.getElementById('dpPlayerName'),
+  dragonGrid:   document.getElementById('dragonGrid'),
+  dpSwitch:     document.getElementById('dpSwitchPlayer'),
+
+  controlPicker: document.getElementById('controlPickerScreen'),
+  cpPlayerName:  document.getElementById('cpPlayerName'),
+  cpDragonName:  document.getElementById('cpDragonName'),
+  modeAuto:      document.getElementById('modeAuto'),
+  modeAim:       document.getElementById('modeAim'),
+  cpBack:        document.getElementById('cpBack'),
+
+  napScreen:    document.getElementById('napScreen'),
+  napCount:     document.getElementById('napCount'),
+  napHighWrap:  document.getElementById('napHighWrap'),
+  napStage:     document.getElementById('napStage'),
+  napPlayAgain: document.getElementById('napPlayAgain'),
+  napPickDragon:document.getElementById('napPickDragon'),
+};
+
+function updateScoreUI() { ui.score.textContent = game.score; }
+function updateStageUI() {
+  ui.stage.textContent = '🐉 ' + CONFIG.stageNames[game.stage - 1];
+}
+function updateMeterUI() {
+  const pct = (game.meter / CONFIG.sleepyMeterMax) * 100;
+  ui.meter.style.width = pct + '%';
+}
+function updateMuteUI() {
+  ui.muteBtn.textContent = muted ? '🔇' : '🔊';
+}
+
+function showWaveBanner() {
+  ui.waveBanner.textContent = 'Wave ' + game.wave + ' …';
+  ui.waveBanner.classList.add('show');
+  setTimeout(() => ui.waveBanner.classList.remove('show'), 1400);
+}
+function showGrewBanner() {
+  ui.grewBanner.classList.add('show');
+  setTimeout(() => ui.grewBanner.classList.remove('show'), 1500);
+}
+
+/* ============================================================
+   SCREEN MANAGEMENT
+   ============================================================ */
+function showScreen(name) {
+  screen = name;
+  ui.dragonPicker.classList.toggle('hidden', name !== 'dragonPicker');
+  ui.controlPicker.classList.toggle('hidden', name !== 'controlPicker');
+  ui.napScreen.classList.toggle('hidden', name !== 'nap');
+  ui.hud.classList.toggle('hidden', name !== 'playing');
+}
+
+function renderDragonPicker() {
+  ui.dpPlayerName.textContent = player;
+  ui.dragonGrid.innerHTML = '';
+  const sunnyUnlocked = readBool(KEYS.sunnyUnlocked(), false);
+  const sunnyAck = readBool(KEYS.sunnyAck(), false);
+  const favorite = readStr(KEYS.favoriteDragon(), '');
+  for (const id of CONFIG.dragonOrder) {
+    const cfg = CONFIG.dragons[id];
+    const card = document.createElement('button');
+    card.className = 'dragon-card';
+    if (id === favorite) card.classList.add('favorite');
+    const locked = (id === 'sunny' && !sunnyUnlocked);
+    if (locked) card.classList.add('locked');
+    card.innerHTML = `
+      ${dragonPickerSVG(cfg)}
+      <div class="name">${locked ? '???' : cfg.name}</div>
+      <div class="tag">${locked ? 'Locked' : CONFIG.dragonTags[id]}</div>
+    `;
+    if (locked) {
+      const lk = document.createElement('div');
+      lk.className = 'lock-overlay';
+      lk.textContent = '🔒';
+      card.appendChild(lk);
+    } else if (id === 'sunny' && !sunnyAck) {
+      const nb = document.createElement('div');
+      nb.className = 'new-badge';
+      nb.textContent = '✨ NEW!';
+      card.appendChild(nb);
+    }
+    card.addEventListener('click', () => {
+      if (locked) return;
+      onAnyTap();
+      selectedDragonId = id;
+      writeStr(KEYS.favoriteDragon(), id);
+      if (id === 'sunny') writeStr(KEYS.sunnyAck(), 'true');
+      showControlPicker();
+    });
+    ui.dragonGrid.appendChild(card);
+  }
+}
+
+function dragonPickerSVG(cfg) {
+  // Inline SVG matches the in-game shape; scales cleanly via viewBox.
+  const c = cfg.color, w = cfg.wing, b = cfg.belly;
+  return `<svg viewBox="-40 -40 80 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="0" cy="28" rx="22" ry="5" fill="rgba(0,0,0,0.12)"/>
+    <path d="M -6 -8 Q -30 -28 -24 -2 Q -18 -4 -6 -2 Z" fill="${w}"/>
+    <path d="M 6 -10 Q 30 -34 26 -4 Q 16 -6 8 -4 Z" fill="${w}"/>
+    <path d="M -12 10 Q -26 6 -28 18 Q -22 16 -12 14 Z" fill="${c}"/>
+    <ellipse cx="0" cy="4" rx="18" ry="18" fill="${c}"/>
+    <ellipse cx="2" cy="8" rx="11" ry="12" fill="${b}"/>
+    <ellipse cx="-7" cy="22" rx="5" ry="4" fill="${c}"/>
+    <ellipse cx="7" cy="22" rx="5" ry="4" fill="${c}"/>
+    <circle cx="14" cy="-6" r="14" fill="${c}"/>
+    <path d="M 10 -18 L 8 -25 L 13 -19 Z" fill="#fff5d0"/>
+    <path d="M 18 -18 L 20 -26 L 22 -19 Z" fill="#fff5d0"/>
+    <ellipse cx="22" cy="-2" rx="6" ry="4" fill="${b}"/>
+    <circle cx="13" cy="-8" r="5" fill="white"/>
+    <circle cx="14" cy="-8" r="2.6" fill="#2d2438"/>
+    <circle cx="15" cy="-9" r="0.9" fill="white"/>
+    <path d="M 20 1 A 2.5 2.5 0 0 0 24 1" stroke="#2d2438" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function showControlPicker() {
+  showScreen('controlPicker');
+  ui.cpPlayerName.textContent = player;
+  ui.cpDragonName.textContent = CONFIG.dragons[selectedDragonId].name;
+  // Highlight the saved/preselected mode
+  const fav = readStr(KEYS.controlMode(), 'auto');
+  ui.modeAuto.classList.toggle('favorite', fav === 'auto');
+  ui.modeAim.classList.toggle('favorite', fav === 'aim');
+}
+
+ui.modeAuto.addEventListener('click', () => { onAnyTap(); pickMode('auto'); });
+ui.modeAim.addEventListener('click', () => { onAnyTap(); pickMode('aim'); });
+function pickMode(m) {
+  selectedMode = m;
+  writeStr(KEYS.controlMode(), m);
+  startNewRun();
+}
+
+ui.cpBack.addEventListener('click', () => { onAnyTap(); showScreen('dragonPicker'); renderDragonPicker(); });
+ui.dpSwitch.addEventListener('click', () => {
+  onAnyTap();
+  localStorage.removeItem('arcade-current-player');
+  window.location.href = '/';
+});
+
+ui.napPlayAgain.addEventListener('click', () => { onAnyTap(); startNewRun(); });
+ui.napPickDragon.addEventListener('click', () => { onAnyTap(); showScreen('dragonPicker'); renderDragonPicker(); });
+
+ui.muteBtn.addEventListener('click', () => {
+  onAnyTap();
+  muted = !muted;
+  writeStr(KEYS.muted(), muted);
+  updateMuteUI();
+  if (muted) stopBgHum();
+  else startBgHum();
+});
+
+// Any user interaction unlocks audio on iOS
+function onAnyTap() {
+  if (!audioUnlocked) unlockAudioOnGesture();
+}
+window.addEventListener('pointerdown', onAnyTap, { once: false });
+window.addEventListener('touchstart',  onAnyTap, { once: false });
+window.addEventListener('keydown',     onAnyTap, { once: false });
+
+/* ============================================================
+   RUN LIFECYCLE
+   ============================================================ */
+function startNewRun() {
+  game.dragon = makeDragon();
+  game.zombies = [];
+  game.fireballs = [];
+  game.cured = [];
+  game.particles = [];
+  game.speeches = [];
+  game.score = 0;
+  game.stage = 1;
+  game.meter = 0;
+  game.wave = 1;
+  game.waveTimer = 0;
+  game.spawnTimer = spawnIntervalForWave(1);
+  game.shootTimer = 0;
+  game.manualCooldown = 0;
+  game.napping = false;
+  showScreen('playing');
+  updateScoreUI();
+  updateStageUI();
+  updateMeterUI();
+}
+
+function triggerNap() {
+  if (game.napping) return;
+  game.napping = true;
+  game.dragon.flyUpProgress = 0.001;
+  sfx.yawn();
+  // Persist high score
+  const prev = readNum(KEYS.highScore(), 0);
+  if (game.score > prev) writeStr(KEYS.highScore(), game.score);
+  // biggestStage already updated incrementally in advanceStage
+}
+
+function showNapScreen() {
+  showScreen('nap');
+  ui.napCount.textContent = game.score;
+  const prev = readNum(KEYS.highScore(), 0);
+  if (game.score >= prev && game.score > 0) {
+    ui.napHighWrap.innerHTML = `<div class="new-high">🏆 New high score!</div>`;
+  } else {
+    ui.napHighWrap.innerHTML = `<div class="best">Best: ${prev}</div>`;
+  }
+  const biggest = readNum(KEYS.biggestStage(), game.stage);
+  ui.napStage.textContent = '🐉 ' + CONFIG.stageNames[(biggest || 1) - 1];
+}
+
+/* ============================================================
+   MAIN LOOP
+   ============================================================ */
+let lastTime = performance.now();
+function loop(now) {
+  let dt = (now - lastTime) / 1000;
+  lastTime = now;
+  if (dt > 0.1) dt = 0.1; // cap big spikes
+
+  // Always render background (so the canvas isn't blank behind overlays)
+  if (screen === 'playing' || screen === 'nap') {
+    update(dt);
+    render();
+  } else {
+    // Still draw the soft background so canvas doesn't look empty if user resizes
+    drawBackground();
+  }
+
+  requestAnimationFrame(loop);
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+renderDragonPicker();
+updateMuteUI();
+showScreen('dragonPicker');
+requestAnimationFrame(loop);
+
+</script>
+</body>
+</html>

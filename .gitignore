@@ -8,4 +8,5 @@
 # Editor junk
 .vscode/
 .idea/
+.claude/
 *.swp
