@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pup Patrol">
+<title>Pup Patrol: Alien Rescue</title>
+<style>
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;
+    background: #6fb86f;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", "Nunito", sans-serif;
+    color: #2d2438;
+  }
+  canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* ============ HUD ============ */
+  .hud {
+    position: absolute;
+    top: env(safe-area-inset-top, 12px);
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
+    z-index: 10;
+    padding-top: 12px;
+  }
+  .hud-pill {
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 999px;
+    padding: 8px 14px 8px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(40, 40, 60, 0.2);
+    font-weight: 800;
+    font-size: 20px;
+    color: #2d2438;
+    min-height: 40px;
+  }
+  .pill-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .coin-icon  { background: linear-gradient(135deg, #ffe06b, #f4b53a); }
+  .dog-icon   { background: linear-gradient(135deg, #f4b88a, #d49566); }
+  .heart-icon { background: linear-gradient(135deg, #ff9aa8, #ef6b80); }
+
+  /* Quest indicator (cages remaining) */
+  .quest {
+    position: absolute;
+    top: env(safe-area-inset-top, 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(45, 36, 56, 0.85);
+    color: white;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    margin-top: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* ============ UPGRADES ============ */
+  .upgrades {
+    position: absolute;
+    bottom: env(safe-area-inset-bottom, 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+    padding-bottom: 12px;
+  }
+  .upgrade-btn {
+    background: rgba(255, 255, 255, 0.92);
+    border: 3px solid rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(40, 40, 60, 0.2);
+    font-weight: 700;
+    font-size: 13px;
+    color: #2d2438;
+    min-width: 92px;
+    transition: transform 0.12s ease, opacity 0.2s ease;
+  }
+  .upgrade-btn:active { transform: scale(0.95); }
+  .upgrade-btn.disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .upgrade-emoji { font-size: 26px; line-height: 1; }
+  .upgrade-cost {
+    background: #f4b53a;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 2px;
+  }
+  .upgrade-cost::before { content: '🪙'; font-size: 11px; }
+
+  /* ============ START SCREEN ============ */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+    transition: opacity 0.4s ease;
+  }
+  .overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  #start-screen {
+    background: linear-gradient(180deg, #b3e0ff 0%, #ffd9a3 100%);
+  }
+  #start-screen h1 {
+    font-size: clamp(36px, 7vw, 56px);
+    font-weight: 900;
+    margin: 8px 0;
+    color: #2d2438;
+    text-shadow: 3px 3px 0 white, 6px 6px 0 rgba(45, 36, 56, 0.15);
+    letter-spacing: -0.02em;
+  }
+  #start-screen .sub {
+    font-size: clamp(16px, 2.4vw, 20px);
+    font-weight: 600;
+    color: #5a4a6e;
+    margin: 0 0 20px;
+    max-width: 480px;
+  }
+  .start-art {
+    width: clamp(160px, 26vw, 240px);
+    height: clamp(120px, 20vw, 180px);
+    margin-bottom: 4px;
+  }
+  .big-btn {
+    background: linear-gradient(135deg, #ffd76b, #f29849);
+    color: white;
+    border: none;
+    font-size: clamp(20px, 3vw, 26px);
+    font-weight: 800;
+    padding: 18px 44px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(242, 152, 73, 0.5),
+                inset 0 2px 3px rgba(255, 255, 255, 0.4);
+    transition: transform 0.15s ease;
+  }
+  .big-btn:active { transform: scale(0.95); }
+  .hint {
+    margin-top: 16px;
+    font-size: 14px;
+    color: #5a4a6e;
+    font-weight: 600;
+    max-width: 320px;
+    line-height: 1.5;
+  }
+
+  /* ============ WIN SCREEN ============ */
+  #win-screen {
+    background: rgba(45, 36, 56, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+  }
+  #win-screen.show { display: flex; }
+  .win-card {
+    background: white;
+    border-radius: 28px;
+    padding: 32px 28px;
+    max-width: 380px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes pop-in {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  .win-card h2 {
+    font-size: 30px;
+    margin: 8px 0;
+    color: #2d2438;
+  }
+  .win-card p {
+    color: #5a4a6e;
+    font-weight: 600;
+    margin: 0 0 18px;
+  }
+  .confetti-row { font-size: 36px; }
+
+  /* ============ DIALOGUE (when dog freed, etc) ============ */
+  .toast {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    background: white;
+    border-radius: 20px;
+    padding: 14px 24px;
+    font-weight: 700;
+    font-size: 18px;
+    color: #2d2438;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    z-index: 20;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div class="hud">
+  <div class="hud-pill">
+    <div class="pill-icon coin-icon">🪙</div>
+    <span id="coins">0</span>
+  </div>
+  <div class="hud-pill">
+    <div class="pill-icon dog-icon">🐕</div>
+    <span id="dogs">1</span>
+  </div>
+</div>
+
+<div class="quest" id="quest">Free the puppies! <span id="rescued">0</span>/<span id="total">5</span></div>
+
+<div class="upgrades">
+  <button class="upgrade-btn" id="up-range">
+    <span class="upgrade-emoji">📏</span>
+    <span>Longer Leash</span>
+    <span class="upgrade-cost" id="cost-range">5</span>
+  </button>
+  <button class="upgrade-btn" id="up-speed">
+    <span class="upgrade-emoji">⚡</span>
+    <span>Faster Paws</span>
+    <span class="upgrade-cost" id="cost-speed">5</span>
+  </button>
+</div>
+
+<div class="overlay" id="start-screen">
+  <svg class="start-art" viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg">
+    <!-- Alien -->
+    <ellipse cx="60" cy="115" rx="28" ry="22" fill="#a685e2"/>
+    <ellipse cx="60" cy="110" rx="20" ry="14" fill="#c8b3ed"/>
+    <circle cx="60" cy="100" r="10" fill="white"/>
+    <circle cx="60" cy="100" r="5" fill="#2d2438"/>
+    <circle cx="62" cy="98" r="1.5" fill="white"/>
+    <line x1="52" y1="88" x2="48" y2="78" stroke="#a685e2" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="68" y1="88" x2="72" y2="78" stroke="#a685e2" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="48" cy="78" r="3" fill="#ffd76b"/>
+    <circle cx="72" cy="78" r="3" fill="#ffd76b"/>
+
+    <!-- VS text -->
+    <text x="120" y="92" font-family="sans-serif" font-size="32" font-weight="900" text-anchor="middle" fill="#2d2438">VS</text>
+
+    <!-- Dog -->
+    <ellipse cx="180" cy="118" rx="28" ry="18" fill="#d49566"/>
+    <circle cx="200" cy="100" r="18" fill="#d49566"/>
+    <ellipse cx="192" cy="88" rx="5" ry="8" fill="#a06f44" transform="rotate(-20 192 88)"/>
+    <ellipse cx="210" cy="88" rx="5" ry="8" fill="#a06f44" transform="rotate(20 210 88)"/>
+    <ellipse cx="208" cy="105" rx="6" ry="4" fill="#f1d4ad"/>
+    <circle cx="196" cy="100" r="2" fill="#2d2438"/>
+    <circle cx="206" cy="100" r="2" fill="#2d2438"/>
+    <ellipse cx="208" cy="107" rx="2" ry="1.5" fill="#2d2438"/>
+    <path d="M 205 109 Q 208 113 211 109" stroke="#2d2438" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M 154 110 Q 145 100 155 95" stroke="#d49566" stroke-width="6" fill="none" stroke-linecap="round"/>
+  </svg>
+  <h1>Pup Patrol</h1>
+  <div class="sub">Aliens stole the puppies! Free them all.</div>
+  <button class="big-btn" id="start-btn">Let's Go!</button>
+  <div class="hint">👉 Touch and drag anywhere to move.<br>Your dog fights aliens nearby.<br>Walk up to cages to free puppies.</div>
+</div>
+
+<div class="overlay" id="win-screen">
+  <div class="win-card">
+    <div class="confetti-row">🎉 🐕 🐕 🐕 🎉</div>
+    <h2>You saved them all!</h2>
+    <p>You're a hero. The puppies will never forget you.</p>
+    <button class="big-btn" id="play-again">Play Again</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+/* ====================================================================
+   GAME: Pup Patrol — Alien Rescue
+   2D top-down adventure. Tuned for Michael:
+   - No fail state (player can't die)
+   - Silly cartoon aliens (one big eye, no menace)
+   - Auto-combat — dogs fight on their own, player just walks around
+   - Walking up to a cage frees the puppy (no precise tapping needed)
+   - Encouraging dialogue when dogs join
+   ==================================================================== */
+
+/* ====================== AUDIO ====================== */
+let actx = null;
+function initAudio() {
+  if (actx) return;
+  const C = window.AudioContext || window.webkitAudioContext;
+  actx = new C();
+}
+function beep(freq, dur, type = 'sine', vol = 0.15) {
+  if (!actx) return;
+  const t = actx.currentTime;
+  const o = actx.createOscillator();
+  const g = actx.createGain();
+  o.type = type;
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g);
+  g.connect(actx.destination);
+  o.start(t);
+  o.stop(t + dur + 0.02);
+}
+const sfx = {
+  hit:   () => beep(220 + Math.random() * 40, 0.08, 'square', 0.08),
+  poof:  () => { beep(440, 0.1, 'triangle', 0.1); setTimeout(() => beep(330, 0.15, 'triangle', 0.08), 60); },
+  coin:  () => { beep(880, 0.07, 'square', 0.1); setTimeout(() => beep(1320, 0.1, 'square', 0.1), 60); },
+  rescue:() => {
+    beep(523, 0.12, 'triangle', 0.12);
+    setTimeout(() => beep(659, 0.12, 'triangle', 0.12), 100);
+    setTimeout(() => beep(784, 0.18, 'triangle', 0.14), 200);
+  },
+  upgrade: () => {
+    beep(659, 0.08, 'sine', 0.12);
+    setTimeout(() => beep(880, 0.12, 'sine', 0.12), 80);
+  },
+  win: () => {
+    [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 0.2, 'triangle', 0.15), i * 120));
+  },
+};
+
+/* ====================== CONSTANTS ====================== */
+const WORLD = { w: 1600, h: 1200 };
+const DOG_COLORS = ['#d49566', '#f1d4ad', '#8b6f4a', '#c8a47a', '#5a4a3a', '#e8b88a'];
+const DOG_NAMES = ['Biscuit', 'Mochi', 'Pepper', 'Cocoa', 'Marble', 'Honey', 'Pebble'];
+const ALIEN_COLORS = ['#a685e2', '#7fc9d9', '#e89cc7', '#8de0a4', '#f4a261'];
+const ENCOURAGEMENTS = [
+  "Thanks for saving me!",
+  "I'll help you free the others!",
+  "Woof! Let's go!",
+  "You're the best!",
+  "I love you!",
+  "Yay! I'm free!",
+];
+
+/* ====================== STATE ====================== */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+let cssW = 0, cssH = 0, dpr = 1;
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  cssW = window.innerWidth;
+  cssH = window.innerHeight;
+  canvas.width  = Math.floor(cssW * dpr);
+  canvas.height = Math.floor(cssH * dpr);
+  canvas.style.width  = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+const camera = { x: WORLD.w / 2 - cssW / 2, y: WORLD.h / 2 - cssH / 2 };
+
+const player = {
+  x: WORLD.w / 2,
+  y: WORLD.h / 2,
+  baseSpeed: 200,
+  speed: 200,
+  radius: 16,
+  facing: 0, // -1 left, 1 right
+  walkPhase: 0,
+};
+
+const dogs = []; // companion dogs
+const aliens = []; // enemy aliens
+const cages = []; // cages holding puppies
+const coins = []; // collectible coins
+const particles = []; // visual effects
+const bushes = []; // background decorations
+
+let totalCages = 5;
+let rescued = 0;
+let coinsBank = 0;
+let upgRange = 0;
+let upgSpeed = 0;
+let gameStarted = false;
+let gameWon = false;
+
+/* ====================== ENTITY FACTORIES ====================== */
+function spawnInitialDog() {
+  dogs.push({
+    x: player.x + 30,
+    y: player.y + 10,
+    speed: 240,
+    radius: 14,
+    color: DOG_COLORS[0],
+    name: DOG_NAMES[0],
+    baseRange: 110,
+    range: 110,
+    damage: 22,
+    attackCd: 0,
+    target: null,
+    bounce: 0,
+    facing: 1,
+  });
+}
+
+function spawnAlien(x, y) {
+  aliens.push({
+    x, y,
+    vx: 0, vy: 0,
+    radius: 18,
+    hp: 60,
+    maxHp: 60,
+    color: ALIEN_COLORS[Math.floor(Math.random() * ALIEN_COLORS.length)],
+    wanderTimer: 0,
+    wanderAngle: Math.random() * Math.PI * 2,
+    hitFlash: 0,
+    bobPhase: Math.random() * Math.PI * 2,
+  });
+}
+
+function spawnCage(x, y) {
+  cages.push({
+    x, y,
+    radius: 32,
+    freed: false,
+    progress: 0,
+    dogColor: DOG_COLORS[cages.length + 1 % DOG_COLORS.length],
+    dogName: DOG_NAMES[(cages.length + 1) % DOG_NAMES.length],
+  });
+}
+
+function spawnCoin(x, y) {
+  // Small burst — 2 to 3 coins
+  const n = 2 + Math.floor(Math.random() * 2);
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const r = 12 + Math.random() * 18;
+    coins.push({
+      x: x + Math.cos(a) * 4,
+      y: y + Math.sin(a) * 4,
+      vx: Math.cos(a) * 80,
+      vy: Math.sin(a) * 80 - 60,
+      life: 0,
+      targetX: x + Math.cos(a) * r,
+      targetY: y + Math.sin(a) * r,
+      settled: false,
+      bob: Math.random() * Math.PI * 2,
+    });
+  }
+}
+
+function spawnPoof(x, y, color = '#a685e2') {
+  for (let i = 0; i < 10; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = 60 + Math.random() * 100;
+    particles.push({
+      x, y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp,
+      life: 0.6 + Math.random() * 0.3,
+      maxLife: 0.6 + Math.random() * 0.3,
+      size: 4 + Math.random() * 4,
+      color,
+      type: 'cloud',
+    });
+  }
+}
+
+function spawnHeart(x, y) {
+  particles.push({
+    x, y,
+    vx: (Math.random() - 0.5) * 30,
+    vy: -50 - Math.random() * 30,
+    life: 1.0,
+    maxLife: 1.0,
+    size: 14,
+    color: '#ef6b80',
+    type: 'heart',
+  });
+}
+
+/* ====================== WORLD SETUP ====================== */
+function setupWorld() {
+  // Reset everything
+  dogs.length = 0;
+  aliens.length = 0;
+  cages.length = 0;
+  coins.length = 0;
+  particles.length = 0;
+  bushes.length = 0;
+  rescued = 0;
+  coinsBank = 0;
+  upgRange = 0;
+  upgSpeed = 0;
+  gameWon = false;
+  player.x = WORLD.w / 2;
+  player.y = WORLD.h / 2;
+  player.speed = player.baseSpeed;
+
+  spawnInitialDog();
+
+  // Bushes for atmosphere
+  for (let i = 0; i < 28; i++) {
+    bushes.push({
+      x: 80 + Math.random() * (WORLD.w - 160),
+      y: 80 + Math.random() * (WORLD.h - 160),
+      size: 18 + Math.random() * 14,
+      shade: Math.random() < 0.5 ? '#4f9c4f' : '#5cae5c',
+    });
+  }
+
+  // Cages around the world (not too close to player start)
+  const cagePositions = [
+    { x: 220, y: 220 },
+    { x: WORLD.w - 220, y: 220 },
+    { x: 220, y: WORLD.h - 220 },
+    { x: WORLD.w - 220, y: WORLD.h - 220 },
+    { x: WORLD.w / 2, y: 180 },
+  ];
+  cagePositions.forEach(p => spawnCage(p.x, p.y));
+  totalCages = cages.length;
+
+  // Initial aliens
+  for (let i = 0; i < 8; i++) {
+    let x, y, tries = 0;
+    do {
+      x = 120 + Math.random() * (WORLD.w - 240);
+      y = 120 + Math.random() * (WORLD.h - 240);
+      tries++;
+    } while (Math.hypot(x - player.x, y - player.y) < 250 && tries < 20);
+    spawnAlien(x, y);
+  }
+
+  updateHUD();
+}
+
+/* ====================== INPUT ====================== */
+const input = {
+  active: false,
+  screenX: 0,
+  screenY: 0,
+};
+
+function screenToWorld(sx, sy) {
+  return { x: sx + camera.x, y: sy + camera.y };
+}
+
+function setTouch(x, y) {
+  input.active = true;
+  input.screenX = x;
+  input.screenY = y;
+}
+function endTouch() { input.active = false; }
+
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  const t = e.touches[0];
+  setTouch(t.clientX, t.clientY);
+}, { passive: false });
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  const t = e.touches[0];
+  setTouch(t.clientX, t.clientY);
+}, { passive: false });
+canvas.addEventListener('touchend', (e) => { e.preventDefault(); endTouch(); }, { passive: false });
+canvas.addEventListener('touchcancel', (e) => { e.preventDefault(); endTouch(); }, { passive: false });
+
+// Mouse fallback for desktop testing
+canvas.addEventListener('mousedown', (e) => setTouch(e.clientX, e.clientY));
+canvas.addEventListener('mousemove', (e) => { if (input.active) setTouch(e.clientX, e.clientY); });
+canvas.addEventListener('mouseup', endTouch);
+canvas.addEventListener('mouseleave', endTouch);
+
+/* ====================== UPDATE ====================== */
+function updatePlayer(dt) {
+  if (!input.active) {
+    // Decelerate
+    player.walkPhase *= 0.9;
+    return;
+  }
+  const world = screenToWorld(input.screenX, input.screenY);
+  const dx = world.x - player.x;
+  const dy = world.y - player.y;
+  const dist = Math.hypot(dx, dy);
+  if (dist < 8) { player.walkPhase *= 0.9; return; }
+  const nx = dx / dist;
+  const ny = dy / dist;
+  player.x += nx * player.speed * dt;
+  player.y += ny * player.speed * dt;
+  player.x = Math.max(40, Math.min(WORLD.w - 40, player.x));
+  player.y = Math.max(40, Math.min(WORLD.h - 40, player.y));
+  player.walkPhase += dt * 10;
+  if (nx > 0.1) player.facing = 1;
+  else if (nx < -0.1) player.facing = -1;
+}
+
+function updateCamera() {
+  // Smoothly center on player
+  const targetX = player.x - cssW / 2;
+  const targetY = player.y - cssH / 2;
+  camera.x += (targetX - camera.x) * 0.15;
+  camera.y += (targetY - camera.y) * 0.15;
+  // Clamp to world bounds
+  camera.x = Math.max(0, Math.min(WORLD.w - cssW, camera.x));
+  camera.y = Math.max(0, Math.min(WORLD.h - cssH, camera.y));
+}
+
+function updateDogs(dt) {
+  dogs.forEach((d, i) => {
+    // Follow position: spiral around player, each dog at a different offset
+    const angle = (i / Math.max(1, dogs.length)) * Math.PI * 2 + performance.now() * 0.0003;
+    const orbit = 38 + Math.min(20, dogs.length * 3);
+    const tx = player.x + Math.cos(angle) * orbit;
+    const ty = player.y + Math.sin(angle) * orbit;
+
+    // Find nearest alien within range
+    let nearest = null;
+    let nearestDist = d.range;
+    for (const a of aliens) {
+      const dist = Math.hypot(a.x - d.x, a.y - d.y);
+      if (dist < nearestDist) { nearest = a; nearestDist = dist; }
+    }
+
+    if (nearest) {
+      // Move toward target alien
+      const dx = nearest.x - d.x;
+      const dy = nearest.y - d.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > d.radius + nearest.radius - 4) {
+        d.x += (dx / dist) * d.speed * dt;
+        d.y += (dy / dist) * d.speed * dt;
+        d.facing = dx > 0 ? 1 : -1;
+      }
+      // Attack on cooldown
+      d.attackCd -= dt;
+      if (d.attackCd <= 0 && dist < d.radius + nearest.radius + 6) {
+        nearest.hp -= d.damage;
+        nearest.hitFlash = 0.15;
+        d.bounce = 0.2;
+        d.attackCd = 0.5;
+        sfx.hit();
+      }
+    } else {
+      // Follow player
+      const dx = tx - d.x;
+      const dy = ty - d.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 4) {
+        const sp = Math.min(d.speed, dist * 4);
+        d.x += (dx / dist) * sp * dt;
+        d.y += (dy / dist) * sp * dt;
+        if (Math.abs(dx) > 2) d.facing = dx > 0 ? 1 : -1;
+      }
+    }
+    d.bounce = Math.max(0, d.bounce - dt);
+  });
+}
+
+function updateAliens(dt) {
+  for (let i = aliens.length - 1; i >= 0; i--) {
+    const a = aliens[i];
+    a.bobPhase += dt * 2.5;
+    a.hitFlash = Math.max(0, a.hitFlash - dt);
+
+    // Wander
+    a.wanderTimer -= dt;
+    if (a.wanderTimer <= 0) {
+      a.wanderTimer = 1.5 + Math.random() * 2;
+      a.wanderAngle = Math.random() * Math.PI * 2;
+    }
+    const speed = 30;
+    a.x += Math.cos(a.wanderAngle) * speed * dt;
+    a.y += Math.sin(a.wanderAngle) * speed * dt;
+    a.x = Math.max(60, Math.min(WORLD.w - 60, a.x));
+    a.y = Math.max(60, Math.min(WORLD.h - 60, a.y));
+
+    // Dead?
+    if (a.hp <= 0) {
+      spawnPoof(a.x, a.y, a.color);
+      spawnCoin(a.x, a.y);
+      sfx.poof();
+      aliens.splice(i, 1);
+      // Respawn after a delay so the world stays lively
+      setTimeout(() => {
+        if (gameWon) return;
+        let x, y, tries = 0;
+        do {
+          x = 120 + Math.random() * (WORLD.w - 240);
+          y = 120 + Math.random() * (WORLD.h - 240);
+          tries++;
+        } while (Math.hypot(x - player.x, y - player.y) < 200 && tries < 10);
+        spawnAlien(x, y);
+      }, 4000 + Math.random() * 3000);
+    }
+  }
+}
+
+function updateCages(dt) {
+  for (const c of cages) {
+    if (c.freed) continue;
+    const dist = Math.hypot(c.x - player.x, c.y - player.y);
+    if (dist < c.radius + player.radius + 8) {
+      c.progress = Math.min(1, c.progress + dt * 0.9);
+      if (c.progress >= 1) {
+        c.freed = true;
+        rescued++;
+        // Add a new dog to the pack
+        const color = DOG_COLORS[(dogs.length) % DOG_COLORS.length];
+        const name = DOG_NAMES[dogs.length % DOG_NAMES.length];
+        dogs.push({
+          x: c.x, y: c.y,
+          speed: 240,
+          radius: 14,
+          color,
+          name,
+          baseRange: 110,
+          range: 110 + upgRange * 30,
+          damage: 22,
+          attackCd: 0,
+          target: null,
+          bounce: 0.4,
+          facing: 1,
+        });
+        spawnHeart(c.x, c.y - 20);
+        spawnHeart(c.x - 12, c.y - 14);
+        spawnHeart(c.x + 12, c.y - 14);
+        sfx.rescue();
+        showToast(ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)] + ` 🐕`);
+        updateHUD();
+        if (rescued >= totalCages) {
+          setTimeout(triggerWin, 800);
+        }
+      }
+    } else {
+      c.progress = Math.max(0, c.progress - dt * 1.5);
+    }
+  }
+}
+
+function updateCoins(dt) {
+  for (let i = coins.length - 1; i >= 0; i--) {
+    const c = coins[i];
+    c.life += dt;
+    if (!c.settled) {
+      // Pop out then settle
+      c.vy += 200 * dt; // gravity-ish
+      c.x += c.vx * dt;
+      c.y += c.vy * dt;
+      c.vx *= 0.92;
+      if (c.life > 0.5) {
+        c.settled = true;
+        c.vx = 0;
+        c.vy = 0;
+      }
+    } else {
+      // Magnetize toward player if close
+      const dx = player.x - c.x;
+      const dy = player.y - c.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 90) {
+        const sp = 300 * (1 - dist / 90) + 60;
+        c.x += (dx / dist) * sp * dt;
+        c.y += (dy / dist) * sp * dt;
+      }
+      if (dist < player.radius + 8) {
+        coinsBank++;
+        sfx.coin();
+        updateHUD();
+        coins.splice(i, 1);
+        continue;
+      }
+      c.bob += dt * 4;
+    }
+  }
+}
+
+function updateParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.life -= dt;
+    if (p.life <= 0) {
+      particles.splice(i, 1);
+      continue;
+    }
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.vx *= 0.92;
+    p.vy *= 0.92;
+    if (p.type === 'heart') {
+      p.vy -= 30 * dt; // float up
+    }
+  }
+}
+
+/* ====================== RENDERING ====================== */
+function clear() {
+  ctx.fillStyle = '#6fb86f';
+  ctx.fillRect(0, 0, cssW, cssH);
+}
+
+function drawGrass() {
+  // Subtle grid pattern for atmosphere — small darker dots
+  const gridSize = 80;
+  const startX = Math.floor(camera.x / gridSize) * gridSize;
+  const startY = Math.floor(camera.y / gridSize) * gridSize;
+  ctx.fillStyle = 'rgba(70, 140, 70, 0.5)';
+  for (let x = startX; x < camera.x + cssW + gridSize; x += gridSize) {
+    for (let y = startY; y < camera.y + cssH + gridSize; y += gridSize) {
+      // Pseudo-random dot
+      const wx = x - camera.x;
+      const wy = y - camera.y;
+      ctx.beginPath();
+      ctx.arc(wx + 20, wy + 30, 2, 0, Math.PI * 2);
+      ctx.arc(wx + 50, wy + 60, 2, 0, Math.PI * 2);
+      ctx.arc(wx + 65, wy + 15, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  // World boundary fence
+  ctx.strokeStyle = '#3d7e3d';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(8 - camera.x, 8 - camera.y, WORLD.w - 16, WORLD.h - 16);
+}
+
+function drawBushes() {
+  for (const b of bushes) {
+    const sx = b.x - camera.x;
+    const sy = b.y - camera.y;
+    if (sx < -50 || sx > cssW + 50 || sy < -50 || sy > cssH + 50) continue;
+    // Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+    ctx.beginPath();
+    ctx.ellipse(sx, sy + b.size * 0.7, b.size * 0.9, b.size * 0.3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Bush
+    ctx.fillStyle = b.shade;
+    ctx.beginPath();
+    ctx.arc(sx - b.size * 0.4, sy, b.size * 0.7, 0, Math.PI * 2);
+    ctx.arc(sx + b.size * 0.4, sy, b.size * 0.7, 0, Math.PI * 2);
+    ctx.arc(sx, sy - b.size * 0.4, b.size * 0.8, 0, Math.PI * 2);
+    ctx.fill();
+    // Highlight
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+    ctx.beginPath();
+    ctx.arc(sx - b.size * 0.2, sy - b.size * 0.4, b.size * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawShadow(x, y, r) {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+  ctx.beginPath();
+  ctx.ellipse(x, y + r * 0.7, r * 0.9, r * 0.3, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawPlayer() {
+  const sx = player.x - camera.x;
+  const sy = player.y - camera.y;
+  const wobble = Math.sin(player.walkPhase) * 3;
+  drawShadow(sx, sy + 4, 18);
+
+  // Body
+  ctx.fillStyle = '#4ea8e3';
+  ctx.beginPath();
+  ctx.ellipse(sx, sy + 4, 13, 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Head
+  ctx.fillStyle = '#f1d4ad';
+  ctx.beginPath();
+  ctx.arc(sx, sy - 12 + wobble * 0.3, 11, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Hair
+  ctx.fillStyle = '#5a3d1f';
+  ctx.beginPath();
+  ctx.arc(sx, sy - 16 + wobble * 0.3, 10, Math.PI, 0);
+  ctx.fill();
+
+  // Eyes
+  ctx.fillStyle = '#2d2438';
+  const eyeOffset = player.facing * 1.5;
+  ctx.beginPath();
+  ctx.arc(sx - 3 + eyeOffset, sy - 12 + wobble * 0.3, 1.5, 0, Math.PI * 2);
+  ctx.arc(sx + 3 + eyeOffset, sy - 12 + wobble * 0.3, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Smile
+  ctx.strokeStyle = '#2d2438';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(sx + eyeOffset * 0.5, sy - 8 + wobble * 0.3, 2.5, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+
+  // Legs (animated)
+  ctx.fillStyle = '#2d4a6e';
+  ctx.fillRect(sx - 6, sy + 12 + Math.abs(wobble) * 0.5, 4, 6);
+  ctx.fillRect(sx + 2, sy + 12 - Math.abs(wobble) * 0.5, 4, 6);
+}
+
+function drawDog(d) {
+  const sx = d.x - camera.x;
+  const sy = d.y - camera.y;
+  const b = d.bounce > 0 ? Math.sin(d.bounce * 30) * 2 : 0;
+  drawShadow(sx, sy + 6, 14);
+
+  // Body
+  ctx.fillStyle = d.color;
+  ctx.beginPath();
+  ctx.ellipse(sx, sy + 2 - b, 14, 9, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Head
+  ctx.beginPath();
+  ctx.arc(sx + d.facing * 8, sy - 4 - b, 9, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Ears (darker)
+  const earColor = shadeColor(d.color, -30);
+  ctx.fillStyle = earColor;
+  ctx.save();
+  ctx.translate(sx + d.facing * 3, sy - 10 - b);
+  ctx.rotate(-0.3 * d.facing);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 3, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  ctx.save();
+  ctx.translate(sx + d.facing * 12, sy - 9 - b);
+  ctx.rotate(0.3 * d.facing);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 3, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Snout
+  ctx.fillStyle = '#f1d4ad';
+  ctx.beginPath();
+  ctx.ellipse(sx + d.facing * 13, sy - 2 - b, 4, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Eye
+  ctx.fillStyle = '#2d2438';
+  ctx.beginPath();
+  ctx.arc(sx + d.facing * 10, sy - 5 - b, 1.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Nose
+  ctx.beginPath();
+  ctx.arc(sx + d.facing * 15, sy - 3 - b, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Tail
+  ctx.strokeStyle = d.color;
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  const tailWag = Math.sin(performance.now() * 0.015) * 0.5;
+  ctx.beginPath();
+  ctx.moveTo(sx - d.facing * 10, sy - b);
+  ctx.quadraticCurveTo(
+    sx - d.facing * 16, sy - 6 + tailWag * 4 - b,
+    sx - d.facing * 18, sy - 8 - b
+  );
+  ctx.stroke();
+}
+
+function drawAlien(a) {
+  const sx = a.x - camera.x;
+  const sy = a.y - camera.y;
+  const bob = Math.sin(a.bobPhase) * 3;
+  drawShadow(sx, sy + 12, 22);
+
+  const flash = a.hitFlash > 0;
+
+  // Body
+  ctx.fillStyle = flash ? '#ffffff' : a.color;
+  ctx.beginPath();
+  ctx.ellipse(sx, sy + bob, 18, 16, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Belly highlight
+  ctx.fillStyle = flash ? '#ffffff' : shadeColor(a.color, 30);
+  ctx.beginPath();
+  ctx.ellipse(sx, sy + bob - 2, 12, 9, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Antennae
+  ctx.strokeStyle = a.color;
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(sx - 8, sy - 12 + bob);
+  ctx.lineTo(sx - 12, sy - 22 + bob);
+  ctx.moveTo(sx + 8, sy - 12 + bob);
+  ctx.lineTo(sx + 12, sy - 22 + bob);
+  ctx.stroke();
+  ctx.fillStyle = '#ffd76b';
+  ctx.beginPath();
+  ctx.arc(sx - 12, sy - 22 + bob, 3, 0, Math.PI * 2);
+  ctx.arc(sx + 12, sy - 22 + bob, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Big eye
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(sx, sy - 4 + bob, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#2d2438';
+  ctx.beginPath();
+  ctx.arc(sx, sy - 4 + bob, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(sx + 1.5, sy - 5 + bob, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // HP bar if hurt
+  if (a.hp < a.maxHp) {
+    const w = 28;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.fillRect(sx - w / 2, sy - 26 + bob, w, 4);
+    ctx.fillStyle = '#ff7b7b';
+    ctx.fillRect(sx - w / 2, sy - 26 + bob, w * (a.hp / a.maxHp), 4);
+  }
+}
+
+function drawCage(c) {
+  const sx = c.x - camera.x;
+  const sy = c.y - camera.y;
+  if (sx < -80 || sx > cssW + 80 || sy < -80 || sy > cssH + 80) return;
+  drawShadow(sx, sy + 10, 36);
+
+  if (c.freed) {
+    // Show open cage as decoration
+    ctx.fillStyle = '#999';
+    ctx.fillRect(sx - 30, sy + 16, 60, 4);
+    ctx.strokeStyle = '#aaa';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 5; i++) {
+      const x = sx - 28 + i * 14;
+      const angle = -0.3 + i * 0.15;
+      ctx.save();
+      ctx.translate(x, sy + 16);
+      ctx.rotate(angle);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, -24);
+      ctx.stroke();
+      ctx.restore();
+    }
+    return;
+  }
+
+  // Base
+  ctx.fillStyle = '#7a6452';
+  ctx.fillRect(sx - 30, sy + 18, 60, 6);
+
+  // Cage bars
+  ctx.strokeStyle = '#3a2d22';
+  ctx.lineWidth = 3.5;
+  // Top
+  ctx.beginPath();
+  ctx.moveTo(sx - 30, sy - 18);
+  ctx.lineTo(sx + 30, sy - 18);
+  ctx.stroke();
+  // Vertical bars
+  for (let i = 0; i <= 5; i++) {
+    const x = sx - 30 + i * 12;
+    ctx.beginPath();
+    ctx.moveTo(x, sy - 18);
+    ctx.lineTo(x, sy + 18);
+    ctx.stroke();
+  }
+  // Sad puppy inside
+  ctx.fillStyle = c.dogColor;
+  ctx.beginPath();
+  ctx.ellipse(sx, sy + 4, 14, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(sx + 4, sy - 4, 9, 0, Math.PI * 2);
+  ctx.fill();
+  // Sad eye
+  ctx.fillStyle = '#2d2438';
+  ctx.beginPath();
+  ctx.arc(sx + 6, sy - 5, 1.4, 0, Math.PI * 2);
+  ctx.fill();
+  // Snout
+  ctx.fillStyle = '#f1d4ad';
+  ctx.beginPath();
+  ctx.ellipse(sx + 10, sy - 1, 3, 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Progress ring when player is freeing
+  if (c.progress > 0) {
+    ctx.strokeStyle = '#ffd76b';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(sx, sy, 40, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * c.progress);
+    ctx.stroke();
+    // "Freeing..." text
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Stay close!', sx, sy - 30);
+  } else {
+    // Floating "!" indicator
+    const float = Math.sin(performance.now() * 0.004) * 2;
+    ctx.fillStyle = '#ffd76b';
+    ctx.beginPath();
+    ctx.arc(sx + 22, sy - 28 + float, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2d2438';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('!', sx + 22, sy - 28 + float);
+  }
+}
+
+function drawCoin(c) {
+  const sx = c.x - camera.x;
+  const sy = c.y - camera.y;
+  if (sx < -20 || sx > cssW + 20 || sy < -20 || sy > cssH + 20) return;
+  const bob = c.settled ? Math.sin(c.bob) * 1.5 : 0;
+  // Shadow
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+  ctx.beginPath();
+  ctx.ellipse(sx, sy + 6, 6, 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Coin
+  ctx.fillStyle = '#f4b53a';
+  ctx.beginPath();
+  ctx.arc(sx, sy + bob, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffd76b';
+  ctx.beginPath();
+  ctx.arc(sx, sy + bob, 4.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#f4b53a';
+  ctx.font = 'bold 8px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('★', sx, sy + bob);
+}
+
+function drawParticle(p) {
+  const sx = p.x - camera.x;
+  const sy = p.y - camera.y;
+  const alpha = p.life / p.maxLife;
+  if (p.type === 'cloud') {
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = alpha * 0.7;
+    ctx.beginPath();
+    ctx.arc(sx, sy, p.size * (2 - alpha), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  } else if (p.type === 'heart') {
+    ctx.globalAlpha = alpha;
+    drawHeart(sx, sy, p.size, p.color);
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawHeart(x, y, size, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, y + size * 0.3);
+  ctx.bezierCurveTo(x, y, x - size, y, x - size, y - size * 0.3);
+  ctx.bezierCurveTo(x - size, y - size, x, y - size * 0.8, x, y - size * 0.4);
+  ctx.bezierCurveTo(x, y - size * 0.8, x + size, y - size, x + size, y - size * 0.3);
+  ctx.bezierCurveTo(x + size, y, x, y, x, y + size * 0.3);
+  ctx.fill();
+}
+
+function shadeColor(hex, amt) {
+  // Lighten (+) or darken (-) a hex color by amt
+  const c = hex.replace('#', '');
+  const r = Math.max(0, Math.min(255, parseInt(c.substr(0, 2), 16) + amt));
+  const g = Math.max(0, Math.min(255, parseInt(c.substr(2, 2), 16) + amt));
+  const b = Math.max(0, Math.min(255, parseInt(c.substr(4, 2), 16) + amt));
+  return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+/* ====================== HUD ====================== */
+const elCoins = document.getElementById('coins');
+const elDogs = document.getElementById('dogs');
+const elRescued = document.getElementById('rescued');
+const elTotal = document.getElementById('total');
+const elCostRange = document.getElementById('cost-range');
+const elCostSpeed = document.getElementById('cost-speed');
+const elUpRange = document.getElementById('up-range');
+const elUpSpeed = document.getElementById('up-speed');
+const elToast = document.getElementById('toast');
+
+function rangeCost() { return 5 + upgRange * 5; }
+function speedCost() { return 5 + upgSpeed * 5; }
+
+function updateHUD() {
+  elCoins.textContent = coinsBank;
+  elDogs.textContent = dogs.length;
+  elRescued.textContent = rescued;
+  elTotal.textContent = totalCages;
+  elCostRange.textContent = rangeCost();
+  elCostSpeed.textContent = speedCost();
+  elUpRange.classList.toggle('disabled', coinsBank < rangeCost());
+  elUpSpeed.classList.toggle('disabled', coinsBank < speedCost());
+}
+
+elUpRange.addEventListener('click', () => {
+  const cost = rangeCost();
+  if (coinsBank < cost) return;
+  coinsBank -= cost;
+  upgRange++;
+  dogs.forEach(d => d.range = d.baseRange + upgRange * 30);
+  sfx.upgrade();
+  showToast('Longer leash! 🎯');
+  updateHUD();
+});
+
+elUpSpeed.addEventListener('click', () => {
+  const cost = speedCost();
+  if (coinsBank < cost) return;
+  coinsBank -= cost;
+  upgSpeed++;
+  player.speed = player.baseSpeed * (1 + upgSpeed * 0.2);
+  sfx.upgrade();
+  showToast('Faster paws! ⚡');
+  updateHUD();
+});
+
+let toastTimer = null;
+function showToast(text) {
+  elToast.textContent = text;
+  elToast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => elToast.classList.remove('show'), 1600);
+}
+
+/* ====================== WIN / RESTART ====================== */
+function triggerWin() {
+  gameWon = true;
+  sfx.win();
+  // Burst of hearts
+  for (let i = 0; i < 20; i++) {
+    setTimeout(() => spawnHeart(
+      player.x + (Math.random() - 0.5) * 60,
+      player.y + (Math.random() - 0.5) * 40
+    ), i * 60);
+  }
+  setTimeout(() => {
+    document.getElementById('win-screen').classList.add('show');
+  }, 600);
+}
+
+document.getElementById('play-again').addEventListener('click', () => {
+  document.getElementById('win-screen').classList.remove('show');
+  setupWorld();
+});
+
+/* ====================== MAIN LOOP ====================== */
+let lastTime = performance.now();
+function loop(now) {
+  let dt = (now - lastTime) / 1000;
+  lastTime = now;
+  if (dt > 0.1) dt = 0.1; // cap big spikes (tab switch)
+
+  if (gameStarted && !gameWon) {
+    updatePlayer(dt);
+    updateDogs(dt);
+    updateAliens(dt);
+    updateCages(dt);
+    updateCoins(dt);
+    updateParticles(dt);
+    updateCamera();
+  } else if (gameStarted) {
+    updateCamera();
+    updateParticles(dt);
+  }
+
+  clear();
+  drawGrass();
+  drawBushes();
+
+  // Sort renderables by y for proper depth
+  const renderables = [];
+  for (const c of cages) renderables.push({ y: c.y, fn: () => drawCage(c) });
+  for (const a of aliens) renderables.push({ y: a.y, fn: () => drawAlien(a) });
+  for (const d of dogs) renderables.push({ y: d.y, fn: () => drawDog(d) });
+  renderables.push({ y: player.y, fn: drawPlayer });
+  for (const c of coins) renderables.push({ y: c.y + 100, fn: () => drawCoin(c) });
+  renderables.sort((a, b) => a.y - b.y);
+  for (const r of renderables) r.fn();
+
+  // Particles on top
+  for (const p of particles) drawParticle(p);
+
+  requestAnimationFrame(loop);
+}
+
+/* ====================== START ====================== */
+document.getElementById('start-btn').addEventListener('click', () => {
+  initAudio();
+  if (actx && actx.state === 'suspended') actx.resume();
+  document.getElementById('start-screen').classList.add('hidden');
+  setTimeout(() => {
+    document.getElementById('start-screen').style.display = 'none';
+  }, 400);
+  gameStarted = true;
+});
+
+setupWorld();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
