@@ -108,6 +108,27 @@ function initAudio() {
   reverbNode.connect(reverbGain);
   reverbGain.connect(masterGain);
   masterGain.connect(audioCtx.destination);
+
+  // iOS Safari silent-buffer trick: starting a one-sample source from the
+  // initial user gesture fully unlocks the audio session. Without this,
+  // some iOS versions keep audio inaudible even after resume().
+  try {
+    const buf = audioCtx.createBuffer(1, 1, 22050);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(audioCtx.destination);
+    src.start(0);
+  } catch (e) { /* ignore */ }
+}
+
+// Call before every note. If the context dropped back to 'suspended'
+// (iOS does this when the page is backgrounded), kick it again. resume()
+// is a no-op when already running, so this is cheap.
+function ensureRunning() {
+  if (!audioCtx) return;
+  if (audioCtx.state !== 'running') {
+    audioCtx.resume().catch(() => {});
+  }
 }
 
 function makeReverbIR(ctx, duration, decay) {
@@ -286,6 +307,7 @@ function voicePad(freq, t0, dur) {
 
 function playNote(noteName, when = 0, dur = 0.6) {
   if (!audioCtx) return;
+  ensureRunning();
   const t0 = audioCtx.currentTime + when;
   const freq = NOTE_FREQ(shiftedNote(noteName));
   switch (instrument) {
@@ -300,6 +322,7 @@ function playNote(noteName, when = 0, dur = 0.6) {
 /* ---- Drum: soft hand drum (sub sweep + noise thunk) ---- */
 function playDrum(when = 0) {
   if (!audioCtx) return;
+  ensureRunning();
   const t0 = audioCtx.currentTime + when;
 
   const sub = audioCtx.createOscillator();
