@@ -195,6 +195,13 @@
     transition: transform 0.15s ease;
   }
   .big-btn:active { transform: scale(0.95); }
+  .start-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: center;
+  }
+  .start-actions .big-btn { min-width: 260px; }
   .hint {
     margin-top: 16px;
     font-size: 14px;
@@ -204,14 +211,14 @@
     line-height: 1.5;
   }
 
-  /* ============ WIN SCREEN ============ */
-  #win-screen {
+  /* ============ WIN / LEVEL-COMPLETE SCREENS ============ */
+  #win-screen, #level-screen {
     background: rgba(45, 36, 56, 0.6);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     display: none;
   }
-  #win-screen.show { display: flex; }
+  #win-screen.show, #level-screen.show { display: flex; }
   .win-card {
     background: white;
     border-radius: 28px;
@@ -368,7 +375,7 @@
   </div>
 </div>
 
-<div class="quest" id="quest">Free the puppies! <span id="rescued">0</span>/<span id="total">5</span></div>
+<div class="quest" id="quest">Level <span id="level-num">1</span> · Free the puppies! <span id="rescued">0</span>/<span id="total">5</span></div>
 
 <div class="nav-bar hidden" id="nav-bar">
   <button class="nav-btn" id="nav-menu" aria-label="Back to game menu">↩</button>
@@ -418,16 +425,25 @@
   </svg>
   <h1>Pup Patrol</h1>
   <div class="sub">Aliens stole the puppies! Free them all.</div>
-  <button class="big-btn" id="start-btn">Let's Go!</button>
+  <div class="start-actions" id="start-actions"></div>
   <div class="hint">👉 Touch and drag anywhere to move.<br>Your dog fights aliens nearby.<br>Walk up to cages to free puppies.</div>
   <button class="btn-secondary back-to-arcade" id="start-back">← Back to Arcade</button>
+</div>
+
+<div class="overlay" id="level-screen">
+  <div class="win-card">
+    <div class="confetti-row">🎉 🐕 🎉</div>
+    <h2 id="level-heading">Level complete!</h2>
+    <p id="level-sub">Coins: 0 — keep your upgrades!</p>
+    <button class="big-btn" id="next-level-btn">Next Level →</button>
+  </div>
 </div>
 
 <div class="overlay" id="win-screen">
   <div class="win-card">
     <div class="confetti-row">🎉 🐕 🐕 🐕 🎉</div>
-    <h2>You saved them all!</h2>
-    <p>You're a hero. The puppies will never forget you.</p>
+    <h2>🏆 You're a Pup Patrol Champion! 🏆</h2>
+    <p>You saved every puppy across all 5 levels!</p>
     <button class="big-btn" id="play-again">Play Again</button>
     <button class="btn-secondary back-to-arcade" id="win-back">← Back to Arcade</button>
   </div>
@@ -456,6 +472,12 @@
    - Walking up to a cage frees the puppy (no precise tapping needed)
    - Encouraging dialogue when dogs join
    ==================================================================== */
+
+/* ====================== PLAYER (STANDARDS §5) ====================== */
+const player_name = localStorage.getItem('arcade-current-player');
+if (!player_name) {
+  window.location.href = '/';
+}
 
 /* ====================== AUDIO ====================== */
 let actx = null;
@@ -511,6 +533,29 @@ const ENCOURAGEMENTS = [
   "Yay! I'm free!",
 ];
 
+/* Per-level tuning. 1-based indexing — index 0 is a placeholder. */
+const LEVELS = [
+  null,
+  { puppies: 4,  maxAliens: 3, alienSpeed: 1.0, coinsPerAlien: 1 },
+  { puppies: 5,  maxAliens: 4, alienSpeed: 1.1, coinsPerAlien: 1 },
+  { puppies: 7,  maxAliens: 5, alienSpeed: 1.2, coinsPerAlien: 2 },
+  { puppies: 9,  maxAliens: 6, alienSpeed: 1.3, coinsPerAlien: 2 },
+  { puppies: 12, maxAliens: 8, alienSpeed: 1.4, coinsPerAlien: 3 },
+];
+const MAX_LEVEL = 5;
+
+/* localStorage key for the highest level this player has completed. */
+const KEY_HIGHEST = `pup-patrol:${player_name}:highestLevel`;
+function getHighestLevel() {
+  return Number(localStorage.getItem(KEY_HIGHEST)) || 0;
+}
+function saveHighestLevel(level) {
+  const current = getHighestLevel();
+  if (level > current) {
+    localStorage.setItem(KEY_HIGHEST, String(level));
+  }
+}
+
 /* ====================== STATE ====================== */
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -555,6 +600,9 @@ let upgRange = 0;
 let upgSpeed = 0;
 let gameStarted = false;
 let gameWon = false;
+let currentLevel = 1;
+let levelTransition = false; // true while the "Level Complete" card is shown
+let worldGeneration = 0;     // bumped on each buildLevel; used to invalidate stale alien respawn timers
 
 /* ====================== ENTITY FACTORIES ====================== */
 function spawnInitialDog() {
@@ -602,8 +650,8 @@ function spawnCage(x, y) {
 }
 
 function spawnCoin(x, y) {
-  // Small burst — 2 to 3 coins
-  const n = 2 + Math.floor(Math.random() * 2);
+  // Coins-per-alien is set by the current level
+  const n = LEVELS[currentLevel].coinsPerAlien;
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2;
     const r = 12 + Math.random() * 18;
@@ -652,8 +700,53 @@ function spawnHeart(x, y) {
 }
 
 /* ====================== WORLD SETUP ====================== */
-function setupWorld() {
-  // Reset everything
+
+/* Spread N cages around the world. Tries to keep them away from the
+   player's current position and from each other so each level has
+   distinct rescue targets. */
+function generateCagePositions(n, avoidX, avoidY) {
+  const positions = [];
+  const cx = WORLD.w / 2, cy = WORLD.h / 2;
+  // Place on a circle around world center; large enough radius to fit 12 cages
+  const r = Math.min(WORLD.w, WORLD.h) * 0.38;
+  // Random phase so consecutive levels don't look identical
+  const phase = Math.random() * Math.PI * 2;
+  for (let i = 0; i < n; i++) {
+    const angle = phase + (i / n) * Math.PI * 2;
+    let x = cx + Math.cos(angle) * r;
+    let y = cy + Math.sin(angle) * r;
+    // Nudge away from the player if they happen to be standing on it
+    const distPlayer = Math.hypot(x - avoidX, y - avoidY);
+    if (distPlayer < 140) {
+      const nx = (x - avoidX) / (distPlayer || 1);
+      const ny = (y - avoidY) / (distPlayer || 1);
+      x = avoidX + nx * 200;
+      y = avoidY + ny * 200;
+    }
+    // Clamp inside world
+    x = Math.max(120, Math.min(WORLD.w - 120, x));
+    y = Math.max(120, Math.min(WORLD.h - 120, y));
+    positions.push({ x, y });
+  }
+  return positions;
+}
+
+/* Reset coins and upgrade levels. Called when starting a fresh run from
+   the menu — NOT called between levels. */
+function resetPlayerProgress() {
+  coinsBank = 0;
+  upgRange = 0;
+  upgSpeed = 0;
+  player.speed = player.baseSpeed;
+}
+
+/* Rebuild the world for the given level. Keeps coinsBank/upgRange/upgSpeed
+   and player position as-is — caller resets those when starting fresh. */
+function buildLevel(level) {
+  currentLevel = level;
+  worldGeneration++;
+  const cfg = LEVELS[level];
+
   dogs.length = 0;
   aliens.length = 0;
   cages.length = 0;
@@ -661,15 +754,11 @@ function setupWorld() {
   particles.length = 0;
   bushes.length = 0;
   rescued = 0;
-  coinsBank = 0;
-  upgRange = 0;
-  upgSpeed = 0;
   gameWon = false;
-  player.x = WORLD.w / 2;
-  player.y = WORLD.h / 2;
-  player.speed = player.baseSpeed;
 
   spawnInitialDog();
+  // Apply current upgrade level to the starter dog
+  dogs[0].range = dogs[0].baseRange + upgRange * 30;
 
   // Bushes for atmosphere
   for (let i = 0; i < 28; i++) {
@@ -681,19 +770,13 @@ function setupWorld() {
     });
   }
 
-  // Cages around the world (not too close to player start)
-  const cagePositions = [
-    { x: 220, y: 220 },
-    { x: WORLD.w - 220, y: 220 },
-    { x: 220, y: WORLD.h - 220 },
-    { x: WORLD.w - 220, y: WORLD.h - 220 },
-    { x: WORLD.w / 2, y: 180 },
-  ];
-  cagePositions.forEach(p => spawnCage(p.x, p.y));
+  // Cages — count and placement depend on level
+  const positions = generateCagePositions(cfg.puppies, player.x, player.y);
+  positions.forEach(p => spawnCage(p.x, p.y));
   totalCages = cages.length;
 
-  // Initial aliens
-  for (let i = 0; i < 8; i++) {
+  // Initial aliens up to the per-level cap, well away from the player
+  for (let i = 0; i < cfg.maxAliens; i++) {
     let x, y, tries = 0;
     do {
       x = 120 + Math.random() * (WORLD.w - 240);
@@ -704,6 +787,15 @@ function setupWorld() {
   }
 
   updateHUD();
+}
+
+/* Start a fresh playthrough at the given level. Resets coins+upgrades
+   and teleports the player to world center. */
+function startGameAtLevel(level) {
+  resetPlayerProgress();
+  player.x = WORLD.w / 2;
+  player.y = WORLD.h / 2;
+  buildLevel(level);
 }
 
 /* ====================== INPUT ====================== */
@@ -834,13 +926,13 @@ function updateAliens(dt) {
     a.bobPhase += dt * 2.5;
     a.hitFlash = Math.max(0, a.hitFlash - dt);
 
-    // Wander
+    // Wander — speed scales with level
     a.wanderTimer -= dt;
     if (a.wanderTimer <= 0) {
       a.wanderTimer = 1.5 + Math.random() * 2;
       a.wanderAngle = Math.random() * Math.PI * 2;
     }
-    const speed = 30;
+    const speed = 30 * LEVELS[currentLevel].alienSpeed;
     a.x += Math.cos(a.wanderAngle) * speed * dt;
     a.y += Math.sin(a.wanderAngle) * speed * dt;
     a.x = Math.max(60, Math.min(WORLD.w - 60, a.x));
@@ -852,9 +944,13 @@ function updateAliens(dt) {
       spawnCoin(a.x, a.y);
       sfx.poof();
       aliens.splice(i, 1);
-      // Respawn after a delay so the world stays lively
+      // Respawn after a delay so the world stays lively. Capture the
+      // current world generation so we don't spawn into a later level.
+      const myGen = worldGeneration;
       setTimeout(() => {
-        if (gameWon) return;
+        if (gameWon || levelTransition) return;
+        if (myGen !== worldGeneration) return;
+        if (aliens.length >= LEVELS[currentLevel].maxAliens) return;
         let x, y, tries = 0;
         do {
           x = 120 + Math.random() * (WORLD.w - 240);
@@ -900,7 +996,11 @@ function updateCages(dt) {
         showToast(ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)] + ` 🐕`);
         updateHUD();
         if (rescued >= totalCages) {
-          setTimeout(triggerWin, 800);
+          if (currentLevel >= MAX_LEVEL) {
+            setTimeout(triggerFinalWin, 800);
+          } else {
+            setTimeout(showLevelComplete, 800);
+          }
         }
       }
     } else {
@@ -1360,20 +1460,23 @@ const elCoins = document.getElementById('coins');
 const elDogs = document.getElementById('dogs');
 const elRescued = document.getElementById('rescued');
 const elTotal = document.getElementById('total');
+const elLevelNum = document.getElementById('level-num');
 const elCostRange = document.getElementById('cost-range');
 const elCostSpeed = document.getElementById('cost-speed');
 const elUpRange = document.getElementById('up-range');
 const elUpSpeed = document.getElementById('up-speed');
 const elToast = document.getElementById('toast');
 
-function rangeCost() { return 5 + upgRange * 5; }
-function speedCost() { return 5 + upgSpeed * 5; }
+// Costs scale by purchase count (5, 8, 11, 14, …)
+function rangeCost() { return 5 + upgRange * 3; }
+function speedCost() { return 5 + upgSpeed * 3; }
 
 function updateHUD() {
   elCoins.textContent = coinsBank;
   elDogs.textContent = dogs.length;
   elRescued.textContent = rescued;
   elTotal.textContent = totalCages;
+  elLevelNum.textContent = currentLevel;
   elCostRange.textContent = rangeCost();
   elCostSpeed.textContent = speedCost();
   elUpRange.classList.toggle('disabled', coinsBank < rangeCost());
@@ -1410,10 +1513,13 @@ function showToast(text) {
   toastTimer = setTimeout(() => elToast.classList.remove('show'), 1600);
 }
 
-/* ====================== WIN / RESTART ====================== */
-function triggerWin() {
+/* ====================== WIN / LEVEL TRANSITIONS / RESTART ====================== */
+
+/* Final win — only fired after completing Level 5. */
+function triggerFinalWin() {
   gameWon = true;
   hideNavBar();
+  saveHighestLevel(MAX_LEVEL);
   sfx.win();
   // Burst of hearts
   for (let i = 0; i < 20; i++) {
@@ -1427,9 +1533,29 @@ function triggerWin() {
   }, 600);
 }
 
+/* Between-level card — fires when last puppy of levels 1-4 is freed. */
+function showLevelComplete() {
+  levelTransition = true;
+  saveHighestLevel(currentLevel);
+  sfx.win();
+  document.getElementById('level-heading').textContent = `Level ${currentLevel} complete!`;
+  document.getElementById('level-sub').textContent =
+    `Coins: ${coinsBank} — keep your upgrades!`;
+  document.getElementById('level-screen').classList.add('show');
+}
+
+function advanceToNextLevel() {
+  document.getElementById('level-screen').classList.remove('show');
+  levelTransition = false;
+  // Keep coinsBank, upgRange, upgSpeed, player position; rebuild world for next level
+  buildLevel(currentLevel + 1);
+}
+
+document.getElementById('next-level-btn').addEventListener('click', advanceToNextLevel);
+
 document.getElementById('play-again').addEventListener('click', () => {
   document.getElementById('win-screen').classList.remove('show');
-  setupWorld();
+  startGameAtLevel(1);
   showNavBar();
 });
 
@@ -1440,7 +1566,7 @@ function loop(now) {
   lastTime = now;
   if (dt > 0.1) dt = 0.1; // cap big spikes (tab switch)
 
-  if (gameStarted && !gameWon) {
+  if (gameStarted && !gameWon && !levelTransition) {
     updatePlayer(dt);
     updateDogs(dt);
     updateAliens(dt);
@@ -1474,16 +1600,44 @@ function loop(now) {
 }
 
 /* ====================== START ====================== */
-document.getElementById('start-btn').addEventListener('click', () => {
+
+/* Build the menu buttons based on saved progress. Re-run whenever
+   the player returns to the menu so the list stays current. */
+function renderStartActions() {
+  const highest = getHighestLevel();
+  const container = document.getElementById('start-actions');
+  container.innerHTML = '';
+
+  function addBtn(label, handler, className = 'big-btn') {
+    const b = document.createElement('button');
+    b.className = className;
+    b.textContent = label;
+    b.addEventListener('click', handler);
+    container.appendChild(b);
+  }
+
+  if (highest === 0) {
+    addBtn("Let's Go!", () => beginPlay(1));
+  } else if (highest >= MAX_LEVEL) {
+    addBtn('Replay Level 5', () => beginPlay(5));
+    addBtn('Start from Level 1', () => beginPlay(1));
+  } else {
+    const nextLevel = Math.min(highest + 1, MAX_LEVEL);
+    addBtn(`Continue from Level ${nextLevel}`, () => beginPlay(nextLevel));
+    addBtn('Start from Level 1', () => beginPlay(1));
+  }
+}
+
+function beginPlay(level) {
   initAudio();
   if (actx && actx.state === 'suspended') actx.resume();
-  document.getElementById('start-screen').classList.add('hidden');
-  setTimeout(() => {
-    document.getElementById('start-screen').style.display = 'none';
-  }, 400);
+  startGameAtLevel(level);
+  const startScreen = document.getElementById('start-screen');
+  startScreen.classList.add('hidden');
+  setTimeout(() => { startScreen.style.display = 'none'; }, 400);
   gameStarted = true;
   showNavBar();
-});
+}
 
 /* ====================== NAV BAR ====================== */
 const navBar = document.getElementById('nav-bar');
@@ -1508,10 +1662,15 @@ function hideConfirm() {
 }
 
 function returnToMenu() {
-  // Reverse of start-btn handler: reset state and re-show the start screen
+  // Reverse of beginPlay: stop the run and re-show the start screen.
+  // Don't rebuild the world — the next button tap will. Just refresh
+  // the start-screen buttons in case highestLevel changed.
   gameStarted = false;
+  levelTransition = false;
   hideNavBar();
-  setupWorld();
+  document.getElementById('level-screen').classList.remove('show');
+  document.getElementById('win-screen').classList.remove('show');
+  renderStartActions();
   const startScreen = document.getElementById('start-screen');
   startScreen.classList.add('hidden');   // ensure starting opacity is 0
   startScreen.style.display = 'flex';
@@ -1538,7 +1697,8 @@ document.getElementById('confirm-leave').addEventListener('click', () => {
 document.getElementById('start-back').addEventListener('click', goToArcade);
 document.getElementById('win-back').addEventListener('click', goToArcade);
 
-setupWorld();
+renderStartActions();
+buildLevel(1); // initial world so the canvas isn't blank under the start screen
 requestAnimationFrame(loop);
 </script>
 </body>
