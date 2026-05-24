@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Deep Time Dig</title>
+<style>
+  /* ============================================================
+     CSS CUSTOM PROPERTIES — era colors and spacing constants
+     up here so they're easy to tweak.
+     ============================================================ */
+  :root {
+    --era-before: #d97706;   /* warm orange  — Before Dinosaurs */
+    --era-during: #16a34a;   /* leafy green  — Age of Dinosaurs */
+    --era-after:  #0284c7;   /* sky blue     — After Dinosaurs */
+    --text:       #3d2410;
+    --text-soft:  #78350f;
+    --card:       #fffbeb;
+    --dirt-deep:  #3d2410;
+  }
+
+  /* ============================================================
+     RESET + BASE
+     ============================================================ */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  body {
+    /* System font stack from STANDARDS §9 — no web fonts. */
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    background: linear-gradient(170deg, #fef3c7 0%, #fde68a 30%, #d4a574 65%, #92400e 100%);
+    color: var(--text);
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  /* ============================================================
+     SCREEN SYSTEM — only the one with .active is visible.
+     showScreen() in JS toggles the class. No router, no framework.
+     ============================================================ */
+  #game { position: fixed; inset: 0; }
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 18px 24px;
+    text-align: center;
+    overflow-y: auto;
+  }
+  .screen.active { display: flex; }
+
+  /* ============================================================
+     TYPOGRAPHY — big sizes so a 6-year-old can read.
+     ============================================================ */
+  h1 {
+    font-size: 42px;
+    margin-bottom: 6px;
+    color: var(--text);
+    text-shadow: 0 2px 4px rgba(255,255,255,0.4);
+  }
+  h2 {
+    font-size: 30px;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+  p {
+    font-size: 20px;
+    margin-bottom: 10px;
+    max-width: 600px;
+    color: var(--text-soft);
+  }
+  .small { font-size: 16px; color: var(--text-soft); }
+
+  /* ============================================================
+     PRIMARY BUTTON — chunky, satisfying press animation.
+     ============================================================ */
+  .btn {
+    font-family: inherit;
+    font-size: 24px;
+    font-weight: 800;
+    padding: 18px 32px;
+    min-width: 200px;
+    min-height: 72px;
+    border: none;
+    border-radius: 18px;
+    cursor: pointer;
+    background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+    color: var(--text);
+    box-shadow: 0 6px 0 #92400e, 0 8px 16px rgba(0,0,0,0.2);
+    transition: transform 0.08s, box-shadow 0.08s;
+    margin: 6px;
+  }
+  .btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #92400e, 0 4px 8px rgba(0,0,0,0.2);
+  }
+  .btn.green {
+    background: linear-gradient(180deg, #22c55e, #16a34a);
+    color: white;
+    box-shadow: 0 6px 0 #14532d, 0 8px 16px rgba(0,0,0,0.2);
+  }
+  .btn.green:active { box-shadow: 0 2px 0 #14532d, 0 4px 8px rgba(0,0,0,0.2); }
+  .btn.purple {
+    background: linear-gradient(180deg, #a78bfa, #7c3aed);
+    color: white;
+    box-shadow: 0 6px 0 #5b21b6, 0 8px 16px rgba(0,0,0,0.2);
+  }
+  .btn.purple:active { box-shadow: 0 2px 0 #5b21b6, 0 4px 8px rgba(0,0,0,0.2); }
+
+  /* Secondary button — softer, for "back" actions. */
+  .btn-secondary {
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 14px 28px;
+    min-height: 64px;
+    border: 3px solid rgba(61,36,16,0.3);
+    border-radius: 999px;
+    background: rgba(255,251,235,0.7);
+    color: var(--text);
+    cursor: pointer;
+    margin-top: 14px;
+    transition: transform 0.1s, background 0.15s;
+  }
+  .btn-secondary:active {
+    transform: scale(0.96);
+    background: rgba(255,255,255,0.95);
+  }
+
+  /* ============================================================
+     MENU — difficulty toggle + stat pills.
+     ============================================================ */
+  .difficulty-toggle {
+    display: flex;
+    gap: 0;
+    background: var(--card);
+    border-radius: 999px;
+    padding: 4px;
+    margin: 12px 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  }
+  .diff-btn {
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 12px 28px;
+    min-height: 52px;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--text-soft);
+    background: transparent;
+    transition: background 0.2s, color 0.2s;
+  }
+  .diff-btn.active {
+    background: linear-gradient(180deg, #fbbf24, #d97706);
+    color: var(--text);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+  .menu-stats {
+    display: flex;
+    gap: 12px;
+    margin: 10px 0 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .stat-pill {
+    background: var(--card);
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  /* ============================================================
+     DIG GRID — 4x4 of dirt clumps. Tap to dig.
+     ============================================================ */
+  .dig-info {
+    background: var(--card);
+    padding: 10px 22px;
+    border-radius: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    display: flex;
+    gap: 24px;
+    font-weight: 800;
+    color: var(--text);
+    font-size: 18px;
+  }
+  .dig-info .label {
+    color: var(--text-soft);
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .dig-prompt {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .dig-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    max-width: 460px;
+    width: 100%;
+    margin: 4px auto;
+    padding: 12px;
+    background: rgba(61,36,16,0.3);
+    border-radius: 22px;
+    box-shadow: inset 0 4px 8px rgba(0,0,0,0.15);
+  }
+  .dirt-tile {
+    aspect-ratio: 1;
+    background:
+      radial-gradient(circle at 30% 25%, #b07f50 0%, #8b5a2b 40%, #6b4423 100%);
+    border: 3px solid #5a371a;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+    padding: 0;
+    font-family: inherit;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      inset 0 -3px 0 rgba(0,0,0,0.25),
+      inset 0 2px 0 rgba(255,255,255,0.15),
+      0 4px 0 var(--dirt-deep);
+  }
+  .dirt-tile:active { transform: translateY(2px) scale(0.97); }
+  .dirt-tile.dug {
+    background: radial-gradient(circle at 50% 50%, #2d1a0a 0%, #4a2e15 100%);
+    box-shadow: inset 0 4px 14px rgba(0,0,0,0.6);
+    cursor: default;
+    pointer-events: none;
+    animation: tile-collapse 0.3s ease-out;
+  }
+  @keyframes tile-collapse {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(0.88); }
+    100% { transform: scale(1); }
+  }
+  /* Dust puff bursts from the dug tile. */
+  .dirt-tile.dug::after {
+    content: '';
+    position: absolute;
+    inset: 25%;
+    background: radial-gradient(circle, rgba(255,235,200,0.7), transparent 60%);
+    border-radius: 50%;
+    animation: dust 0.6s ease-out forwards;
+  }
+  @keyframes dust {
+    0%   { transform: scale(0.3); opacity: 0.9; }
+    100% { transform: scale(3); opacity: 0; }
+  }
+  /* Specimen reveal — glowing tile with emoji rising out. */
+  .dirt-tile.found {
+    background: radial-gradient(circle at 50% 50%, #fef3c7 0%, #fbbf24 50%, #6b4423 100%);
+    pointer-events: none;
+    animation: tile-burst 0.7s ease-out;
+  }
+  @keyframes tile-burst {
+    0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,216,107,0.7), 0 4px 0 var(--dirt-deep); }
+    40%  { transform: scale(1.18); box-shadow: 0 0 30px 10px rgba(255,216,107,0.6), 0 4px 0 var(--dirt-deep); }
+    100% { transform: scale(1.05); box-shadow: 0 0 14px 4px rgba(255,216,107,0.4), 0 4px 0 var(--dirt-deep); }
+  }
+  .dirt-tile.found .specimen-emoji {
+    display: inline-block;
+    animation: rise 0.7s ease-out;
+  }
+  @keyframes rise {
+    0%   { transform: scale(0) translateY(20px); opacity: 0; }
+    60%  { transform: scale(1.35) translateY(-6px); opacity: 1; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  /* Sparkle characters that fly outward from the revealed tile. */
+  .sparkle {
+    position: fixed;
+    font-size: 24px;
+    pointer-events: none;
+    animation: sparkle-out 0.9s ease-out forwards;
+    z-index: 60;
+  }
+  @keyframes sparkle-out {
+    0%   { transform: translate(-50%, -50%) scale(0.5); opacity: 0.9; }
+    100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.2); opacity: 0; }
+  }
+
+  /* ============================================================
+     SORT — the specimen sits in a card, era buttons stack below.
+     ============================================================ */
+  .specimen-stage {
+    background: var(--card);
+    padding: 26px 24px;
+    border-radius: 28px;
+    margin: 8px auto 18px;
+    max-width: 460px;
+    width: 95%;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+  .specimen-emoji-big {
+    font-size: 150px;
+    display: block;
+    line-height: 1;
+    animation: bobble 2.4s ease-in-out infinite;
+  }
+  @keyframes bobble {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-10px); }
+  }
+  .specimen-name {
+    font-size: 30px;
+    font-weight: 800;
+    margin-top: 8px;
+    color: var(--text);
+  }
+  .specimen-prompt {
+    font-size: 20px;
+    color: var(--text-soft);
+    margin-top: 4px;
+  }
+  .era-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 460px;
+  }
+  .era-btn {
+    font-family: inherit;
+    font-size: 24px;
+    font-weight: 800;
+    padding: 22px;
+    min-height: 120px;
+    border: 4px solid rgba(255,255,255,0.5);
+    border-radius: 22px;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.25), 0 8px 16px rgba(0,0,0,0.2);
+    transition: transform 0.1s, box-shadow 0.1s;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .era-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.25), 0 4px 8px rgba(0,0,0,0.2);
+  }
+  .era-btn[data-era="before"],
+  .era-btn[data-era="long-ago"] {
+    background: linear-gradient(180deg, #f59e0b, #d97706);
+  }
+  .era-btn[data-era="during"] {
+    background: linear-gradient(180deg, #22c55e, #16a34a);
+  }
+  .era-btn[data-era="after"],
+  .era-btn[data-era="not-so-long-ago"] {
+    background: linear-gradient(180deg, #0ea5e9, #0284c7);
+  }
+
+  /* ============================================================
+     FACT card — slides in after the era is chosen.
+     ============================================================ */
+  .fact-card {
+    background: var(--card);
+    padding: 26px 22px;
+    border-radius: 28px;
+    margin: 8px auto 14px;
+    max-width: 520px;
+    width: 95%;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    animation: slide-in 0.4s ease-out;
+  }
+  @keyframes slide-in {
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
+  }
+  .fact-result {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    min-height: 38px;
+  }
+  .fact-result.correct { color: var(--era-during); }
+  .fact-result.wrong   { color: var(--era-before); }
+  .fact-emoji {
+    font-size: 96px;
+    line-height: 1.1;
+    margin: 4px 0;
+  }
+  .fact-specimen-name {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .fact-era-tag {
+    display: inline-block;
+    padding: 6px 18px;
+    border-radius: 999px;
+    color: white;
+    font-weight: 800;
+    font-size: 17px;
+    margin: 6px 0 12px;
+  }
+  .fact-era-tag[data-era="before"],
+  .fact-era-tag[data-era="long-ago"] { background: var(--era-before); }
+  .fact-era-tag[data-era="during"]   { background: var(--era-during); }
+  .fact-era-tag[data-era="after"],
+  .fact-era-tag[data-era="not-so-long-ago"] { background: var(--era-after); }
+  .fact-text {
+    font-size: 22px;
+    line-height: 1.5;
+    color: var(--text);
+    margin: 4px 0;
+  }
+
+  /* ============================================================
+     FIELD GUIDE — collection grid.
+     ============================================================ */
+  .guide-progress {
+    background: var(--card);
+    display: inline-block;
+    padding: 10px 24px;
+    border-radius: 999px;
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    color: var(--text);
+  }
+  .guide-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    max-width: 600px;
+    width: 100%;
+    margin: 8px auto 12px;
+  }
+  @media (min-width: 640px) {
+    .guide-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  .guide-tile {
+    background: var(--card);
+    border: none;
+    border-radius: 18px;
+    padding: 16px 8px;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.1s;
+    text-align: center;
+  }
+  .guide-tile:active { transform: scale(0.96); }
+  .guide-tile.locked { cursor: default; }
+  .guide-tile-emoji {
+    font-size: 60px;
+    display: block;
+    line-height: 1;
+  }
+  .guide-tile.locked .guide-tile-emoji {
+    opacity: 0.35;
+    filter: grayscale(1);
+  }
+  .guide-tile-name {
+    font-size: 17px;
+    font-weight: 800;
+    margin-top: 6px;
+    color: var(--text);
+  }
+  .guide-tile.locked .guide-tile-name { color: var(--text-soft); }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%      { transform: translateX(-6px); }
+    75%      { transform: translateX(6px); }
+  }
+  .guide-tile.shaking { animation: shake 0.3s ease-in-out; }
+
+  /* ============================================================
+     END — score card.
+     ============================================================ */
+  .score-card {
+    background: var(--card);
+    padding: 28px 24px;
+    border-radius: 28px;
+    margin: 10px auto 14px;
+    max-width: 420px;
+    width: 95%;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  }
+  .score-big {
+    font-size: 64px;
+    font-weight: 800;
+    color: var(--text);
+    margin: 6px 0;
+  }
+  .score-label {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-soft);
+  }
+  .high-score-banner {
+    background: linear-gradient(180deg, #fbbf24, #d97706);
+    color: var(--text);
+    padding: 12px 20px;
+    border-radius: 16px;
+    font-size: 22px;
+    font-weight: 800;
+    margin-top: 14px;
+    animation: bobble 1.6s ease-in-out infinite;
+  }
+
+  /* ============================================================
+     NAV BAR (top-right) — per STANDARDS §8.
+     Shown on dig/sort/fact only; mute button takes its place on
+     the menu.
+     ============================================================ */
+  .corner-bar {
+    position: fixed;
+    top: env(safe-area-inset-top, 12px);
+    right: 12px;
+    display: none;
+    gap: 12px;
+    z-index: 50;
+    padding-top: 12px;
+  }
+  .corner-bar.visible { display: flex; }
+  .nav-btn {
+    width: 64px;
+    height: 64px;
+    background: rgba(255, 251, 235, 0.95);
+    border: none;
+    border-radius: 50%;
+    font-size: 28px;
+    color: var(--text);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.12s;
+    padding: 0;
+    font-family: inherit;
+  }
+  .nav-btn:active { transform: scale(0.9); }
+
+  /* ============================================================
+     CONFIRM modal — soft-confirm before mid-play exit.
+     ============================================================ */
+  .confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(45, 26, 10, 0.7);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .confirm-backdrop.show { display: flex; }
+  .confirm-card {
+    background: var(--card);
+    color: var(--text);
+    border-radius: 28px;
+    padding: 28px 24px;
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    animation: pop 0.28s ease-out;
+  }
+  @keyframes pop {
+    0%   { transform: scale(0.85); opacity: 0; }
+    100% { transform: scale(1);    opacity: 1; }
+  }
+  .confirm-card h2 { font-size: 28px; margin-bottom: 8px; }
+  .confirm-card p  { font-size: 18px; margin-bottom: 20px; color: var(--text-soft); }
+  .confirm-card .btn {
+    display: block;
+    width: 100%;
+    margin: 0 0 10px;
+    min-width: 0;
+  }
+  .confirm-card .btn:last-child { margin-bottom: 0; }
+
+  /* ============================================================
+     CONFETTI — colored squares raining down.
+     ============================================================ */
+  .confetti {
+    position: fixed;
+    pointer-events: none;
+    width: 12px;
+    height: 12px;
+    top: -20px;
+    z-index: 100;
+    border-radius: 2px;
+  }
+  @keyframes fall {
+    0%   { transform: translateY(-20px) rotate(0);     opacity: 1; }
+    100% { transform: translateY(110vh)  rotate(720deg); opacity: 0; }
+  }
+
+  .fade-in { animation: fadeIn 0.4s ease-out; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0);    }
+  }
+</style>
+</head>
+<body>
+
+<main id="game">
+
+  <!-- ====================================================
+       MENU
+       ==================================================== -->
+  <section class="screen active" id="menu">
+    <h1>🦖 Deep Time Dig</h1>
+    <p>Hi <span id="player-name">friend</span>! Dig up specimens<br>and sort them by when they lived.</p>
+
+    <div class="difficulty-toggle" role="group" aria-label="Difficulty">
+      <button class="diff-btn" data-diff="standard" type="button">Standard</button>
+      <button class="diff-btn" data-diff="easy"     type="button">Easy</button>
+    </div>
+
+    <div class="menu-stats">
+      <div class="stat-pill">🏆 Best: <span id="menu-high-score">0</span> / 10</div>
+      <div class="stat-pill">📖 <span id="menu-found-count">0 / 0</span> found</div>
+    </div>
+
+    <button class="btn" id="btn-start" type="button">Start Digging! ⛏️</button>
+    <button class="btn-secondary" id="btn-open-guide" type="button">📖 Field Guide</button>
+    <button class="btn-secondary" id="btn-arcade-menu" type="button">← Back to Arcade</button>
+  </section>
+
+  <!-- ====================================================
+       FIELD GUIDE
+       ==================================================== -->
+  <section class="screen" id="guide">
+    <h2>📖 Field Guide</h2>
+    <div class="guide-progress" id="guide-progress">0 / 0 found</div>
+    <div class="guide-grid" id="guide-grid"></div>
+    <button class="btn-secondary" id="btn-guide-back" type="button">← Back to Menu</button>
+  </section>
+
+  <!-- ====================================================
+       DIG
+       ==================================================== -->
+  <section class="screen" id="dig">
+    <div class="dig-info">
+      <div><span class="label">Round</span><span id="dig-round">1 / 10</span></div>
+      <div><span class="label">Score</span><span id="dig-score">0</span></div>
+    </div>
+    <div class="dig-prompt">Tap the dirt to dig! 🔍</div>
+    <div class="dig-grid" id="dig-grid"></div>
+  </section>
+
+  <!-- ====================================================
+       SORT
+       ==================================================== -->
+  <section class="screen" id="sort">
+    <div class="specimen-stage">
+      <span class="specimen-emoji-big" id="sort-emoji">🦖</span>
+      <div class="specimen-name" id="sort-name">Specimen</div>
+      <div class="specimen-prompt">When did it live?</div>
+    </div>
+    <div class="era-buttons" id="sort-eras"></div>
+  </section>
+
+  <!-- ====================================================
+       FACT — reused for both gameplay results and Field Guide
+       browsing. The Next button's onclick is swapped in JS.
+       ==================================================== -->
+  <section class="screen" id="fact">
+    <div class="fact-card">
+      <div class="fact-result" id="fact-result"></div>
+      <div class="fact-emoji"  id="fact-emoji"></div>
+      <div class="fact-specimen-name" id="fact-name"></div>
+      <div class="fact-era-tag"       id="fact-era"></div>
+      <p class="fact-text"            id="fact-text"></p>
+    </div>
+    <button class="btn green" id="fact-next-btn" type="button">Next →</button>
+  </section>
+
+  <!-- ====================================================
+       END
+       ==================================================== -->
+  <section class="screen" id="end">
+    <h1>You finished! 🎉</h1>
+    <div class="score-card">
+      <div class="score-label">Final Score</div>
+      <div class="score-big"><span id="end-score">0</span> / 10</div>
+      <div class="score-label">Best: <span id="end-high">0</span></div>
+      <div class="high-score-banner" id="end-newhigh" style="display:none;">🎉 New high score!</div>
+    </div>
+    <button class="btn green" id="btn-play-again" type="button">Play Again 🎮</button>
+    <button class="btn-secondary" id="btn-arcade-end" type="button">← Back to Arcade</button>
+  </section>
+
+</main>
+
+<!-- Mute button — only on the menu (top-right corner). -->
+<div class="corner-bar" id="mute-bar">
+  <button class="nav-btn" id="mute-btn" type="button" aria-label="Toggle sound">🔇</button>
+</div>
+
+<!-- Nav bar — only on dig/sort/fact, per STANDARDS §8. -->
+<div class="corner-bar" id="nav-bar">
+  <button class="nav-btn" id="nav-menu"   type="button" aria-label="Back to menu">↩</button>
+  <button class="nav-btn" id="nav-arcade" type="button" aria-label="Back to arcade">🏠</button>
+</div>
+
+<!-- Mid-play confirm modal. -->
+<div class="confirm-backdrop" id="confirm-backdrop">
+  <div class="confirm-card">
+    <h2>Leave game?</h2>
+    <p>Your score won't be saved.</p>
+    <button class="btn green"  id="confirm-stay"  type="button">Keep Playing</button>
+    <button class="btn purple" id="confirm-leave" type="button">Yes, Leave</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   SPECIMENS — the dig pool.
+   Each entry: name, emoji, category, era (before/during/after
+   the dinosaurs), and a one-sentence kid-friendly fact.
+   Facts were cross-checked before shipping. Corrections from
+   the starter array are noted in the build summary.
+   ============================================================ */
+const SPECIMENS = [
+  // ROCKS
+  { name: "Granite",   emoji: "🪨", category: "rock", era: "before",
+    fact: "Granite forms deep underground when melted rock cools slowly — some pieces are over a billion years old!" },
+  { name: "Limestone", emoji: "🪨", category: "rock", era: "before",
+    fact: "Limestone is made from the squashed shells of tiny ocean creatures that lived hundreds of millions of years ago." },
+  { name: "Coal",      emoji: "⚫", category: "rock", era: "before",
+    fact: "Coal formed from giant ferns and trees that grew long BEFORE the dinosaurs — then got buried for millions of years." },
+  { name: "Amber",     emoji: "🟡", category: "rock", era: "during",
+    fact: "Amber is tree resin that hardened over millions of years — and it sometimes traps prehistoric bugs inside!" },
+  { name: "Obsidian",  emoji: "⬛", category: "rock", era: "after",
+    fact: "Obsidian is volcanic glass — it forms when lava cools so fast that crystals don't have time to grow." },
+
+  // INSECTS & BUGS
+  { name: "Trilobite",    emoji: "🦞", category: "bug", era: "before",
+    fact: "Trilobites scuttled around ancient seas for almost 270 million years — way longer than the dinosaurs lasted." },
+  { name: "Meganeura",    emoji: "🦋", category: "bug", era: "before",
+    fact: "Meganeura was a dragonfly the size of a hawk — its wings stretched over 2 feet across!" },
+  { name: "Cockroach",    emoji: "🪳", category: "bug", era: "before",
+    fact: "Cockroaches have been crawling around for over 300 million years — even older than the first dinosaurs." },
+  { name: "Bug in Amber", emoji: "🪰", category: "bug", era: "during",
+    fact: "Insects trapped in tree resin during the age of dinosaurs became amber fossils we can still see today." },
+  { name: "Honeybee",     emoji: "🐝", category: "bug", era: "after",
+    fact: "Honeybees buzzed onto the scene AFTER the dinosaurs died — they're newer than you'd think." },
+
+  // SHARKS & OTHER SEA CREATURES
+  { name: "Cladoselache", emoji: "🦈", category: "shark", era: "before",
+    fact: "Sharks have been swimming in the ocean for over 400 million years — older than trees!" },
+  { name: "Helicoprion",  emoji: "🦈", category: "shark", era: "before",
+    fact: "Helicoprion had a spiral of teeth like a buzzsaw in its lower jaw. Nobody is totally sure how it used them." },
+  { name: "Ammonite",     emoji: "🐚", category: "shark", era: "during",
+    fact: "Ammonites were spiral-shelled relatives of squids that swam with the dinosaurs — and went extinct at the same time." },
+  { name: "Hybodus",      emoji: "🦈", category: "shark", era: "during",
+    fact: "Hybodus was a shark that swam alongside the dinosaurs and survived for more than 100 million years." },
+  { name: "Megalodon",    emoji: "🦷", category: "shark", era: "after",
+    fact: "Megalodon was the biggest shark ever — but it lived AFTER the dinosaurs, not with them." },
+
+  // DINOSAURS
+  { name: "Stegosaurus",   emoji: "🦕", category: "dinosaur", era: "during",
+    fact: "Stegosaurus lived so long ago that T. rex is closer in time to US than to Stegosaurus!" },
+  { name: "Brachiosaurus", emoji: "🦕", category: "dinosaur", era: "during",
+    fact: "Brachiosaurus could reach leaves 40 feet up — taller than a 4-story building." },
+  { name: "T. rex",        emoji: "🦖", category: "dinosaur", era: "during",
+    fact: "T. rex had teeth the size of bananas and a bite stronger than any animal alive today." },
+  { name: "Triceratops",   emoji: "🦏", category: "dinosaur", era: "during",
+    fact: "Triceratops had three horns and a giant bony frill — it lived right up to the end of the dinosaur age." },
+  { name: "Velociraptor",  emoji: "🦖", category: "dinosaur", era: "during",
+    fact: "The real Velociraptor was about the size of a turkey — and it had feathers!" },
+
+  // AFTER DINOSAURS
+  { name: "Saber-toothed Cat", emoji: "🐅", category: "mammal", era: "after",
+    fact: "Saber-toothed cats prowled the world during the Ice Age — and hunted alongside early humans." },
+  { name: "Woolly Mammoth",    emoji: "🦣", category: "mammal", era: "after",
+    fact: "Woolly mammoths walked the Earth so recently that ancient humans drew pictures of them on cave walls." },
+];
+
+/* ============================================================
+   ERAS — the labels shown on the sort buttons for each mode.
+   Standard has three eras; Easy collapses them into two so a
+   6-year-old can still play.
+   ============================================================ */
+const ERAS = {
+  standard: [
+    { key: 'before', label: 'Before<br>Dinosaurs' },
+    { key: 'during', label: 'Age of<br>Dinosaurs' },
+    { key: 'after',  label: 'After<br>Dinosaurs'  },
+  ],
+  easy: [
+    { key: 'long-ago',        label: 'Long, Long<br>Ago' },
+    { key: 'not-so-long-ago', label: 'Not So<br>Long Ago' },
+  ],
+};
+
+const ERA_LABELS = {
+  'before':           'Before Dinosaurs',
+  'during':           'Age of Dinosaurs',
+  'after':            'After Dinosaurs',
+  'long-ago':         'Long, Long Ago',
+  'not-so-long-ago':  'Not So Long Ago',
+};
+
+/* In Easy mode, both 'before' and 'during' specimens belong to
+   the same bucket ('long-ago'), and 'after' becomes 'not-so-long-ago'. */
+function correctEraFor(specimen, difficulty) {
+  if (difficulty === 'easy') {
+    return specimen.era === 'after' ? 'not-so-long-ago' : 'long-ago';
+  }
+  return specimen.era;
+}
+
+/* ============================================================
+   PLAYER CHECK — per STANDARDS §5. Redirect home if empty.
+   ============================================================ */
+let player = localStorage.getItem('arcade-current-player');
+if (!player) {
+  window.location.href = '/';
+  player = 'friend'; // fallback so the page doesn't crash before nav.
+}
+
+/* ============================================================
+   STORAGE KEYS — per-player, per-difficulty where it matters.
+   ============================================================ */
+const KEY = {
+  highScore: (diff) => `deep-time-dig:${player}:highScore:${diff}`,
+  found:     ()     => `deep-time-dig:${player}:foundSpecimens`,
+  diff:      ()     => `deep-time-dig:${player}:difficulty`,
+  audio:     ()     => `deep-time-dig:${player}:audio`,
+};
+
+/* ============================================================
+   STATE — kept simple. Reset by startGame().
+   ============================================================ */
+const state = {
+  difficulty: localStorage.getItem(KEY.diff()) || 'standard',
+  score: 0,
+  round: 0,
+  totalRounds: 10,
+  currentSpecimen: null,
+  usedSpecimenNames: new Set(),
+  specimenTileIndex: 0,
+  digLocked: false,
+  // Default to muted (iOS needs a user gesture to unlock audio).
+  audioOn: localStorage.getItem(KEY.audio()) === 'on',
+};
+
+let currentScreen = 'menu';
+
+/* ============================================================
+   SCREEN SWITCHING
+   ============================================================ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active', 'fade-in');
+  });
+  const target = document.getElementById(id);
+  target.classList.add('active');
+  requestAnimationFrame(() => target.classList.add('fade-in'));
+  currentScreen = id;
+  updateCornerBars();
+}
+
+function updateCornerBars() {
+  const inPlay = ['dig', 'sort', 'fact'].includes(currentScreen);
+  document.getElementById('nav-bar').classList.toggle('visible', inPlay);
+  document.getElementById('mute-bar').classList.toggle('visible', currentScreen === 'menu');
+}
+
+function goHome() {
+  window.location.href = '/';
+}
+
+function goToMenu() {
+  showScreen('menu');
+  renderMenu();
+}
+
+/* ============================================================
+   FOUND specimens (Field Guide collection).
+   Read fresh from localStorage every call — the set changes
+   as the player digs through a game.
+   ============================================================ */
+function getFoundSet() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(KEY.found()) || '[]'));
+  } catch {
+    return new Set();
+  }
+}
+function markFound(specimenName) {
+  const set = getFoundSet();
+  if (!set.has(specimenName)) {
+    set.add(specimenName);
+    localStorage.setItem(KEY.found(), JSON.stringify([...set]));
+  }
+}
+
+/* ============================================================
+   MENU rendering
+   ============================================================ */
+function renderMenu() {
+  document.getElementById('player-name').textContent = player;
+
+  document.querySelectorAll('.diff-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.diff === state.difficulty);
+  });
+
+  const high = Number(localStorage.getItem(KEY.highScore(state.difficulty))) || 0;
+  document.getElementById('menu-high-score').textContent = high;
+
+  const found = getFoundSet();
+  document.getElementById('menu-found-count').textContent =
+    `${found.size} / ${SPECIMENS.length}`;
+
+  document.getElementById('mute-btn').textContent = state.audioOn ? '🔊' : '🔇';
+}
+
+document.querySelectorAll('.diff-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    state.difficulty = b.dataset.diff;
+    localStorage.setItem(KEY.diff(), state.difficulty);
+    renderMenu();
+  });
+});
+
+document.getElementById('btn-start').addEventListener('click', startGame);
+document.getElementById('btn-open-guide').addEventListener('click', openGuide);
+document.getElementById('btn-play-again').addEventListener('click', startGame);
+document.getElementById('btn-arcade-menu').addEventListener('click', goHome);
+document.getElementById('btn-arcade-end').addEventListener('click', goHome);
+document.getElementById('btn-guide-back').addEventListener('click', goToMenu);
+
+/* ============================================================
+   AUDIO — Web Audio API only. iOS requires a user gesture, so
+   audioCtx is created lazily on the first sound (which always
+   follows a tap). Two sounds: a low "dig" thunk and an
+   ascending ding for reveals/correct answers.
+   ============================================================ */
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) audioCtx = new Ctx();
+  }
+  return audioCtx;
+}
+function playDigSound() {
+  if (!state.audioOn) return;
+  const ctx = ensureAudio(); if (!ctx) return;
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(140, now);
+  osc.frequency.exponentialRampToValueAtTime(55, now + 0.12);
+  gain.gain.setValueAtTime(0.18, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.17);
+}
+function playDingSound() {
+  if (!state.audioOn) return;
+  const ctx = ensureAudio(); if (!ctx) return;
+  const now = ctx.currentTime;
+  // C5 → E5 → G5 arpeggio.
+  [523.25, 659.25, 783.99].forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    const start = now + i * 0.08;
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(0.12, start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.3);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(start);
+    osc.stop(start + 0.32);
+  });
+}
+
+document.getElementById('mute-btn').addEventListener('click', () => {
+  state.audioOn = !state.audioOn;
+  localStorage.setItem(KEY.audio(), state.audioOn ? 'on' : 'off');
+  document.getElementById('mute-btn').textContent = state.audioOn ? '🔊' : '🔇';
+  // Unlock the AudioContext from inside this user gesture, so iOS
+  // treats the next sound as part of the same interaction.
+  if (state.audioOn) {
+    const ctx = ensureAudio();
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+  }
+});
+
+/* ============================================================
+   GAME LOOP — startGame → startDigPhase → handleTileTap →
+   revealSpecimen → startSortPhase → handleEraTap → showFact →
+   nextRound (loops) → endGame.
+   ============================================================ */
+function startGame() {
+  state.score = 0;
+  state.round = 0;
+  state.usedSpecimenNames = new Set();
+  startDigPhase();
+}
+
+function startDigPhase() {
+  state.round++;
+  if (state.round > state.totalRounds) { endGame(); return; }
+
+  // No specimen repeats within a 10-round session.
+  const pool = SPECIMENS.filter(s => !state.usedSpecimenNames.has(s.name));
+  if (pool.length === 0) { endGame(); return; }
+  state.currentSpecimen = pool[Math.floor(Math.random() * pool.length)];
+  state.usedSpecimenNames.add(state.currentSpecimen.name);
+
+  state.specimenTileIndex = Math.floor(Math.random() * 16);
+  state.digLocked = false;
+
+  document.getElementById('dig-round').textContent =
+    `${state.round} / ${state.totalRounds}`;
+  document.getElementById('dig-score').textContent = state.score;
+
+  buildDigGrid();
+  showScreen('dig');
+}
+
+function buildDigGrid() {
+  const grid = document.getElementById('dig-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 16; i++) {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'dirt-tile';
+    tile.dataset.index = i;
+    tile.addEventListener('click', () => handleTileTap(i, tile));
+    grid.appendChild(tile);
+  }
+}
+
+function handleTileTap(index, tile) {
+  if (state.digLocked) return;
+  if (tile.classList.contains('dug') || tile.classList.contains('found')) return;
+
+  if (index === state.specimenTileIndex) {
+    state.digLocked = true;
+    revealSpecimen(tile);
+  } else {
+    tile.classList.add('dug');
+    playDigSound();
+  }
+}
+
+function revealSpecimen(tile) {
+  tile.classList.add('found');
+  tile.innerHTML = `<span class="specimen-emoji">${state.currentSpecimen.emoji}</span>`;
+  // Specimen is added to the collection on dig-phase reveal, regardless
+  // of whether the era guess turns out to be correct.
+  markFound(state.currentSpecimen.name);
+  playDingSound();
+  spawnSparkles(tile);
+  setTimeout(startSortPhase, 950);
+}
+
+function spawnSparkles(tile) {
+  const rect = tile.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const sparkles = ['✨', '⭐', '✨', '💫', '✨', '⭐'];
+  sparkles.forEach((s, i) => {
+    const span = document.createElement('span');
+    span.className = 'sparkle';
+    span.textContent = s;
+    span.style.left = cx + 'px';
+    span.style.top  = cy + 'px';
+    const angle = (i / sparkles.length) * Math.PI * 2;
+    const dist = 60 + Math.random() * 40;
+    span.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+    span.style.setProperty('--dy', `${Math.sin(angle) * dist}px`);
+    document.body.appendChild(span);
+    setTimeout(() => span.remove(), 1000);
+  });
+}
+
+/* ============================================================
+   SORT phase — show specimen + era buttons.
+   ============================================================ */
+function startSortPhase() {
+  const spec = state.currentSpecimen;
+  document.getElementById('sort-emoji').textContent = spec.emoji;
+  document.getElementById('sort-name').textContent  = spec.name;
+
+  const wrap = document.getElementById('sort-eras');
+  wrap.innerHTML = '';
+  ERAS[state.difficulty].forEach(era => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'era-btn';
+    b.dataset.era = era.key;
+    b.innerHTML = era.label;
+    b.addEventListener('click', () => handleEraTap(era.key));
+    wrap.appendChild(b);
+  });
+  showScreen('sort');
+}
+
+function handleEraTap(eraKey) {
+  const correctKey = correctEraFor(state.currentSpecimen, state.difficulty);
+  const correct = eraKey === correctKey;
+  if (correct) state.score++;
+  showFact(correct, correctKey);
+}
+
+/* ============================================================
+   FACT card — shown after the era is chosen.
+   ============================================================ */
+function showFact(correct, correctKey) {
+  const spec = state.currentSpecimen;
+  const resultEl = document.getElementById('fact-result');
+  if (correct) {
+    resultEl.textContent = '✅ Correct!';
+    resultEl.className = 'fact-result correct';
+    launchConfetti(50);
+    playDingSound();
+  } else {
+    resultEl.textContent = '😅 Not quite!';
+    resultEl.className = 'fact-result wrong';
+  }
+  document.getElementById('fact-emoji').textContent = spec.emoji;
+  document.getElementById('fact-name').textContent  = spec.name;
+  const tag = document.getElementById('fact-era');
+  tag.textContent = ERA_LABELS[correctKey];
+  tag.dataset.era = correctKey;
+  document.getElementById('fact-text').textContent  = spec.fact;
+
+  const nextBtn = document.getElementById('fact-next-btn');
+  nextBtn.textContent = state.round >= state.totalRounds ? 'See Score →' : 'Next →';
+  nextBtn.onclick = nextRound;
+
+  showScreen('fact');
+}
+
+function nextRound() {
+  startDigPhase();
+}
+
+/* ============================================================
+   END
+   ============================================================ */
+function endGame() {
+  const key = KEY.highScore(state.difficulty);
+  const prevHigh = Number(localStorage.getItem(key)) || 0;
+  const newHigh = state.score > prevHigh;
+  if (newHigh) localStorage.setItem(key, String(state.score));
+
+  document.getElementById('end-score').textContent = state.score;
+  document.getElementById('end-high').textContent  = newHigh ? state.score : prevHigh;
+  document.getElementById('end-newhigh').style.display = newHigh ? 'block' : 'none';
+  showScreen('end');
+  if (state.score >= 7) launchConfetti(120);
+}
+
+/* ============================================================
+   FIELD GUIDE
+   ============================================================ */
+function openGuide() {
+  renderGuide();
+  showScreen('guide');
+}
+
+function renderGuide() {
+  const found = getFoundSet();
+  const total = SPECIMENS.length;
+
+  const progressEl = document.getElementById('guide-progress');
+  progressEl.textContent = found.size === total
+    ? `🎉 Complete! You've found them all!`
+    : `📖 ${found.size} / ${total} found`;
+
+  const grid = document.getElementById('guide-grid');
+  grid.innerHTML = '';
+  SPECIMENS.forEach(spec => {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'guide-tile';
+    const isFound = found.has(spec.name);
+    if (!isFound) tile.classList.add('locked');
+
+    tile.innerHTML = `
+      <span class="guide-tile-emoji">${isFound ? spec.emoji : '❓'}</span>
+      <div class="guide-tile-name">${isFound ? spec.name : '???'}</div>
+    `;
+    tile.addEventListener('click', () => {
+      if (isFound) {
+        showGuideFact(spec);
+      } else {
+        tile.classList.add('shaking');
+        setTimeout(() => tile.classList.remove('shaking'), 350);
+      }
+    });
+    grid.appendChild(tile);
+  });
+}
+
+function showGuideFact(spec) {
+  // Same fact-card visuals as gameplay, but no result line and
+  // the Next button becomes "Back to Guide".
+  const resultEl = document.getElementById('fact-result');
+  resultEl.textContent = '';
+  resultEl.className = 'fact-result';
+
+  document.getElementById('fact-emoji').textContent = spec.emoji;
+  document.getElementById('fact-name').textContent  = spec.name;
+  const tag = document.getElementById('fact-era');
+  const eraKey = correctEraFor(spec, state.difficulty);
+  tag.textContent = ERA_LABELS[eraKey];
+  tag.dataset.era = eraKey;
+  document.getElementById('fact-text').textContent = spec.fact;
+
+  const nextBtn = document.getElementById('fact-next-btn');
+  nextBtn.textContent = '← Back to Guide';
+  // isActivePlay() checks against this reference to detect guide mode.
+  nextBtn.onclick = openGuide;
+
+  showScreen('fact');
+}
+
+/* ============================================================
+   CONFETTI — pure-CSS rain of colored squares.
+   ============================================================ */
+function launchConfetti(count) {
+  const colors = ['#fbbf24', '#22c55e', '#0ea5e9', '#a78bfa', '#f472b6', '#ef4444'];
+  for (let i = 0; i < count; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    const duration = 2 + Math.random() * 2;
+    const delay = Math.random() * 1.2;
+    c.style.animation = `fall ${duration}s ${delay}s linear forwards`;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), (duration + delay) * 1000 + 300);
+  }
+}
+
+/* ============================================================
+   NAV BAR + CONFIRM MODAL — per STANDARDS §8.
+   Active play = on dig/sort/fact AND the fact screen is showing
+   a real round result (not a Field-Guide fact card; we detect
+   that by checking the Next button's handler).
+   ============================================================ */
+function isActivePlay() {
+  if (currentScreen === 'dig' || currentScreen === 'sort') return true;
+  if (currentScreen === 'fact') {
+    return document.getElementById('fact-next-btn').onclick !== openGuide;
+  }
+  return false;
+}
+
+let pendingLeave = null;
+function showConfirm(action) {
+  pendingLeave = action;
+  document.getElementById('confirm-backdrop').classList.add('show');
+}
+function hideConfirm() {
+  document.getElementById('confirm-backdrop').classList.remove('show');
+  pendingLeave = null;
+}
+
+document.getElementById('nav-menu').addEventListener('click', () => {
+  if (isActivePlay()) showConfirm(goToMenu); else goToMenu();
+});
+document.getElementById('nav-arcade').addEventListener('click', () => {
+  if (isActivePlay()) showConfirm(goHome); else goHome();
+});
+document.getElementById('confirm-stay').addEventListener('click', hideConfirm);
+document.getElementById('confirm-leave').addEventListener('click', () => {
+  const action = pendingLeave;
+  hideConfirm();
+  if (action) action();
+});
+
+/* ============================================================
+   BOOTSTRAP
+   ============================================================ */
+renderMenu();
+updateCornerBars();
+</script>
+
+</body>
+</html>
