@@ -435,6 +435,15 @@
   <button class="secondary-btn" id="cpBack">← Pick a different dragon</button>
 </div>
 
+<!-- Arena picker — shown after control mode picker, before gameplay starts -->
+<div class="overlay hidden" id="arenaPickerScreen">
+  <div class="player-banner">Playing as <span id="apPlayerName">—</span> · <span id="apDragonName">—</span></div>
+  <h1>Pick an Arena</h1>
+  <p class="sub">Each place looks and feels different.</p>
+  <div class="arena-grid" id="arenaGrid"></div>
+  <button class="secondary-btn" id="apBack">← Back to controls</button>
+</div>
+
 <div class="overlay hidden" id="napScreen">
   <div class="nap-card">
     <div style="font-size: 64px;">💤</div>
@@ -444,10 +453,16 @@
     <div class="stage-row">Biggest you got: <span id="napStage">🐉 Hatchling</span></div>
     <div class="btn-row">
       <button class="big-btn" id="napPlayAgain">Play Again</button>
+      <button class="secondary-btn" id="napPickArena">Pick a different arena</button>
       <button class="secondary-btn" id="napPickDragon">Pick a different dragon</button>
     </div>
   </div>
 </div>
+
+<!-- Arena entry banner — pops up as a run starts -->
+<div class="wave-banner arena-banner" id="arenaBanner">🏘️ Village Square!</div>
+<!-- Ready/GO countdown overlay -->
+<div class="rhythm-ready arena-countdown" id="arenaCountdown">READY</div>
 
 <script src="game.js"></script>
 </body>

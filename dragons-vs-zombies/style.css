@@ -2038,6 +2038,95 @@ canvas {
 .muscle-t1 .muscle-t1-only { display: inline; }
 .muscle-t2 .muscle-t2-only { display: inline; }
 .muscle-t3 .muscle-t3-only { display: inline; }
+/* ============================================================
+   ARENA PICKER (Round 4)
+   Grid of 5 arena cards, each with a top-down mini-map preview.
+   ============================================================ */
+.arena-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  width: 100%;
+  max-width: 700px;
+  margin-bottom: 18px;
+  justify-content: center;
+}
+.arena-card {
+  flex: 0 1 calc(50% - 7px);
+  background: white;
+  border: 4px solid transparent;
+  border-radius: 22px;
+  padding: 14px 12px 16px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(45, 36, 56, 0.12);
+  transition: transform 0.12s ease, border-color 0.12s ease;
+  position: relative;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: inherit;
+  color: #2d2438;
+}
+@media (min-width: 560px) {
+  .arena-card { flex: 0 1 calc(33.333% - 10px); min-height: 220px; }
+}
+.arena-card:active { transform: scale(0.96); }
+.arena-card.favorite { border-color: #ffd76b; }
+.arena-card .arena-emoji { font-size: 38px; line-height: 1; margin-top: 6px; }
+.arena-card .arena-name  { font-weight: 800; font-size: 20px; margin-top: 2px; }
+.arena-mini {
+  width: 100%;
+  max-width: 200px;
+  height: 110px;
+  border-radius: 12px;
+  display: block;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.10);
+}
+
+/* Arena entry banner reuses .wave-banner style but at a kid-friendly size */
+.arena-banner {
+  font-size: clamp(28px, 5vw, 40px);
+  top: 24%;
+}
+
+/* Ready/GO countdown — reuses the rhythm-ready styling, slightly bigger */
+.arena-countdown {
+  top: 42%;
+  font-size: clamp(50px, 9vw, 80px);
+}
+
+/* ============================================================
+   ARENA HUD — top-down gameplay (Round 4)
+   ============================================================ */
+.arena-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+.arena-hud.hidden { display: none; }
+.arena-hud .hud-score {
+  position: absolute;
+  top: env(safe-area-inset-top, 12px);
+  left: 12px;
+  margin-top: 12px;
+}
+.arena-hud .hud-stage {
+  position: absolute;
+  top: env(safe-area-inset-top, 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 12px;
+}
+.arena-hud .hud-meter {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 12px) + 76px);
+  right: 12px;
+}
+
 /* Tier 3 holds a pronounced "double-bicep flex" pose every 4 seconds */
 .muscle-t3 .muscle-flex {
   transform-origin: center 30%;  /* anchor near the shoulders so the bulges visibly puff out */

@@ -24,11 +24,11 @@ const CONFIG = {
 
   /* ---- Sleepy meter ---- */
   sleepyMeterMax: 100,
-  zombieTouchPenalty: 8,         // primary pressure source in top-down
+  zombieTouchPenalty: 8,         // hop touch — the third pressure source
   touchCooldownSec: 1.0,
-  passiveSleepyPerSec: 0.70,     // bumped from 0.55 since escape pressure is gone
+  passiveSleepyPerSec: 0.55,     // ≈3 min to nap doing nothing (100 / 180s)
+  escapePenalty: 4,              // sleep added per zombie that reaches left edge
   cureSleepyRelief: 0.5,         // sleep subtracted per cure (rewards active play)
-  // escapePenalty: removed in Round 4 — no escape concept in top-down arena
 
   /* ---- Wave timing ---- */
   waveDurationSec: 30,
@@ -36,13 +36,16 @@ const CONFIG = {
   minSpawnInterval: 0.40,
   spawnDecayPerWave: 0.82,
 
-  /* ---- Zombie speed (toward dragon, top-down) ---- */
-  baseZombieSpeed: 60,
-  maxZombieSpeed: 110,
-  zombieSpeedGrowthPerWave: 1.05,
+  /* ---- Zombie speed (along the ground, leftward) ---- */
+  baseZombieSpeed: 22,
+  maxZombieSpeed: 60,
+  zombieSpeedGrowthPerWave: 1.08,
 
-  // [removed in Round 4] hop mechanic — no side-view ground line anymore
-  // hopIntervalMin / hopIntervalMax / hopHeight / hopDurationSec
+  /* ---- Zombie hop (lets them reach a low-flying dragon) ---- */
+  hopIntervalMin: 2.2,        // sec between hops (random in range)
+  hopIntervalMax: 4.5,
+  hopHeight: 90,              // peak hop height in px above ground
+  hopDurationSec: 0.9,        // total time in the air per hop
 
   /* ---- Zombie chatter ---- */
   chatterChancePerSec: 0.18,
@@ -53,37 +56,31 @@ const CONFIG = {
   ],
 
   /* ---- Cured villager exit ---- */
-  curedExitDurationSec: 3.0,  // walks toward nearest arena edge
-  curedWalkSpeed: 90,         // px/sec — walks to edge then despawns
+  curedExitDurationSec: 4.0,  // how long they linger walking off-screen
+  curedWalkSpeed: 95,         // their leftward speed (faster than world)
 
   /* ---- Frost slow aura (around cured Frost-villagers briefly) ---- */
   frostSlowRadius: 90,
   frostSlowFactor: 0.35,
   frostSlowDurationSec: 2.0,
 
-  /* ---- Fireball physics (top-down: straight-line, no gravity) ---- */
-  fireballLifespanSec: 1.5,
+  /* ---- Fireball physics ---- */
+  fireballLifespanSec: 2.5,
   fireballHitPadding: 6,
-  // [removed in Round 4] fireballGravity / fireballDefaultArc — top-down has no arc
+  fireballGravity: 380,        // px/sec² downward (gives the arc)
+  fireballDefaultArc: 0.45,    // upward kick fraction of speed for default shots
 
-  /* ---- Top-down arena (Round 4) ---- */
-  arena: {
-    sizeMultiplier: 1.75,        // arena dims = viewport * this
-    cameraEdgeClamp: true,       // standard Zelda camera clamp
-    dragonAccel: 1800,           // px/sec² acceleration toward input direction
-    dragonMaxSpeed: 320,         // px/sec max move speed (base; per-dragon multiplier applies)
-    dragonRotationLerp: 0.18,    // facing-toward-velocity lerp factor per frame
-    fireballSpeed: 520,          // px/sec straight-line
-    arenaBgFadeSec: 0.4,         // fade in at arena entry
-    countdownSec: 1.6,           // total READY/SET/GO duration before first spawn
-    edgeVignettePx: 80,          // soft vignette width at arena edges
-    sceneryItemsPerArena: 22,    // approx scenery count placed at arena start
-  },
+  /* ---- World / scrolling ---- */
+  scrollSpeed: 75,             // px/sec, the world flows left at this rate
+  districtDurationSec: 45,     // each district lasts ~this long of scrolling
+  // Computed: scrollSpeed * districtDurationSec ≈ 3375 px per district
 
-  // [removed in Round 4] World / scrolling — top-down arena doesn't scroll
-  // scrollSpeed / districtDurationSec
-  // [removed in Round 4] Dragon flight area — replaced by 360° arena bounds
-  // groundFraction / dragonHorizBandMin/Max / dragonTopMargin / dragonBottomMargin
+  /* ---- Dragon flight area ---- */
+  groundFraction: 0.72,        // ground line at 72% of screen height
+  dragonHorizBandMin: 0.18,    // dragon can move left/right between these fractions
+  dragonHorizBandMax: 0.55,    // of viewport width
+  dragonTopMargin: 30,
+  dragonBottomMargin: 20,      // gap above ground line
 
   /* ---- Dragon roster ---- */
   // Per-dragon stats. shootInterval = seconds between auto-fires.
@@ -151,8 +148,6 @@ const KEYS = {
   prismUnlocked:  () => `dragons-vs-zombies:prismUnlocked`,
   // Castle weight room — per-dragon lifetime reps for this player
   dragonReps:     (id) => `dragons-vs-zombies:${player}:reps:${id}`,
-  // Round 4: last-played arena (string id: village/farm/forest/river/castle)
-  lastArena:      () => `dragons-vs-zombies:${player}:lastArena`,
 };
 function readNum(k, def = 0) { const v = localStorage.getItem(k); return v == null ? def : (Number(v) || 0); }
 function readStr(k, def = '') { const v = localStorage.getItem(k); return v == null ? def : v; }
@@ -250,126 +245,16 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// [removed in Round 4] groundLineY() — no ground line in top-down view
-// Game state moved into the top-down gameplay section below.
-
+function groundLineY() { return cssH * CONFIG.groundFraction; }
 
 /* ============================================================
-   ARENAS — Round 4
-   Each arena is a bounded top-down rectangle, with a tile pattern
-   and a set of scenery items. Scenery items are placed once at
-   arena entry; they don't scroll.
-   ============================================================ */
-const ARENAS = [
-  {
-    id: 'village',
-    name: 'Village Square',
-    emoji: '🏘️',
-    ground:     '#9bc78a',
-    groundDark: '#6fa55c',
-    accent:     '#7fb068',
-    scenery: ['cottage', 'well', 'marketStall', 'flowers', 'sign'],
-    miniPaint: (svg) => {
-      // Mini-map preview for the picker
-      return `
-        <rect width="60" height="40" fill="#9bc78a"/>
-        <rect x="6"  y="8"  width="14" height="12" fill="#f4d8b8" stroke="#b07b50"/>
-        <polygon points="6,8 13,3 20,8" fill="#b07b50"/>
-        <rect x="38" y="22" width="12" height="11" fill="#f4d8b8" stroke="#b07b50"/>
-        <polygon points="38,22 44,17 50,22" fill="#b07b50"/>
-        <circle cx="30" cy="18" r="3" fill="#8a847a" stroke="#3a2412"/>
-        <circle cx="48" cy="9"  r="2" fill="#e74c3c"/>
-        <circle cx="14" cy="30" r="2" fill="#f39c12"/>
-      `;
-    },
-  },
-  {
-    id: 'farm',
-    name: 'Farm',
-    emoji: '🚜',
-    ground:     '#a8c878',
-    groundDark: '#7ea052',
-    accent:     '#c8a878',  // tilled dirt
-    scenery: ['barn', 'haystack', 'windmill', 'scarecrow', 'fence'],
-    miniPaint: (svg) => `
-      <rect width="60" height="40" fill="#a8c878"/>
-      <rect x="2" y="6"  width="26" height="11" fill="#c8a878"/>
-      <rect x="36" y="22" width="22" height="14" fill="#c1392b"/>
-      <line x1="36" y1="22" x2="58" y2="36" stroke="#fff" stroke-width="0.6"/>
-      <line x1="58" y1="22" x2="36" y2="36" stroke="#fff" stroke-width="0.6"/>
-      <circle cx="14" cy="26" r="3" fill="#dbb24a"/>
-      <circle cx="22" cy="32" r="3" fill="#dbb24a"/>
-      <circle cx="46" cy="10" r="3.5" fill="#cabba0" stroke="#5a3a22" stroke-width="0.5"/>
-    `,
-  },
-  {
-    id: 'forest',
-    name: 'Forest Path',
-    emoji: '🌳',
-    ground:     '#7a9c5a',
-    groundDark: '#577a3c',
-    accent:     '#5a8240',
-    scenery: ['tree', 'bigTree', 'mushroom', 'fern', 'bigTree'],
-    miniPaint: (svg) => `
-      <rect width="60" height="40" fill="#7a9c5a"/>
-      <circle cx="9"  cy="9"  r="5" fill="#3a7a3a"/>
-      <circle cx="22" cy="14" r="6" fill="#3a7a3a"/>
-      <circle cx="40" cy="8"  r="5" fill="#3a7a3a"/>
-      <circle cx="50" cy="22" r="7" fill="#3a7a3a"/>
-      <circle cx="15" cy="30" r="4" fill="#3a7a3a"/>
-      <circle cx="34" cy="30" r="2" fill="#e74c3c"/>
-    `,
-  },
-  {
-    id: 'river',
-    name: 'Riverside',
-    emoji: '🌊',
-    ground:     '#9ec99c',
-    groundDark: '#7ea27c',
-    accent:     '#5ca8c8',  // water patches
-    scenery: ['dock', 'boat', 'watermill', 'reeds', 'lilypad'],
-    miniPaint: (svg) => `
-      <rect width="60" height="40" fill="#9ec99c"/>
-      <rect x="0" y="22" width="60" height="18" fill="#5ca8c8"/>
-      <rect x="14" y="20" width="14" height="4"  fill="#8a6448"/>
-      <ellipse cx="40" cy="30" rx="6" ry="3" fill="#a55a30"/>
-      <line x1="40" y1="22" x2="40" y2="30" stroke="#6a4a30" stroke-width="0.8"/>
-      <polygon points="40,22 47,28 40,28" fill="#fff"/>
-      <circle cx="52" cy="34" r="2" fill="#4f9c4f"/>
-    `,
-  },
-  {
-    id: 'castle',
-    name: 'Castle Approach',
-    emoji: '🏰',
-    ground:     '#a89888',
-    groundDark: '#7a6c5c',
-    accent:     '#cabba0',
-    scenery: ['castleKeep', 'stoneWall', 'banner', 'lantern', 'pavedSign'],
-    miniPaint: (svg) => `
-      <rect width="60" height="40" fill="#a89888"/>
-      <rect x="22" y="10" width="16" height="22" fill="#f5f1e8" stroke="#a8a098" stroke-width="0.5"/>
-      <circle cx="22" cy="14" r="4" fill="#f5f1e8" stroke="#a8a098" stroke-width="0.5"/>
-      <circle cx="38" cy="14" r="4" fill="#f5f1e8" stroke="#a8a098" stroke-width="0.5"/>
-      <polygon points="18,14 22,9 26,14"  fill="#6d5fd6"/>
-      <polygon points="34,14 38,9 42,14"  fill="#6d5fd6"/>
-      <rect x="28" y="24" width="4" height="8" fill="#3a2412"/>
-      <line x1="6" y1="30" x2="22" y2="30" stroke="#a8a098" stroke-width="1"/>
-      <line x1="38" y1="30" x2="54" y2="30" stroke="#a8a098" stroke-width="1"/>
-    `,
-  },
-];
-function arenaById(id) { return ARENAS.find(a => a.id === id) || ARENAS[0]; }
-
-/* ============================================================
-   GAME STATE — top-down arena
+   GAME STATE
    ============================================================ */
 let screen = 'dragonPicker';
 let selectedDragonId = readStr(KEYS.favoriteDragon(), 'ember');
+// Migration: ignore old sunnyUnlocked. All 4 starters are always available.
 if (!CONFIG.dragons[selectedDragonId]) selectedDragonId = 'ember';
 let selectedMode = readStr(KEYS.controlMode(), 'auto');
-let selectedArenaId = readStr(KEYS.lastArena(), 'village');
-if (!ARENAS.find(a => a.id === selectedArenaId)) selectedArenaId = 'village';
 
 const game = {
   dragon: null,
@@ -378,7 +263,7 @@ const game = {
   cured: [],
   particles: [],
   scenery: [],
-  speeches: [],
+  speeches: [], // {targetId, text, until}
 
   score: 0,
   stage: 1,
@@ -393,652 +278,1101 @@ const game = {
 
   napping: false,
 
-  // Arena state
-  arenaId: 'village',
-  arenaWidth: 0,
-  arenaHeight: 0,
-  cameraX: 0,
-  cameraY: 0,
-  arenaFadeAlpha: 0,    // 1 = solid black fade, 0 = clear
-  fadingIn: false,
-  fadingOut: false,
-  fadeT: 0,
-  countdownT: 0,        // counts down from CONFIG.arena.countdownSec to 0
-  countdownActive: false,
-  spawningEnabled: false, // becomes true when countdown reaches 0
+  // World scrolling
+  scrollX: 0,
+  lastSceneryX: 0,            // rightmost end of last scenery placed
+  lastDistrictIdx: -1,
+  // Forced castle placements: one castle per Castle Approach pass.
+  castlesPlacedThroughPass: -1,
 };
 
 let nextEntityId = 1;
 
 /* ============================================================
-   ARENA SETUP — sizing, scenery placement
+   DISTRICTS
    ============================================================ */
-function computeArenaSize() {
-  const m = CONFIG.arena.sizeMultiplier;
-  game.arenaWidth  = Math.max(cssW * m, cssW + 200);
-  game.arenaHeight = Math.max(cssH * m, cssH + 200);
+const DISTRICTS = [
+  {
+    id: 'village',
+    name: 'Village Square',
+    emoji: '🏘️',
+    skyTop: '#cfe8ff', skyBottom: '#ffe6c4',
+    ground: '#9bc78a', groundDark: '#6fa55c',
+    sceneryTypes: ['cottage', 'well', 'marketStall', 'sign', 'flowers'],
+  },
+  {
+    id: 'farm',
+    name: 'Farm',
+    emoji: '🚜',
+    skyTop: '#d0e8ff', skyBottom: '#fff0c0',
+    ground: '#a8c878', groundDark: '#7ea052',
+    sceneryTypes: ['barn', 'haystack', 'windmill', 'scarecrow', 'fence'],
+  },
+  {
+    id: 'forest',
+    name: 'Forest Path',
+    emoji: '🌳',
+    skyTop: '#b9d8e6', skyBottom: '#d8e8b8',
+    ground: '#7a9c5a', groundDark: '#577a3c',
+    sceneryTypes: ['tree', 'bigTree', 'mushroom', 'bridge', 'fern'],
+  },
+  {
+    id: 'river',
+    name: 'Riverside',
+    emoji: '🌊',
+    skyTop: '#bce0f0', skyBottom: '#dff0f8',
+    ground: '#7eb4cc', groundDark: '#5a8aa4',
+    sceneryTypes: ['dock', 'boat', 'watermill', 'reeds', 'lilypad'],
+  },
+  {
+    id: 'castle',
+    name: 'Castle Approach',
+    emoji: '🏰',
+    skyTop: '#f0c890', skyBottom: '#fde0c0',
+    ground: '#a89888', groundDark: '#7a6c5c',
+    sceneryTypes: ['stoneWall', 'banner', 'lantern', 'pavedSign', 'flagPole'],
+  },
+];
+function districtPixels() { return CONFIG.scrollSpeed * CONFIG.districtDurationSec; }
+function districtIndexAt(worldX) {
+  const d = districtPixels();
+  return Math.floor(worldX / d) % DISTRICTS.length;
 }
+function districtAt(worldX) { return DISTRICTS[districtIndexAt(worldX)]; }
 
-function placeArenaScenery(arenaDef) {
-  game.scenery = [];
-  const w = game.arenaWidth, h = game.arenaHeight;
-  const margin = 80;
-  // Reserve a central open area around the dragon start (no scenery too close)
-  const cx = w / 2, cy = h / 2;
-  const openR = 160;
+/* ============================================================
+   COLOR HELPERS
+   ============================================================ */
+function hexToRgb(h) {
+  const c = h.replace('#', '');
+  return [parseInt(c.slice(0, 2), 16), parseInt(c.slice(2, 4), 16), parseInt(c.slice(4, 6), 16)];
+}
+function rgbToHex(r, g, b) {
+  const t = v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0');
+  return '#' + t(r) + t(g) + t(b);
+}
+function lerpColor(a, b, t) {
+  const A = hexToRgb(a), B = hexToRgb(b);
+  return rgbToHex(A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t, A[2] + (B[2] - A[2]) * t);
+}
+function smoothstep(t) { t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); }
 
-  // Castle arena: force-place the white keep as the centerpiece
-  if (arenaDef.id === 'castle') {
-    game.scenery.push({
-      id: nextEntityId++,
-      type: 'castleKeep',
-      x: cx + 120,
-      y: cy - 60,
-      props: {},
-    });
-  }
-
-  const target = CONFIG.arena.sceneryItemsPerArena;
-  let safety = 200;
-  while (game.scenery.length < target && safety-- > 0) {
-    const type = arenaDef.scenery[Math.floor(Math.random() * arenaDef.scenery.length)];
-    const def = ARENA_SCENERY[type];
-    if (!def) continue;
-    const sx = margin + Math.random() * (w - margin * 2);
-    const sy = margin + Math.random() * (h - margin * 2);
-    // Don't crowd the dragon start point
-    if (Math.hypot(sx - cx, sy - cy) < openR) continue;
-    // Don't overlap existing scenery (very simple check)
-    let overlap = false;
-    for (const ex of game.scenery) {
-      const exDef = ARENA_SCENERY[ex.type];
-      const minDist = (def.r + (exDef ? exDef.r : 30)) * 1.3;
-      if (Math.hypot(sx - ex.x, sy - ex.y) < minDist) { overlap = true; break; }
-    }
-    if (overlap) continue;
-    const props = def.randomize ? def.randomize() : {};
-    game.scenery.push({ id: nextEntityId++, type, x: sx, y: sy, props });
-  }
+// Returns interpolated district colors at a given worldX.
+// Smoothly blends near district boundaries so transitions feel seamless.
+function getDistrictColors(worldX) {
+  const dp = districtPixels();
+  const idx = districtIndexAt(worldX);
+  const cur = DISTRICTS[idx];
+  const nextIdx = (idx + 1) % DISTRICTS.length;
+  const nxt = DISTRICTS[nextIdx];
+  const localProgress = (worldX % dp) / dp;
+  const blendStart = 0.85;
+  let t = 0;
+  if (localProgress > blendStart) t = smoothstep((localProgress - blendStart) / (1 - blendStart));
+  return {
+    skyTop:     lerpColor(cur.skyTop,     nxt.skyTop,     t),
+    skyBottom:  lerpColor(cur.skyBottom,  nxt.skyBottom,  t),
+    ground:     lerpColor(cur.ground,     nxt.ground,     t),
+    groundDark: lerpColor(cur.groundDark, nxt.groundDark, t),
+  };
 }
 
 /* ============================================================
-   ARENA SCENERY — top-down footprints
-   Each def: { r (collision/sort radius), canSpawnZombie, draw(ctx, sx, sy, t, props) }
+   SCENERY DEFINITIONS
+   For each type: draw fn, footprint width, optional zombie spawn anchor.
    ============================================================ */
-const ARENA_SCENERY = {
-  /* ---- Village ---- */
+const SCENERY = {
+  /* ---------- Village ---------- */
   cottage: {
-    r: 40, canSpawnZombie: true,
-    randomize: () => ({ wall: ['#f4d8b8', '#f0c8a0', '#e8d2a8', '#f5dcc0'][Math.floor(Math.random() * 4)] }),
-    draw: (sx, sy, t, p) => {
-      // Top-down roof + tiny chimney shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.18)';
-      ctx.beginPath();
-      ctx.ellipse(sx + 4, sy + 4, 38, 24, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = p.wall || '#f4d8b8';
-      ctx.fillRect(sx - 30, sy - 22, 60, 44);
-      // Roof seen from above (centered ridge line)
+    width: 130,
+    canSpawnZombie: true, spawnAnchorX: 50,
+    draw: (sx, gy, time, props) => {
+      const w = 100, h = 70;
+      const x = sx, baseY = gy;
+      // Wall
+      ctx.fillStyle = props.wall || '#f4d8b8';
+      ctx.fillRect(x, baseY - h, w, h);
+      // Roof (thatched)
       ctx.fillStyle = '#b07b50';
       ctx.beginPath();
-      ctx.moveTo(sx - 32, sy - 24);
-      ctx.lineTo(sx + 32, sy - 24);
-      ctx.lineTo(sx + 32, sy + 24);
-      ctx.lineTo(sx - 32, sy + 24);
+      ctx.moveTo(x - 12, baseY - h);
+      ctx.lineTo(x + w / 2, baseY - h - 38);
+      ctx.lineTo(x + w + 12, baseY - h);
       ctx.closePath();
       ctx.fill();
-      // Lighter "front" slope
-      ctx.fillStyle = '#cd9970';
-      ctx.beginPath();
-      ctx.moveTo(sx - 32, sy);
-      ctx.lineTo(sx + 32, sy);
-      ctx.lineTo(sx + 32, sy + 24);
-      ctx.lineTo(sx - 32, sy + 24);
-      ctx.closePath();
-      ctx.fill();
-      // Ridge line
-      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+      // Thatch lines
+      ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 3; i++) {
+        const yy = baseY - h - 10 - i * 7;
+        ctx.beginPath();
+        const span = (h + 38 - 10 - i * 7) / (h + 38) * (w + 24) / 2;
+        ctx.moveTo(x + w / 2 - span, yy);
+        ctx.lineTo(x + w / 2 + span, yy);
+        ctx.stroke();
+      }
+      // Door
+      ctx.fillStyle = '#5a3a22';
+      ctx.fillRect(x + w * 0.4, baseY - h * 0.6, w * 0.22, h * 0.6);
+      ctx.fillStyle = '#3a2412';
+      ctx.fillRect(x + w * 0.4, baseY - 2, w * 0.22, 2);
+      // Window
+      ctx.fillStyle = '#fff5d0';
+      ctx.fillRect(x + w * 0.12, baseY - h * 0.65, w * 0.2, h * 0.22);
+      ctx.strokeStyle = '#5a3a22';
       ctx.lineWidth = 1.5;
+      ctx.strokeRect(x + w * 0.12, baseY - h * 0.65, w * 0.2, h * 0.22);
       ctx.beginPath();
-      ctx.moveTo(sx - 32, sy);
-      ctx.lineTo(sx + 32, sy);
+      ctx.moveTo(x + w * 0.22, baseY - h * 0.65);
+      ctx.lineTo(x + w * 0.22, baseY - h * 0.43);
+      ctx.moveTo(x + w * 0.12, baseY - h * 0.54);
+      ctx.lineTo(x + w * 0.32, baseY - h * 0.54);
       ctx.stroke();
-      // Chimney
-      ctx.fillStyle = '#7a6452';
-      ctx.fillRect(sx + 14, sy - 18, 6, 8);
     },
+    randomize: () => ({ wall: ['#f4d8b8', '#f0c8a0', '#e8d2a8', '#f5dcc0'][Math.floor(Math.random() * 4)] }),
   },
   well: {
-    r: 22, canSpawnZombie: true,
-    draw: (sx, sy) => {
-      ctx.fillStyle = 'rgba(0,0,0,0.18)';
-      ctx.beginPath(); ctx.ellipse(sx + 2, sy + 4, 20, 8, 0, 0, Math.PI * 2); ctx.fill();
-      // Stone ring
+    width: 60, canSpawnZombie: true, spawnAnchorX: 30,
+    draw: (sx, gy, time) => {
+      const x = sx + 30, baseY = gy;
+      // Stones
       ctx.fillStyle = '#9a9088';
-      ctx.beginPath(); ctx.arc(sx, sy, 18, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(x, baseY - 8, 22, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#7e7468';
+      ctx.fillRect(x - 22, baseY - 24, 44, 16);
       ctx.fillStyle = '#5a5448';
-      ctx.beginPath(); ctx.arc(sx, sy, 13, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#2d2438';
-      ctx.beginPath(); ctx.arc(sx, sy, 8, 0, Math.PI * 2); ctx.fill();
-      // Bucket on rim
-      ctx.fillStyle = '#8a6448';
-      ctx.fillRect(sx - 4, sy - 22, 8, 5);
+      ctx.beginPath();
+      ctx.ellipse(x, baseY - 24, 22, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Roof posts
+      ctx.fillStyle = '#6a4a30';
+      ctx.fillRect(x - 20, baseY - 60, 4, 36);
+      ctx.fillRect(x + 16, baseY - 60, 4, 36);
+      // Roof
+      ctx.fillStyle = '#8a4f30';
+      ctx.beginPath();
+      ctx.moveTo(x - 28, baseY - 60);
+      ctx.lineTo(x, baseY - 78);
+      ctx.lineTo(x + 28, baseY - 60);
+      ctx.closePath();
+      ctx.fill();
     },
   },
   marketStall: {
-    r: 28, canSpawnZombie: true,
-    randomize: () => ({ stripes: [['#e74c3c', '#fff'], ['#3498db', '#fff'], ['#27ae60', '#fff'], ['#9b59b6', '#fff']][Math.floor(Math.random() * 4)] }),
-    draw: (sx, sy, t, p) => {
-      ctx.fillStyle = 'rgba(0,0,0,0.18)';
-      ctx.beginPath(); ctx.ellipse(sx, sy + 4, 28, 14, 0, 0, Math.PI * 2); ctx.fill();
-      const stripes = p.stripes || ['#e74c3c', '#fff'];
-      // Striped awning seen from above
-      for (let i = 0; i < 5; i++) {
+    width: 110, canSpawnZombie: true, spawnAnchorX: 40,
+    draw: (sx, gy, time, props) => {
+      const x = sx, baseY = gy, w = 90;
+      // Posts
+      ctx.fillStyle = '#6a4a30';
+      ctx.fillRect(x, baseY - 60, 5, 60);
+      ctx.fillRect(x + w - 5, baseY - 60, 5, 60);
+      // Awning (striped)
+      const stripes = props.stripes || ['#e74c3c', '#fff'];
+      for (let i = 0; i < 6; i++) {
         ctx.fillStyle = stripes[i % 2];
-        ctx.fillRect(sx - 24 + i * 10, sy - 14, 10, 28);
+        ctx.beginPath();
+        ctx.moveTo(x - 6 + i * (w + 12) / 6, baseY - 60);
+        ctx.lineTo(x - 6 + (i + 1) * (w + 12) / 6, baseY - 60);
+        ctx.lineTo(x - 6 + (i + 1) * (w + 12) / 6 - 4, baseY - 52);
+        ctx.lineTo(x - 6 + i * (w + 12) / 6 - 4, baseY - 52);
+        ctx.closePath();
+        ctx.fill();
       }
-      // Outline
-      ctx.strokeStyle = '#3a2412';
-      ctx.lineWidth = 1.2;
-      ctx.strokeRect(sx - 24, sy - 14, 50, 28);
-      // Counter strip along the bottom
+      ctx.fillStyle = stripes[0];
+      ctx.fillRect(x - 6, baseY - 60, w + 12, 4);
+      // Counter
       ctx.fillStyle = '#b89272';
-      ctx.fillRect(sx - 24, sy + 10, 50, 6);
+      ctx.fillRect(x, baseY - 28, w, 8);
+      ctx.fillStyle = '#8a6448';
+      ctx.fillRect(x, baseY - 20, w, 20);
+      // Fruit/produce on counter
+      const fruits = props.fruits || ['#e74c3c', '#f39c12', '#27ae60'];
+      for (let i = 0; i < 4; i++) {
+        ctx.fillStyle = fruits[i % fruits.length];
+        ctx.beginPath();
+        ctx.arc(x + 14 + i * 20, baseY - 32, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    },
+    randomize: () => ({
+      stripes: [['#e74c3c', '#fff'], ['#3498db', '#fff'], ['#27ae60', '#fff'], ['#9b59b6', '#fff']][Math.floor(Math.random() * 4)],
+    }),
+  },
+  sign: {
+    width: 50, canSpawnZombie: false,
+    draw: (sx, gy, time) => {
+      const x = sx + 25, baseY = gy;
+      ctx.fillStyle = '#6a4a30';
+      ctx.fillRect(x - 2, baseY - 50, 4, 50);
+      // Sign panel
+      ctx.fillStyle = '#d8b288';
+      ctx.fillRect(x - 18, baseY - 50, 36, 18);
+      ctx.strokeStyle = '#6a4a30';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 18, baseY - 50, 36, 18);
+      // Squiggle text
+      ctx.strokeStyle = '#5a3a22';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(x - 14, baseY - 44);
+      ctx.lineTo(x + 14, baseY - 44);
+      ctx.moveTo(x - 14, baseY - 40);
+      ctx.lineTo(x + 10, baseY - 40);
+      ctx.stroke();
     },
   },
   flowers: {
-    r: 14, canSpawnZombie: false,
-    randomize: () => ({ colors: [['#e74c3c','#fff'],['#f39c12','#fff'],['#9b59b6','#fff'],['#3498db','#fff']][Math.floor(Math.random() * 4)] }),
-    draw: (sx, sy, t, p) => {
-      const colors = p.colors || ['#e74c3c', '#f39c12'];
-      for (let i = 0; i < 6; i++) {
-        const a = (i / 6) * Math.PI * 2;
-        const fx = sx + Math.cos(a) * 8;
-        const fy = sy + Math.sin(a) * 8;
+    width: 40, canSpawnZombie: false,
+    draw: (sx, gy, time, props) => {
+      const x = sx + 20, baseY = gy;
+      const colors = props.colors || ['#e74c3c', '#f39c12', '#9b59b6'];
+      for (let i = 0; i < 5; i++) {
+        const fx = x - 14 + (i * 7) + (i % 2) * 2;
+        const fy = baseY - 8 - (i % 3) * 3;
+        // Stem
+        ctx.strokeStyle = '#27ae60';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(fx, baseY);
+        ctx.lineTo(fx, fy + 2);
+        ctx.stroke();
+        // Petal
         ctx.fillStyle = colors[i % colors.length];
-        ctx.beginPath(); ctx.arc(fx, fy, 2.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath();
+        ctx.arc(fx, fy, 3, 0, Math.PI * 2);
+        ctx.fill();
+        // Center
         ctx.fillStyle = '#fde66c';
-        ctx.beginPath(); ctx.arc(fx, fy, 1, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath();
+        ctx.arc(fx, fy, 1.2, 0, Math.PI * 2);
+        ctx.fill();
       }
     },
-  },
-  sign: {
-    r: 12, canSpawnZombie: false,
-    draw: (sx, sy) => {
-      ctx.fillStyle = '#6a4a30';
-      ctx.fillRect(sx - 2, sy - 2, 4, 4);
-      ctx.fillStyle = '#d8b288';
-      ctx.fillRect(sx - 10, sy - 10, 20, 8);
-      ctx.strokeStyle = '#5a3a22';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(sx - 10, sy - 10, 20, 8);
-    },
+    randomize: () => ({ colors: [['#e74c3c', '#fff'], ['#f39c12', '#fff'], ['#9b59b6', '#fff'], ['#3498db', '#fff']][Math.floor(Math.random() * 4)] }),
   },
 
-  /* ---- Farm ---- */
+  /* ---------- Farm ---------- */
   barn: {
-    r: 48, canSpawnZombie: true,
-    draw: (sx, sy) => {
-      ctx.fillStyle = 'rgba(0,0,0,0.20)';
-      ctx.beginPath(); ctx.ellipse(sx + 6, sy + 6, 48, 30, 0, 0, Math.PI * 2); ctx.fill();
+    width: 160, canSpawnZombie: true, spawnAnchorX: 80,
+    draw: (sx, gy, time) => {
+      const x = sx, baseY = gy, w = 140, h = 90;
+      // Walls
       ctx.fillStyle = '#c1392b';
-      ctx.fillRect(sx - 40, sy - 28, 80, 56);
-      // Roof X pattern
+      ctx.fillRect(x, baseY - h, w, h);
+      // White trim along bottom
+      ctx.fillStyle = '#f8f0e8';
+      ctx.fillRect(x, baseY - 6, w, 6);
+      // Roof
+      ctx.fillStyle = '#5a3a22';
+      ctx.beginPath();
+      ctx.moveTo(x - 14, baseY - h);
+      ctx.lineTo(x + w / 2, baseY - h - 36);
+      ctx.lineTo(x + w + 14, baseY - h);
+      ctx.closePath();
+      ctx.fill();
+      // Big doors (cross pattern)
+      ctx.fillStyle = '#7a2418';
+      ctx.fillRect(x + w * 0.32, baseY - h * 0.75, w * 0.36, h * 0.75);
       ctx.strokeStyle = '#f8f0e8';
       ctx.lineWidth = 3;
+      const dx = x + w * 0.32, dy = baseY - h * 0.75, dw = w * 0.36, dh = h * 0.75;
       ctx.beginPath();
-      ctx.moveTo(sx - 40, sy - 28); ctx.lineTo(sx + 40, sy + 28);
-      ctx.moveTo(sx + 40, sy - 28); ctx.lineTo(sx - 40, sy + 28);
+      ctx.moveTo(dx, dy); ctx.lineTo(dx + dw, dy + dh);
+      ctx.moveTo(dx + dw, dy); ctx.lineTo(dx, dy + dh);
+      ctx.moveTo(dx + dw / 2, dy); ctx.lineTo(dx + dw / 2, dy + dh);
+      ctx.moveTo(dx, dy + dh / 2); ctx.lineTo(dx + dw, dy + dh / 2);
       ctx.stroke();
-      // Hayloft door (top)
-      ctx.fillStyle = '#7a2418';
-      ctx.fillRect(sx - 6, sy - 28, 12, 12);
-      // Main door (bottom)
-      ctx.fillRect(sx - 10, sy + 14, 20, 14);
+      // Hayloft window
+      ctx.fillStyle = '#1a1208';
+      ctx.fillRect(x + w * 0.45, baseY - h - 20, w * 0.1, 12);
     },
   },
   haystack: {
-    r: 20, canSpawnZombie: true,
-    draw: (sx, sy) => {
-      ctx.fillStyle = 'rgba(0,0,0,0.18)';
-      ctx.beginPath(); ctx.ellipse(sx + 2, sy + 4, 20, 10, 0, 0, Math.PI * 2); ctx.fill();
+    width: 60, canSpawnZombie: true, spawnAnchorX: 30,
+    draw: (sx, gy, time) => {
+      const x = sx + 30, baseY = gy;
       ctx.fillStyle = '#dbb24a';
-      ctx.beginPath(); ctx.arc(sx, sy, 18, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(x, baseY - 8, 24, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
       ctx.fillStyle = '#e8c060';
-      ctx.beginPath(); ctx.arc(sx, sy, 12, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(x, baseY - 20, 22, 16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f0d078';
+      ctx.beginPath();
+      ctx.ellipse(x, baseY - 32, 12, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
       // Hay strands
       ctx.strokeStyle = '#a07b30';
       ctx.lineWidth = 1;
       for (let i = 0; i < 6; i++) {
-        const a = (i / 6) * Math.PI * 2;
+        const hx = x - 18 + i * 7;
         ctx.beginPath();
-        ctx.moveTo(sx + Math.cos(a) * 6, sy + Math.sin(a) * 6);
-        ctx.lineTo(sx + Math.cos(a) * 16, sy + Math.sin(a) * 16);
+        ctx.moveTo(hx, baseY - 16);
+        ctx.lineTo(hx + 3, baseY - 22);
         ctx.stroke();
       }
     },
   },
   windmill: {
-    r: 30, canSpawnZombie: false,
-    draw: (sx, sy, t) => {
-      ctx.fillStyle = 'rgba(0,0,0,0.22)';
-      ctx.beginPath(); ctx.ellipse(sx + 3, sy + 5, 28, 14, 0, 0, Math.PI * 2); ctx.fill();
-      // Round base
+    width: 90, canSpawnZombie: false,
+    draw: (sx, gy, time) => {
+      const x = sx + 45, baseY = gy;
+      // Tower
       ctx.fillStyle = '#cabba0';
-      ctx.beginPath(); ctx.arc(sx, sy, 22, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#a89886';
-      ctx.beginPath(); ctx.arc(sx, sy, 17, 0, Math.PI * 2); ctx.fill();
-      // Rotating cross blades
-      const rot = t * 0.9;
+      ctx.beginPath();
+      ctx.moveTo(x - 14, baseY);
+      ctx.lineTo(x - 10, baseY - 90);
+      ctx.lineTo(x + 10, baseY - 90);
+      ctx.lineTo(x + 14, baseY);
+      ctx.closePath();
+      ctx.fill();
+      // Roof
+      ctx.fillStyle = '#7a4a30';
+      ctx.beginPath();
+      ctx.moveTo(x - 12, baseY - 90);
+      ctx.lineTo(x, baseY - 102);
+      ctx.lineTo(x + 12, baseY - 90);
+      ctx.closePath();
+      ctx.fill();
+      // Door
+      ctx.fillStyle = '#5a3a22';
+      ctx.fillRect(x - 5, baseY - 20, 10, 20);
+      // Blades (rotating)
+      const cx = x, cy = baseY - 84;
+      const rot = time * 0.8;
       ctx.save();
-      ctx.translate(sx, sy);
+      ctx.translate(cx, cy);
       ctx.rotate(rot);
       ctx.fillStyle = '#f8f0e8';
       ctx.strokeStyle = '#5a3a22';
       ctx.lineWidth = 1.5;
       for (let i = 0; i < 4; i++) {
-        ctx.save();
-        ctx.rotate((i / 4) * Math.PI * 2);
+        ctx.rotate(Math.PI / 2);
         ctx.beginPath();
-        ctx.moveTo(0, -3);
-        ctx.lineTo(28, -3);
-        ctx.lineTo(28, 3);
-        ctx.lineTo(0, 3);
+        ctx.moveTo(0, 0);
+        ctx.lineTo(30, -4);
+        ctx.lineTo(30, 4);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
-        ctx.restore();
       }
       ctx.fillStyle = '#7a4a30';
-      ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
+      ctx.fill();
       ctx.restore();
     },
   },
   scarecrow: {
-    r: 14, canSpawnZombie: false,
-    draw: (sx, sy, t) => {
-      // Cross-shape footprint
+    width: 50, canSpawnZombie: false,
+    draw: (sx, gy, time) => {
+      const x = sx + 25, baseY = gy;
+      const sway = Math.sin(time * 1.2) * 2;
+      // Pole
       ctx.fillStyle = '#6a4a30';
-      ctx.fillRect(sx - 1.5, sy - 14, 3, 28);
-      ctx.fillRect(sx - 14, sy - 1.5, 28, 3);
-      // Head from above (straw hat brim)
-      ctx.fillStyle = '#a05a28';
-      ctx.beginPath(); ctx.arc(sx, sy, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(x - 2, baseY - 60, 4, 60);
+      // Arms (cross-pole)
+      ctx.fillRect(x - 22, baseY - 48, 44, 4);
+      // Body (shirt)
+      ctx.fillStyle = '#7a5530';
+      ctx.fillRect(x - 12 + sway * 0.3, baseY - 50, 24, 24);
+      // Head
+      ctx.fillStyle = '#e8c060';
+      ctx.beginPath();
+      ctx.arc(x + sway, baseY - 60, 10, 0, Math.PI * 2);
+      ctx.fill();
+      // Hat
       ctx.fillStyle = '#8a4a20';
-      ctx.beginPath(); ctx.arc(sx, sy, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(x + sway, baseY - 68, 14, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#a05a28';
+      ctx.beginPath();
+      ctx.ellipse(x + sway, baseY - 72, 7, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Face
+      ctx.fillStyle = '#3a2412';
+      ctx.beginPath();
+      ctx.arc(x - 3 + sway, baseY - 61, 1, 0, Math.PI * 2);
+      ctx.arc(x + 3 + sway, baseY - 61, 1, 0, Math.PI * 2);
+      ctx.fill();
+      // Mouth (sewn smile)
+      ctx.strokeStyle = '#3a2412';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(x + sway, baseY - 58, 3, 0.2, Math.PI - 0.2);
+      ctx.stroke();
     },
   },
   fence: {
-    r: 16, canSpawnZombie: false,
-    draw: (sx, sy) => {
+    width: 80, canSpawnZombie: false,
+    draw: (sx, gy, time) => {
+      const x = sx, baseY = gy;
       ctx.fillStyle = '#d4b890';
-      ctx.fillRect(sx - 20, sy - 2, 40, 4);
+      // Horizontal rails
+      ctx.fillRect(x, baseY - 28, 80, 4);
+      ctx.fillRect(x, baseY - 16, 80, 4);
       // Posts
-      for (let i = -2; i <= 2; i++) {
-        ctx.fillStyle = '#a87a4f';
-        ctx.fillRect(sx + i * 10 - 1.5, sy - 5, 3, 10);
+      for (let i = 0; i <= 4; i++) {
+        ctx.fillRect(x + i * 20 - 2, baseY - 36, 4, 36);
+        // Pointy top
+        ctx.beginPath();
+        ctx.moveTo(x + i * 20 - 2, baseY - 36);
+        ctx.lineTo(x + i * 20, baseY - 40);
+        ctx.lineTo(x + i * 20 + 2, baseY - 36);
+        ctx.closePath();
+        ctx.fill();
       }
     },
   },
 
-  /* ---- Forest ---- */
+  /* ---------- Forest ---------- */
   tree: {
-    r: 22, canSpawnZombie: true,
-    draw: (sx, sy) => {
-      // Top-down canopy with darker ring + lighter inner
-      ctx.fillStyle = 'rgba(0,0,0,0.20)';
-      ctx.beginPath(); ctx.ellipse(sx + 4, sy + 6, 22, 12, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#2f6234';
-      ctx.beginPath(); ctx.arc(sx, sy, 22, 0, Math.PI * 2); ctx.fill();
+    width: 60, canSpawnZombie: true, spawnAnchorX: 30,
+    draw: (sx, gy, time) => {
+      const x = sx + 30, baseY = gy;
+      // Trunk
+      ctx.fillStyle = '#6a4a30';
+      ctx.fillRect(x - 4, baseY - 38, 8, 38);
+      // Foliage (overlapping circles)
       ctx.fillStyle = '#3a7a3a';
-      ctx.beginPath(); ctx.arc(sx - 2, sy - 2, 18, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x - 10, baseY - 40, 14, 0, Math.PI * 2);
+      ctx.arc(x + 10, baseY - 40, 14, 0, Math.PI * 2);
+      ctx.arc(x, baseY - 52, 16, 0, Math.PI * 2);
+      ctx.fill();
       ctx.fillStyle = '#4f9c4f';
-      ctx.beginPath(); ctx.arc(sx - 4, sy - 4, 10, 0, Math.PI * 2); ctx.fill();
-      // Trunk hint
-      ctx.fillStyle = '#5a3a22';
-      ctx.beginPath(); ctx.arc(sx + 2, sy + 4, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x - 5, baseY - 48, 10, 0, Math.PI * 2);
+      ctx.fill();
     },
   },
   bigTree: {
-    r: 36, canSpawnZombie: true,
-    draw: (sx, sy) => {
-      ctx.fillStyle = 'rgba(0,0,0,0.25)';
-      ctx.beginPath(); ctx.ellipse(sx + 5, sy + 8, 36, 20, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#244a26';
-      ctx.beginPath(); ctx.arc(sx, sy, 36, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#3a7a3a';
-      ctx.beginPath(); ctx.arc(sx - 3, sy - 3, 30, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#4f9c4f';
-      ctx.beginPath(); ctx.arc(sx - 6, sy - 6, 18, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#5fb05f';
-      ctx.beginPath(); ctx.arc(sx - 8, sy - 8, 8, 0, Math.PI * 2); ctx.fill();
-      // Big trunk visible at gap
+    width: 120, canSpawnZombie: true, spawnAnchorX: 60,
+    draw: (sx, gy, time) => {
+      const x = sx + 60, baseY = gy;
+      ctx.fillStyle = '#5a3a22';
+      ctx.fillRect(x - 8, baseY - 80, 16, 80);
+      // Branch knot
       ctx.fillStyle = '#3a2412';
-      ctx.beginPath(); ctx.arc(sx + 4, sy + 6, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x - 4, baseY - 50, 3, 0, Math.PI * 2);
+      ctx.fill();
+      // Foliage
+      ctx.fillStyle = '#3a7a3a';
+      ctx.beginPath();
+      ctx.arc(x - 22, baseY - 80, 22, 0, Math.PI * 2);
+      ctx.arc(x + 22, baseY - 80, 22, 0, Math.PI * 2);
+      ctx.arc(x, baseY - 100, 26, 0, Math.PI * 2);
+      ctx.arc(x - 14, baseY - 95, 18, 0, Math.PI * 2);
+      ctx.arc(x + 14, baseY - 95, 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#4f9c4f';
+      ctx.beginPath();
+      ctx.arc(x - 6, baseY - 100, 14, 0, Math.PI * 2);
+      ctx.arc(x + 10, baseY - 92, 12, 0, Math.PI * 2);
+      ctx.fill();
     },
   },
   mushroom: {
-    r: 8, canSpawnZombie: false,
-    draw: (sx, sy) => {
-      ctx.fillStyle = 'rgba(0,0,0,0.12)';
-      ctx.beginPath(); ctx.ellipse(sx + 1, sy + 2, 7, 3, 0, 0, Math.PI * 2); ctx.fill();
+    width: 40, canSpawnZombie: false,
+    draw: (sx, gy, time) => {
+      const x = sx + 20, baseY = gy;
+      ctx.fillStyle = '#f0e8d0';
+      ctx.fillRect(x - 3, baseY - 14, 6, 14);
       ctx.fillStyle = '#e74c3c';
-      ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.beginPath(); ctx.arc(sx - 2, sy - 1, 1.2, 0, Math.PI * 2);
-      ctx.arc(sx + 2, sy + 1, 1.2, 0, Math.PI * 2);
-      ctx.arc(sx + 1, sy - 2, 1, 0, Math.PI * 2);
+      ctx.beginPath();
+      ctx.ellipse(x, baseY - 16, 11, 7, 0, 0, Math.PI * 2);
       ctx.fill();
+      // Spots
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(x - 4, baseY - 18, 1.5, 0, Math.PI * 2);
+      ctx.arc(x + 3, baseY - 16, 1.5, 0, Math.PI * 2);
+      ctx.arc(x + 5, baseY - 20, 1, 0, Math.PI * 2);
+      ctx.fill();
+    },
+  },
+  bridge: {
+    width: 100, canSpawnZombie: false,
+    draw: (sx, gy, time) => {
+      const x = sx, baseY = gy;
+      // Bridge deck (arched)
+      ctx.fillStyle = '#8a6448';
+      ctx.beginPath();
+      ctx.moveTo(x, baseY);
+      ctx.quadraticCurveTo(x + 50, baseY - 18, x + 100, baseY);
+      ctx.lineTo(x + 100, baseY + 4);
+      ctx.lineTo(x, baseY + 4);
+      ctx.closePath();
+      ctx.fill();
+      // Plank lines
+      ctx.strokeStyle = '#5a3a22';
+      ctx.lineWidth = 0.8;
+      for (let i = 0; i < 10; i++) {
+        const px = x + i * 10 + 5;
+        const py = baseY - 18 + Math.abs(i - 4.5) * 2;
+        ctx.beginPath();
+        ctx.moveTo(px, baseY);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+      }
+      // Railings
+      ctx.fillStyle = '#6a4a30';
+      ctx.fillRect(x, baseY - 26, 4, 26);
+      ctx.fillRect(x + 96, baseY - 26, 4, 26);
+      // Railing top
+      ctx.beginPath();
+      ctx.moveTo(x, baseY - 26);
+      ctx.quadraticCurveTo(x + 50, baseY - 38, x + 100, baseY - 26);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#6a4a30';
+      ctx.stroke();
     },
   },
   fern: {
-    r: 14, canSpawnZombie: false,
-    draw: (sx, sy) => {
+    width: 40, canSpawnZombie: false,
+    draw: (sx, gy, time) => {
+      const x = sx + 20, baseY = gy;
       ctx.strokeStyle = '#3a7a3a';
       ctx.lineWidth = 2;
       ctx.lineCap = 'round';
-      for (let i = 0; i < 6; i++) {
-        const a = (i / 6) * Math.PI * 2;
-        const tx = sx + Math.cos(a) * 12;
-        const ty = sy + Math.sin(a) * 12;
+      for (let i = -2; i <= 2; i++) {
+        const ang = -Math.PI / 2 + i * 0.35;
+        const tx = x + Math.cos(ang) * 18;
+        const ty = baseY + Math.sin(ang) * 18;
         ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.quadraticCurveTo(sx + Math.cos(a) * 6, sy + Math.sin(a) * 8, tx, ty);
+        ctx.moveTo(x, baseY);
+        ctx.quadraticCurveTo(x + Math.cos(ang) * 8, baseY + Math.sin(ang) * 16, tx, ty);
         ctx.stroke();
       }
-      ctx.fillStyle = '#2f6234';
-      ctx.beginPath(); ctx.arc(sx, sy, 3, 0, Math.PI * 2); ctx.fill();
     },
   },
 
-  /* ---- Riverside ---- */
+  /* ---------- Riverside ---------- */
   dock: {
-    r: 28, canSpawnZombie: true,
-    draw: (sx, sy) => {
-      ctx.fillStyle = 'rgba(0,0,0,0.22)';
-      ctx.beginPath(); ctx.ellipse(sx, sy + 4, 28, 12, 0, 0, Math.PI * 2); ctx.fill();
-      // Water patch beneath
-      ctx.fillStyle = '#5ca8c8';
-      ctx.beginPath(); ctx.arc(sx, sy, 32, 0, Math.PI * 2); ctx.fill();
-      // Planks
+    width: 100, canSpawnZombie: true, spawnAnchorX: 50,
+    draw: (sx, gy, time) => {
+      const x = sx, baseY = gy;
+      // Posts (in the water)
+      ctx.fillStyle = '#5a3a22';
+      ctx.fillRect(x + 10, baseY - 12, 5, 12);
+      ctx.fillRect(x + 50, baseY - 12, 5, 12);
+      ctx.fillRect(x + 90, baseY - 12, 5, 12);
+      // Planking
       ctx.fillStyle = '#8a6448';
-      ctx.fillRect(sx - 22, sy - 8, 44, 16);
+      ctx.fillRect(x, baseY - 16, 100, 6);
+      // Plank lines
       ctx.strokeStyle = '#5a3a22';
       ctx.lineWidth = 0.8;
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 6; i++) {
         ctx.beginPath();
-        ctx.moveTo(sx - 22 + i * 10, sy - 8);
-        ctx.lineTo(sx - 22 + i * 10, sy + 8);
+        ctx.moveTo(x + i * 17 + 5, baseY - 16);
+        ctx.lineTo(x + i * 17 + 5, baseY - 10);
         ctx.stroke();
       }
-      // Posts at the corners
-      ctx.fillStyle = '#5a3a22';
-      ctx.beginPath(); ctx.arc(sx - 22, sy + 8, 2, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(sx + 22, sy + 8, 2, 0, Math.PI * 2); ctx.fill();
     },
   },
   boat: {
-    r: 20, canSpawnZombie: false,
-    draw: (sx, sy, t) => {
-      const bob = Math.sin(t * 1.5 + sx * 0.01) * 1.5;
-      ctx.fillStyle = '#5ca8c8';
-      ctx.beginPath(); ctx.ellipse(sx, sy, 28, 14, 0, 0, Math.PI * 2); ctx.fill();
+    width: 110, canSpawnZombie: false,
+    draw: (sx, gy, time) => {
+      const x = sx + 55, baseY = gy;
+      const bob = Math.sin(time * 1.5 + sx * 0.01) * 2;
+      // Hull
       ctx.fillStyle = '#a55a30';
-      ctx.beginPath(); ctx.ellipse(sx, sy + bob, 18, 8, 0, 0, Math.PI * 2); ctx.fill();
-      // Sail viewed from above
-      ctx.fillStyle = '#f8f0e8';
       ctx.beginPath();
-      ctx.moveTo(sx, sy - 1 + bob);
-      ctx.lineTo(sx + 10, sy - 6 + bob);
-      ctx.lineTo(sx + 10, sy + 4 + bob);
+      ctx.moveTo(x - 40, baseY - 4 + bob);
+      ctx.quadraticCurveTo(x - 50, baseY + 8 + bob, x - 30, baseY + 12 + bob);
+      ctx.lineTo(x + 30, baseY + 12 + bob);
+      ctx.quadraticCurveTo(x + 50, baseY + 8 + bob, x + 40, baseY - 4 + bob);
       ctx.closePath();
       ctx.fill();
+      // Stripe
+      ctx.fillStyle = '#f8f0e8';
+      ctx.fillRect(x - 40, baseY - 2 + bob, 80, 3);
+      // Mast
+      ctx.fillStyle = '#6a4a30';
+      ctx.fillRect(x - 2, baseY - 50 + bob, 4, 46);
+      // Sail
+      ctx.fillStyle = '#f8f0e8';
+      ctx.beginPath();
+      ctx.moveTo(x + 2, baseY - 48 + bob);
+      ctx.quadraticCurveTo(x + 30, baseY - 30 + bob, x + 2, baseY - 8 + bob);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#888';
+      ctx.lineWidth = 1;
+      ctx.stroke();
     },
   },
   watermill: {
-    r: 32, canSpawnZombie: true,
-    draw: (sx, sy, t) => {
-      ctx.fillStyle = '#5ca8c8';
-      ctx.beginPath(); ctx.arc(sx, sy + 18, 18, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(0,0,0,0.22)';
-      ctx.beginPath(); ctx.ellipse(sx + 3, sy + 5, 32, 16, 0, 0, Math.PI * 2); ctx.fill();
+    width: 120, canSpawnZombie: true, spawnAnchorX: 60,
+    draw: (sx, gy, time) => {
+      const x = sx, baseY = gy, w = 80, h = 70;
+      // Building
       ctx.fillStyle = '#cabba0';
-      ctx.fillRect(sx - 22, sy - 16, 44, 32);
-      ctx.strokeStyle = '#7a6452';
-      ctx.lineWidth = 1.2;
-      ctx.strokeRect(sx - 22, sy - 16, 44, 32);
-      // Wheel viewed end-on, rotating
-      ctx.save();
-      ctx.translate(sx + 22, sy + 8);
-      ctx.rotate(-t * 1.0);
-      ctx.fillStyle = '#8a6448';
-      ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(x, baseY - h, w, h);
+      // Roof
+      ctx.fillStyle = '#7a4a30';
+      ctx.beginPath();
+      ctx.moveTo(x - 10, baseY - h);
+      ctx.lineTo(x + w / 2, baseY - h - 30);
+      ctx.lineTo(x + w + 10, baseY - h);
+      ctx.closePath();
+      ctx.fill();
+      // Door
       ctx.fillStyle = '#5a3a22';
-      for (let i = 0; i < 6; i++) {
+      ctx.fillRect(x + w * 0.15, baseY - h * 0.6, w * 0.22, h * 0.6);
+      // Window
+      ctx.fillStyle = '#fff5d0';
+      ctx.fillRect(x + w * 0.55, baseY - h * 0.65, w * 0.25, h * 0.22);
+      // Water wheel (right side, turning)
+      const cx = x + w + 22, cy = baseY - 18;
+      const r = 26;
+      const rot = -time * 0.7;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot);
+      ctx.fillStyle = '#8a6448';
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#5a3a22';
+      for (let i = 0; i < 8; i++) {
         ctx.save();
-        ctx.rotate((i / 6) * Math.PI * 2);
-        ctx.fillRect(-1, -12, 2, 24);
+        ctx.rotate((i / 8) * Math.PI * 2);
+        ctx.fillRect(-2, -r, 4, r * 2);
+        ctx.fillRect(-r * 0.95, -3, 6, 6);
         ctx.restore();
       }
+      ctx.fillStyle = '#3a2412';
+      ctx.beginPath();
+      ctx.arc(0, 0, 3, 0, Math.PI * 2);
+      ctx.fill();
       ctx.restore();
     },
   },
   reeds: {
-    r: 12, canSpawnZombie: false,
-    draw: (sx, sy, t) => {
+    width: 50, canSpawnZombie: false,
+    draw: (sx, gy, time) => {
+      const x = sx + 25, baseY = gy;
       ctx.strokeStyle = '#3a7a3a';
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 2;
       ctx.lineCap = 'round';
-      for (let i = 0; i < 7; i++) {
-        const a = (i / 7) * Math.PI * 2;
-        const r = 4 + (i % 2) * 3;
+      for (let i = -3; i <= 3; i++) {
+        const rx = x + i * 4;
+        const sway = Math.sin(time * 1.5 + i) * 3;
         ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(sx + Math.cos(a) * (8 + r), sy + Math.sin(a) * (8 + r));
+        ctx.moveTo(rx, baseY);
+        ctx.quadraticCurveTo(rx + sway / 2, baseY - 15, rx + sway, baseY - 28);
         ctx.stroke();
       }
+      // Tips
       ctx.fillStyle = '#7a5230';
-      for (let i = 0; i < 4; i++) {
-        const a = (i / 4) * Math.PI * 2 + 0.3;
+      for (let i = -3; i <= 3; i++) {
+        const rx = x + i * 4;
+        const sway = Math.sin(time * 1.5 + i) * 3;
         ctx.beginPath();
-        ctx.arc(sx + Math.cos(a) * 9, sy + Math.sin(a) * 9, 1.5, 0, Math.PI * 2);
+        ctx.ellipse(rx + sway, baseY - 30, 1.5, 4, 0, 0, Math.PI * 2);
         ctx.fill();
       }
     },
   },
   lilypad: {
-    r: 10, canSpawnZombie: false,
-    draw: (sx, sy) => {
-      ctx.fillStyle = '#5ca8c8';
-      ctx.beginPath(); ctx.arc(sx, sy, 12, 0, Math.PI * 2); ctx.fill();
+    width: 50, canSpawnZombie: false,
+    draw: (sx, gy, time) => {
+      const x = sx + 25, baseY = gy;
       ctx.fillStyle = '#4f9c4f';
-      ctx.beginPath(); ctx.arc(sx, sy, 9, 0, Math.PI * 2); ctx.fill();
-      // Wedge cutout
-      ctx.fillStyle = '#5ca8c8';
       ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.lineTo(sx + 9, sy);
-      ctx.lineTo(sx + 4, sy + 8);
+      ctx.ellipse(x, baseY - 4, 18, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#3a7a3a';
+      ctx.beginPath();
+      ctx.moveTo(x, baseY - 4);
+      ctx.lineTo(x + 4, baseY - 7);
+      ctx.lineTo(x + 1, baseY - 4);
       ctx.closePath();
       ctx.fill();
       // Flower
       ctx.fillStyle = '#fff';
-      ctx.beginPath(); ctx.arc(sx - 3, sy - 3, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x - 6, baseY - 7, 3, 0, Math.PI * 2);
+      ctx.fill();
       ctx.fillStyle = '#fde66c';
-      ctx.beginPath(); ctx.arc(sx - 3, sy - 3, 0.7, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x - 6, baseY - 7, 1, 0, Math.PI * 2);
+      ctx.fill();
     },
   },
 
-  /* ---- Castle ---- */
+  /* ---------- Castle Approach ---------- */
   stoneWall: {
-    r: 20, canSpawnZombie: true,
-    draw: (sx, sy) => {
-      ctx.fillStyle = '#7a7268';
-      ctx.fillRect(sx - 22, sy - 6, 44, 12);
+    width: 80, canSpawnZombie: true, spawnAnchorX: 40,
+    draw: (sx, gy, time) => {
+      const x = sx, baseY = gy;
       ctx.fillStyle = '#a8a098';
-      ctx.fillRect(sx - 22, sy - 6, 44, 6);
-      // Block seams
-      ctx.strokeStyle = '#5a5448';
-      ctx.lineWidth = 0.8;
-      for (let i = 0; i < 4; i++) {
+      ctx.fillRect(x, baseY - 30, 80, 30);
+      // Stone blocks
+      ctx.strokeStyle = '#7a7268';
+      ctx.lineWidth = 1;
+      for (let row = 0; row < 3; row++) {
+        const offset = row % 2 ? 10 : 0;
+        const y = baseY - 30 + row * 10;
         ctx.beginPath();
-        ctx.moveTo(sx - 22 + i * 11, sy - 6);
-        ctx.lineTo(sx - 22 + i * 11, sy + 6);
+        ctx.moveTo(x, y); ctx.lineTo(x + 80, y);
         ctx.stroke();
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath();
+          ctx.moveTo(x + offset + i * 20, y);
+          ctx.lineTo(x + offset + i * 20, y + 10);
+          ctx.stroke();
+        }
+      }
+      // Crenellations on top
+      ctx.fillStyle = '#a8a098';
+      for (let i = 0; i < 4; i++) {
+        ctx.fillRect(x + 4 + i * 20, baseY - 38, 12, 8);
       }
     },
   },
   banner: {
-    r: 8, canSpawnZombie: false,
-    randomize: () => ({ color: ['#9b59b6', '#e74c3c', '#3498db', '#27ae60', '#f1c40f'][Math.floor(Math.random() * 5)] }),
-    draw: (sx, sy, t, p) => {
-      ctx.fillStyle = '#3a2412';
-      ctx.beginPath(); ctx.arc(sx, sy, 2, 0, Math.PI * 2); ctx.fill();
-      const wave = Math.sin(t * 2 + sx * 0.02) * 2;
-      ctx.fillStyle = p.color || '#9b59b6';
+    width: 36, canSpawnZombie: false,
+    draw: (sx, gy, time, props) => {
+      const x = sx + 18, baseY = gy;
+      const wave = Math.sin(time * 2 + sx * 0.02) * 3;
+      // Pole
+      ctx.fillStyle = '#5a3a22';
+      ctx.fillRect(x - 1.5, baseY - 80, 3, 80);
+      // Flag
+      ctx.fillStyle = props.color || '#9b59b6';
       ctx.beginPath();
-      ctx.moveTo(sx + 1, sy);
-      ctx.lineTo(sx + 14, sy - 4 + wave);
-      ctx.lineTo(sx + 14, sy + 4 + wave);
+      ctx.moveTo(x + 1, baseY - 78);
+      ctx.lineTo(x + 22, baseY - 74 + wave);
+      ctx.lineTo(x + 26, baseY - 64 + wave);
+      ctx.lineTo(x + 22, baseY - 56 + wave);
+      ctx.lineTo(x + 1, baseY - 54);
       ctx.closePath();
       ctx.fill();
     },
+    randomize: () => ({ color: ['#9b59b6', '#e74c3c', '#3498db', '#27ae60', '#f1c40f'][Math.floor(Math.random() * 5)] }),
   },
   lantern: {
-    r: 10, canSpawnZombie: false,
-    draw: (sx, sy, t) => {
-      const flick = 1 + Math.sin(t * 8 + sx) * 0.08;
-      // Glow
-      ctx.fillStyle = `rgba(255, 220, 130, ${0.40 * flick})`;
-      ctx.beginPath(); ctx.arc(sx, sy, 18 * flick, 0, Math.PI * 2); ctx.fill();
+    width: 32, canSpawnZombie: false,
+    draw: (sx, gy, time) => {
+      const x = sx + 16, baseY = gy;
+      const flick = 1 + Math.sin(time * 8 + sx) * 0.08;
+      // Post
       ctx.fillStyle = '#3a2412';
-      ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(x - 1.5, baseY - 60, 3, 60);
+      ctx.beginPath();
+      ctx.moveTo(x, baseY - 60);
+      ctx.lineTo(x + 8, baseY - 62);
+      ctx.lineTo(x + 8, baseY - 64);
+      ctx.lineTo(x, baseY - 62);
+      ctx.closePath();
+      ctx.fill();
+      // Lantern body
+      ctx.fillStyle = '#3a2412';
+      ctx.fillRect(x + 4, baseY - 58, 9, 12);
+      // Glow
+      ctx.fillStyle = `rgba(255, 220, 130, ${0.55 * flick})`;
+      ctx.beginPath();
+      ctx.arc(x + 8, baseY - 52, 14 * flick, 0, Math.PI * 2);
+      ctx.fill();
       ctx.fillStyle = '#ffd76b';
-      ctx.beginPath(); ctx.arc(sx, sy, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(x + 6, baseY - 56, 5, 8);
     },
   },
   pavedSign: {
-    r: 12, canSpawnZombie: false,
-    draw: (sx, sy) => {
+    width: 50, canSpawnZombie: false,
+    draw: (sx, gy, time) => {
+      const x = sx + 25, baseY = gy;
+      // Stone post
       ctx.fillStyle = '#9a9088';
-      ctx.fillRect(sx - 2, sy - 2, 4, 4);
+      ctx.fillRect(x - 4, baseY - 36, 8, 36);
+      // Arrow pointer
       ctx.fillStyle = '#cabba0';
       ctx.beginPath();
-      ctx.moveTo(sx - 10, sy - 12);
-      ctx.lineTo(sx + 6, sy - 12);
-      ctx.lineTo(sx + 12, sy - 8);
-      ctx.lineTo(sx + 6, sy - 4);
-      ctx.lineTo(sx - 10, sy - 4);
+      ctx.moveTo(x - 18, baseY - 34);
+      ctx.lineTo(x + 12, baseY - 34);
+      ctx.lineTo(x + 16, baseY - 28);
+      ctx.lineTo(x + 12, baseY - 22);
+      ctx.lineTo(x - 18, baseY - 22);
       ctx.closePath();
       ctx.fill();
       ctx.strokeStyle = '#5a5448';
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1.5;
       ctx.stroke();
+      // Tiny castle pictogram
+      ctx.fillStyle = '#5a5448';
+      ctx.fillRect(x - 8, baseY - 32, 12, 8);
+      ctx.fillRect(x - 8, baseY - 33, 2, 2);
+      ctx.fillRect(x - 4, baseY - 33, 2, 2);
+      ctx.fillRect(x, baseY - 33, 2, 2);
     },
   },
-  castleKeep: {
-    // The white castle as the centerpiece of the castle arena
-    r: 90, canSpawnZombie: true,
-    draw: (sx, sy, t) => {
-      // Big shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.30)';
-      ctx.beginPath(); ctx.ellipse(sx + 6, sy + 10, 100, 60, 0, 0, Math.PI * 2); ctx.fill();
-      // Main keep (square)
-      ctx.fillStyle = '#f5f1e8';
-      ctx.fillRect(sx - 60, sy - 50, 120, 100);
-      ctx.strokeStyle = '#a8a098';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(sx - 60, sy - 50, 120, 100);
-      // 4 corner towers
-      const drawTower = (tx, ty) => {
-        ctx.fillStyle = '#f5f1e8';
-        ctx.beginPath(); ctx.arc(tx, ty, 20, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = '#a8a098';
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(tx, ty, 20, 0, Math.PI * 2); ctx.stroke();
-        // Purple conical roof viewed from above (concentric circles)
-        ctx.fillStyle = '#6d5fd6';
-        ctx.beginPath(); ctx.arc(tx, ty, 14, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#8579e0';
-        ctx.beginPath(); ctx.arc(tx, ty, 6, 0, Math.PI * 2); ctx.fill();
-      };
-      drawTower(sx - 60, sy - 50);
-      drawTower(sx + 60, sy - 50);
-      drawTower(sx - 60, sy + 50);
-      drawTower(sx + 60, sy + 50);
-      // Big central spire
-      ctx.fillStyle = '#6d5fd6';
-      ctx.beginPath(); ctx.arc(sx, sy, 28, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#8579e0';
-      ctx.beginPath(); ctx.arc(sx, sy, 18, 0, Math.PI * 2); ctx.fill();
-      // Flag on top of spire
-      const w = Math.sin(t * 2.3) * 3;
-      ctx.fillStyle = '#e74c3c';
+  flagPole: {
+    width: 30, canSpawnZombie: false,
+    draw: (sx, gy, time, props) => {
+      const x = sx + 15, baseY = gy;
+      const wave = Math.sin(time * 2 + sx * 0.02) * 3;
+      ctx.fillStyle = '#9a9088';
+      ctx.fillRect(x - 1.5, baseY - 70, 3, 70);
+      // Triangular pennant
+      ctx.fillStyle = props.color || '#9b59b6';
       ctx.beginPath();
-      ctx.moveTo(sx, sy - 2);
-      ctx.lineTo(sx + 12, sy - 6 + w);
-      ctx.lineTo(sx + 8, sy + w);
-      ctx.lineTo(sx + 12, sy + 6 + w);
+      ctx.moveTo(x + 1, baseY - 68);
+      ctx.lineTo(x + 20, baseY - 60 + wave);
+      ctx.lineTo(x + 1, baseY - 52);
       ctx.closePath();
       ctx.fill();
-      // Portcullis (south gate)
+    },
+    randomize: () => ({ color: ['#9b59b6', '#e74c3c', '#3498db', '#27ae60', '#f1c40f'][Math.floor(Math.random() * 5)] }),
+  },
+
+  /* ---------- The white castle (forced placement in Castle Approach) ---------- */
+  whiteCastle: {
+    width: 380, canSpawnZombie: true, spawnAnchorX: 190,
+    draw: (sx, gy, time) => {
+      const x = sx, baseY = gy;
+      // Main keep body
+      const keepW = 200, keepH = 200;
+      const kx = x + 90;
+      ctx.fillStyle = '#f5f1e8';
+      ctx.fillRect(kx, baseY - keepH, keepW, keepH);
+      // Shadow side (subtle)
+      ctx.fillStyle = '#e6dfcf';
+      ctx.fillRect(kx + keepW * 0.7, baseY - keepH, keepW * 0.3, keepH);
+      // Stone seams (subtle)
+      ctx.strokeStyle = 'rgba(120, 110, 95, 0.25)';
+      ctx.lineWidth = 1;
+      for (let row = 0; row < 8; row++) {
+        const y = baseY - keepH + row * 25;
+        ctx.beginPath();
+        ctx.moveTo(kx, y); ctx.lineTo(kx + keepW, y);
+        ctx.stroke();
+      }
+      // Crenellations atop keep
+      for (let i = 0; i < 6; i++) {
+        ctx.fillStyle = '#f5f1e8';
+        ctx.fillRect(kx + 8 + i * 33, baseY - keepH - 12, 18, 12);
+      }
+      // Side towers
+      const towerW = 60, towerH = 250;
+      const drawTower = (tx) => {
+        ctx.fillStyle = '#f5f1e8';
+        ctx.fillRect(tx, baseY - towerH, towerW, towerH);
+        ctx.fillStyle = '#e6dfcf';
+        ctx.fillRect(tx + towerW * 0.7, baseY - towerH, towerW * 0.3, towerH);
+        // Crenellations
+        for (let i = 0; i < 3; i++) {
+          ctx.fillStyle = '#f5f1e8';
+          ctx.fillRect(tx + 4 + i * 19, baseY - towerH - 12, 14, 12);
+        }
+        // Conical cap (purple/blue)
+        ctx.fillStyle = '#6d5fd6';
+        ctx.beginPath();
+        ctx.moveTo(tx - 6, baseY - towerH - 12);
+        ctx.lineTo(tx + towerW / 2, baseY - towerH - 60);
+        ctx.lineTo(tx + towerW + 6, baseY - towerH - 12);
+        ctx.closePath();
+        ctx.fill();
+        // Tower window
+        ctx.fillStyle = '#2a3050';
+        ctx.fillRect(tx + towerW * 0.35, baseY - towerH * 0.7, towerW * 0.3, towerH * 0.12);
+        ctx.fillRect(tx + towerW * 0.35, baseY - towerH * 0.45, towerW * 0.3, towerH * 0.12);
+        // Flag on cap
+        ctx.fillStyle = '#3a2412';
+        ctx.fillRect(tx + towerW / 2 - 1, baseY - towerH - 90, 2, 30);
+        ctx.fillStyle = '#e74c3c';
+        const wave = Math.sin(time * 2.3 + tx * 0.05) * 2;
+        ctx.beginPath();
+        ctx.moveTo(tx + towerW / 2 + 1, baseY - towerH - 88);
+        ctx.lineTo(tx + towerW / 2 + 16, baseY - towerH - 82 + wave);
+        ctx.lineTo(tx + towerW / 2 + 1, baseY - towerH - 76);
+        ctx.closePath();
+        ctx.fill();
+      };
+      drawTower(x + 30);
+      drawTower(x + 290);
+      // Center spire (taller)
+      const spX = kx + keepW / 2 - 30;
+      const spW = 60, spH = 290;
+      ctx.fillStyle = '#f5f1e8';
+      ctx.fillRect(spX, baseY - spH, spW, spH);
+      ctx.fillStyle = '#e6dfcf';
+      ctx.fillRect(spX + spW * 0.7, baseY - spH, spW * 0.3, spH);
+      // Spire crenellations
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = '#f5f1e8';
+        ctx.fillRect(spX + 4 + i * 19, baseY - spH - 12, 14, 12);
+      }
+      // Center spire cap (big)
+      ctx.fillStyle = '#6d5fd6';
+      ctx.beginPath();
+      ctx.moveTo(spX - 8, baseY - spH - 12);
+      ctx.lineTo(spX + spW / 2, baseY - spH - 80);
+      ctx.lineTo(spX + spW + 8, baseY - spH - 12);
+      ctx.closePath();
+      ctx.fill();
+      // Big flag on top
       ctx.fillStyle = '#3a2412';
-      ctx.fillRect(sx - 14, sy + 35, 28, 15);
+      ctx.fillRect(spX + spW / 2 - 1.5, baseY - spH - 130, 3, 50);
+      ctx.fillStyle = '#e74c3c';
+      const w2 = Math.sin(time * 2.3) * 3;
+      ctx.beginPath();
+      ctx.moveTo(spX + spW / 2 + 1.5, baseY - spH - 128);
+      ctx.lineTo(spX + spW / 2 + 26, baseY - spH - 118 + w2);
+      ctx.lineTo(spX + spW / 2 + 1.5, baseY - spH - 108);
+      ctx.closePath();
+      ctx.fill();
+
+      // Portcullis (gate)
+      const gx = kx + keepW / 2 - 30;
+      const gW = 60, gH = 100;
+      ctx.fillStyle = '#3a2412';
+      ctx.beginPath();
+      ctx.moveTo(gx, baseY);
+      ctx.lineTo(gx, baseY - gH + 20);
+      ctx.quadraticCurveTo(gx + gW / 2, baseY - gH - 8, gx + gW, baseY - gH + 20);
+      ctx.lineTo(gx + gW, baseY);
+      ctx.closePath();
+      ctx.fill();
+      // Portcullis bars
       ctx.strokeStyle = '#7a5530';
-      ctx.lineWidth = 1.2;
-      for (let i = 1; i < 5; i++) {
+      ctx.lineWidth = 2;
+      for (let i = 1; i < 6; i++) {
+        const bx = gx + i * (gW / 6);
         ctx.beginPath();
-        ctx.moveTo(sx - 14 + i * 6, sy + 35);
-        ctx.lineTo(sx - 14 + i * 6, sy + 50);
+        ctx.moveTo(bx, baseY);
+        ctx.lineTo(bx, baseY - gH + 14);
         ctx.stroke();
       }
-      for (let i = 1; i < 3; i++) {
+      for (let i = 1; i < 4; i++) {
         ctx.beginPath();
-        ctx.moveTo(sx - 14, sy + 35 + i * 5);
-        ctx.lineTo(sx + 14, sy + 35 + i * 5);
+        ctx.moveTo(gx, baseY - i * 20);
+        ctx.lineTo(gx + gW, baseY - i * 20);
         ctx.stroke();
       }
-      // Wall windows
+      // Keep windows
       ctx.fillStyle = '#2a3050';
-      ctx.fillRect(sx - 40, sy - 30, 6, 10);
-      ctx.fillRect(sx + 34, sy - 30, 6, 10);
-      ctx.fillRect(sx - 40, sy, 6, 10);
-      ctx.fillRect(sx + 34, sy, 6, 10);
+      for (let i = 0; i < 4; i++) {
+        ctx.fillRect(kx + 18 + i * 45, baseY - 160, 12, 22);
+      }
+      // Big shadow under the castle
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+      ctx.beginPath();
+      ctx.ellipse(x + 190, baseY + 6, 200, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
     },
   },
 };
 
 /* ============================================================
-   ENTITY FACTORIES — top-down
+   SCENERY PLACEMENT
+   ============================================================ */
+function maybeSpawnScenery() {
+  const rightEdge = game.scrollX + cssW + 200;
+  let safety = 200; // guard against runaway loop
+  while (game.lastSceneryX < rightEdge && safety-- > 0) {
+    spawnNextScenery();
+  }
+  // Despawn off-screen-left
+  for (let i = game.scenery.length - 1; i >= 0; i--) {
+    if (game.scenery[i].worldX + (SCENERY[game.scenery[i].type].width || 100) < game.scrollX - 50) {
+      game.scenery.splice(i, 1);
+    }
+  }
+}
+
+function spawnNextScenery() {
+  const d = districtPixels();
+  // Check whether we should force-place a castle for the Castle Approach district pass
+  const pass = Math.floor(game.lastSceneryX / (d * DISTRICTS.length));
+  if (pass > game.castlesPlacedThroughPass) {
+    // The castle for this pass should land near the middle of Castle Approach (district idx 4)
+    const targetX = pass * d * DISTRICTS.length + 4 * d + d * 0.45;
+    if (game.lastSceneryX >= targetX - 40 && game.lastSceneryX <= targetX + 200) {
+      placeScenery('whiteCastle', Math.max(game.lastSceneryX + 40, targetX));
+      game.castlesPlacedThroughPass = pass;
+      return;
+    } else if (game.lastSceneryX > targetX + 200) {
+      // Missed window — place anyway
+      placeScenery('whiteCastle', game.lastSceneryX + 40);
+      game.castlesPlacedThroughPass = pass;
+      return;
+    }
+  }
+  // Normal scenery: pick from current district
+  const district = districtAt(game.lastSceneryX);
+  const type = district.sceneryTypes[Math.floor(Math.random() * district.sceneryTypes.length)];
+  // Variable spacing between items
+  const spacing = 30 + Math.random() * 80;
+  placeScenery(type, game.lastSceneryX + spacing);
+}
+
+function placeScenery(type, worldX) {
+  const def = SCENERY[type];
+  const props = def.randomize ? def.randomize() : {};
+  game.scenery.push({
+    id: nextEntityId++,
+    type, worldX, props,
+    emergeT: 0, // can be used for an emerge animation hook
+  });
+  game.lastSceneryX = worldX + def.width;
+}
+
+/* ============================================================
+   ENTITY FACTORIES
    ============================================================ */
 function makeDragon() {
   const cfg = CONFIG.dragons[selectedDragonId];
   return {
     id: nextEntityId++,
-    x: game.arenaWidth / 2,
-    y: game.arenaHeight / 2,
-    vx: 0, vy: 0,
-    facing: 0, // radians (0 = right)
+    x: cssW * 0.30,
+    y: cssH * 0.35,
     radius: 24,
     wingPhase: 0,
     config: cfg,
+    flyUpProgress: 0,
   };
 }
-function makeZombie(spawnX, spawnY) {
+function makeZombie() {
+  // Try to emerge from a scenery item that's off-screen-right and can spawn zombies
+  const candidates = game.scenery.filter(s =>
+    SCENERY[s.type].canSpawnZombie &&
+    s.worldX > game.scrollX + cssW - 10 &&
+    s.worldX < game.scrollX + cssW + 600
+  );
+  let spawnWorldX;
+  let emergeFromX = null;
+  if (candidates.length > 0) {
+    const s = candidates[Math.floor(Math.random() * candidates.length)];
+    const anchor = SCENERY[s.type].spawnAnchorX || 0;
+    spawnWorldX = s.worldX + anchor;
+    emergeFromX = s.worldX + anchor;
+    // brief emerge animation: zombie starts a bit forward, with a fade in
+  } else {
+    spawnWorldX = game.scrollX + cssW + 60 + Math.random() * 140;
+  }
   return {
     id: nextEntityId++,
-    x: spawnX,
-    y: spawnY,
-    vx: 0, vy: 0,
-    facing: 0,
-    radius: 16,
+    worldX: spawnWorldX,
+    y: 0,                          // height above ground; >0 means hopping
+    radius: 18,
     speed: zombieSpeedForWave(game.wave),
     walkPhase: Math.random() * Math.PI * 2,
     color: '#5cae5c',
     chatterCooldown: 1 + Math.random() * 3,
     touchCooldown: 0,
-    bounceVx: 0, bounceVy: 0, bounceT: 0,
-    emergeAlpha: 0,
+    nextHopAt: 0.8 + Math.random() * (CONFIG.hopIntervalMax - CONFIG.hopIntervalMin) + CONFIG.hopIntervalMin,
+    hopT: 0,                       // 0..hopDurationSec if hopping, else 0
+    hopFromY: 0,
+    emergeAlpha: emergeFromX != null ? 0 : 1,
   };
 }
 function makeFireball(x, y, vx, vy, size, color, rainbow = false) {
@@ -1051,26 +1385,14 @@ function makeFireball(x, y, vx, vy, size, color, rainbow = false) {
     maxLife: CONFIG.fireballLifespanSec,
     rainbow,
     hue: Math.random() * 360,
+    trail: [],
+    age: 0,
   };
 }
 function makeCured(x, y, stage, color, slowAura = false) {
-  // Pick the nearest arena edge as the exit target so they walk off-screen
-  const dxLeft   = x;
-  const dxRight  = game.arenaWidth  - x;
-  const dyTop    = y;
-  const dyBottom = game.arenaHeight - y;
-  const minDist = Math.min(dxLeft, dxRight, dyTop, dyBottom);
-  let tx = x, ty = y;
-  if (minDist === dxLeft)   { tx = -40; ty = y; }
-  else if (minDist === dxRight) { tx = game.arenaWidth + 40; ty = y; }
-  else if (minDist === dyTop)   { tx = x; ty = -40; }
-  else                          { tx = x; ty = game.arenaHeight + 40; }
-  const ang = Math.atan2(ty - y, tx - x);
   return {
     id: nextEntityId++,
     x, y,
-    vx: Math.cos(ang) * CONFIG.curedWalkSpeed,
-    vy: Math.sin(ang) * CONFIG.curedWalkSpeed,
     stage,
     color,
     walkPhase: 0,
@@ -1086,7 +1408,7 @@ function makeSparkle(x, y, color = '#ffd76b', n = 8) {
     const sp = 50 + Math.random() * 80;
     game.particles.push({
       x, y,
-      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 30,
       life: 0.6 + Math.random() * 0.3,
       maxLife: 0.6 + Math.random() * 0.3,
       size: 4 + Math.random() * 3,
@@ -1117,6 +1439,7 @@ function makeRainbowTrail(x, y, hue) {
     type: 'sparkle',
   });
 }
+
 function zombieSpeedForWave(w) {
   const s = CONFIG.baseZombieSpeed * Math.pow(CONFIG.zombieSpeedGrowthPerWave, w - 1);
   return Math.min(CONFIG.maxZombieSpeed, s);
@@ -1127,7 +1450,7 @@ function spawnIntervalForWave(w) {
 }
 
 /* ============================================================
-   INPUT — top-down (arrow keys for direction, touch drag, aim)
+   INPUT
    ============================================================ */
 const heldKeys = new Set();
 const pointer = {
@@ -1135,8 +1458,6 @@ const pointer = {
   x: 0, y: 0,
   hadPointerEvent: false,
 };
-function pointerWorldX() { return pointer.x + game.cameraX; }
-function pointerWorldY() { return pointer.y + game.cameraY; }
 
 window.addEventListener('keydown', (e) => {
   if (screen !== 'playing') return;
@@ -1144,7 +1465,7 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
   }
   heldKeys.add(e.key);
-  if (e.key === ' ' && selectedMode === 'aim' && game.spawningEnabled) shootTowardPointer();
+  if (e.key === ' ' && selectedMode === 'aim') shootTowardPointer();
 });
 window.addEventListener('keyup', (e) => heldKeys.delete(e.key));
 
@@ -1154,7 +1475,7 @@ canvas.addEventListener('mousemove', (e) => {
 canvas.addEventListener('mousedown', (e) => {
   if (screen !== 'playing') return;
   pointer.x = e.clientX; pointer.y = e.clientY; pointer.hadPointerEvent = true;
-  if (selectedMode === 'aim' && game.spawningEnabled) shootTowardPointer();
+  if (selectedMode === 'aim') shootTowardPointer();
 });
 canvas.addEventListener('touchstart', (e) => {
   if (screen !== 'playing') return;
@@ -1162,7 +1483,7 @@ canvas.addEventListener('touchstart', (e) => {
   const t = e.touches[0];
   pointer.active = true;
   pointer.x = t.clientX; pointer.y = t.clientY; pointer.hadPointerEvent = true;
-  if (selectedMode === 'aim' && game.spawningEnabled) shootTowardPointer();
+  if (selectedMode === 'aim') shootTowardPointer();
 }, { passive: false });
 canvas.addEventListener('touchmove', (e) => {
   if (screen !== 'playing') return;
@@ -1184,95 +1505,77 @@ canvas.addEventListener('touchcancel', (e) => {
 function shootTowardPointer() {
   if (!game.dragon || game.napping) return;
   if (game.manualCooldown > 0) return;
-  fireFromDragon(pointerWorldX(), pointerWorldY());
+  fireFromDragon(pointer.x, pointer.y);
   game.manualCooldown = game.dragon.config.shootInterval * 0.6;
 }
 
 /* ============================================================
-   FIRING — straight line in top-down (no gravity)
+   FIRING / TRAJECTORY
    ============================================================ */
 function fireFromDragon(targetX, targetY) {
   const d = game.dragon;
   const cfg = d.config;
-  const sizeMul  = CONFIG.stageFireballSizeMul[game.stage - 1];
+  const sizeMul = CONFIG.stageFireballSizeMul[game.stage - 1];
   const speedMul = CONFIG.stageFireballSpeedMul[game.stage - 1];
   const size  = cfg.fireballSize * sizeMul;
-  const speed = CONFIG.arena.fireballSpeed * speedMul * (cfg.fireballSpeed / 440); // honor per-dragon speed weight
+  const speed = cfg.fireballSpeed * speedMul;
   const color = cfg.rainbow ? '#ff5566' : cfg.color;
-
-  // Direction from dragon to target
-  let dx = targetX - d.x;
-  let dy = targetY - d.y;
-  let dist = Math.hypot(dx, dy);
-  if (dist < 14) {
-    // Pointer on top of dragon — default to facing direction
-    dx = Math.cos(d.facing);
-    dy = Math.sin(d.facing);
-    dist = 1;
+  // Default target if pointer is on or above the dragon: arc forward and down
+  let tx = targetX, ty = targetY;
+  if (tx - d.x < 30) {
+    tx = d.x + 360;
+    ty = groundLineY() - 20;
   }
-  const nx = dx / dist;
-  const ny = dy / dist;
-
   if (cfg.doublePuff) {
-    // Sprout: two fireballs at slight spread
-    const spread = 0.18;
-    const ang = Math.atan2(ny, nx);
+    const spread = 60;
     [-spread, spread].forEach(off => {
-      const a = ang + off;
-      game.fireballs.push(makeFireball(d.x, d.y, Math.cos(a) * speed, Math.sin(a) * speed, size * 0.85, color, cfg.rainbow));
+      const v = arcVelocity(d.x, d.y, tx, ty + off, speed);
+      game.fireballs.push(makeFireball(d.x + 14, d.y + 8, v.vx, v.vy, size * 0.85, color, cfg.rainbow));
     });
   } else {
-    game.fireballs.push(makeFireball(d.x, d.y, nx * speed, ny * speed, size, color, cfg.rainbow));
+    const v = arcVelocity(d.x, d.y, tx, ty, speed);
+    game.fireballs.push(makeFireball(d.x + 14, d.y + 8, v.vx, v.vy, size, color, cfg.rainbow));
   }
-  makePuff(d.x + nx * 18, d.y + ny * 18, '#ffffff');
+  makePuff(d.x + 18, d.y + 8);
   sfx.puff();
+}
+function arcVelocity(x0, y0, x1, y1, speed) {
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const dist = Math.hypot(dx, dy) || 1;
+  // Estimate flight time at given speed
+  const t = Math.max(0.18, dist / speed);
+  const g = CONFIG.fireballGravity;
+  // Solve for initial vy that hits target with gravity
+  const vx = dx / t;
+  let vy = (dy - 0.5 * g * t * t) / t;
+  // Cap upward arc so it doesn't loop crazily for very close shots
+  vy = Math.max(vy, -speed * 0.9);
+  return { vx, vy };
 }
 
 /* ============================================================
-   UPDATE — top-down arena
+   UPDATE
    ============================================================ */
 function update(dt) {
   game.elapsed += dt;
   game.manualCooldown = Math.max(0, game.manualCooldown - dt);
 
-  // Fade-in / fade-out
-  if (game.fadingIn) {
-    game.fadeT += dt;
-    game.arenaFadeAlpha = Math.max(0, 1 - game.fadeT / CONFIG.arena.arenaBgFadeSec);
-    if (game.fadeT >= CONFIG.arena.arenaBgFadeSec) {
-      game.fadingIn = false;
-      game.arenaFadeAlpha = 0;
-    }
-  }
-
   if (game.napping) {
-    updateDragonNap(dt);
+    updateScroll(dt);
+    updateNapFlyUp(dt);
     updateParticles(dt);
     updateCured(dt);
-    updateCamera();
     return;
   }
 
-  // Countdown: dragon visible, no spawning yet
-  if (game.countdownActive) {
-    game.countdownT = Math.max(0, game.countdownT - dt);
-    updateCamera();
-    updateParticles(dt);
-    if (game.countdownT <= 0) {
-      game.countdownActive = false;
-      game.spawningEnabled = true;
-      hideArenaCountdown();
-    }
-    return;
-  }
-
-  // Passive sleepy drain
+  // Passive sleepy drain — meter always ticks up so runs can't go forever
   game.meter = Math.min(CONFIG.sleepyMeterMax, game.meter + CONFIG.passiveSleepyPerSec * dt);
   updateMeterUI();
   if (game.meter >= CONFIG.sleepyMeterMax) { triggerNap(); return; }
 
+  updateScroll(dt);
   updateDragon(dt);
-  updateCamera();
   updateSpawning(dt);
   updateZombies(dt);
   updateFireballs(dt);
@@ -1282,175 +1585,117 @@ function update(dt) {
   updateChatter(dt);
   updateWaves(dt);
   updateShooting(dt);
+  checkDistrictTransition();
+}
+
+function updateScroll(dt) {
+  game.scrollX += CONFIG.scrollSpeed * dt;
+  maybeSpawnScenery();
+}
+
+function checkDistrictTransition() {
+  const idx = districtIndexAt(game.scrollX + cssW * 0.5);
+  if (idx !== game.lastDistrictIdx) {
+    game.lastDistrictIdx = idx;
+    if (game.elapsed > 0.5) showDistrictBanner(DISTRICTS[idx]);
+  }
 }
 
 function updateDragon(dt) {
   const d = game.dragon;
   if (!d) return;
-
-  let inputX = 0, inputY = 0;
-  if (heldKeys.has('ArrowLeft')  || heldKeys.has('a') || heldKeys.has('A')) inputX -= 1;
-  if (heldKeys.has('ArrowRight') || heldKeys.has('d') || heldKeys.has('D')) inputX += 1;
-  if (heldKeys.has('ArrowUp')    || heldKeys.has('w') || heldKeys.has('W')) inputY -= 1;
-  if (heldKeys.has('ArrowDown')  || heldKeys.has('s') || heldKeys.has('S')) inputY += 1;
+  let dx = 0, dy = 0;
+  if (heldKeys.has('ArrowLeft')  || heldKeys.has('a') || heldKeys.has('A')) dx -= 1;
+  if (heldKeys.has('ArrowRight') || heldKeys.has('d') || heldKeys.has('D')) dx += 1;
+  if (heldKeys.has('ArrowUp')    || heldKeys.has('w') || heldKeys.has('W')) dy -= 1;
+  if (heldKeys.has('ArrowDown')  || heldKeys.has('s') || heldKeys.has('S')) dy += 1;
 
   if (pointer.active) {
-    // Touch follows finger — direction + intensity based on distance from dragon
-    const wx = pointerWorldX();
-    const wy = pointerWorldY();
-    const dx = wx - d.x;
-    const dy = wy - d.y;
-    const dist = Math.hypot(dx, dy);
-    if (dist > 12) {
-      const intensity = Math.min(1, dist / 150);
-      inputX = (dx / dist) * intensity;
-      inputY = (dy / dist) * intensity;
-    } else {
-      inputX = 0; inputY = 0;
-    }
-  } else if (inputX || inputY) {
-    const m = Math.hypot(inputX, inputY) || 1;
-    inputX /= m; inputY /= m;
+    const tx = pointer.x, ty = pointer.y;
+    const ddx = tx - d.x, ddy = ty - d.y;
+    const dist = Math.hypot(ddx, ddy);
+    if (dist > 8) { dx = ddx / dist; dy = ddy / dist; }
+    else { dx = 0; dy = 0; }
+  } else if (dx !== 0 || dy !== 0) {
+    const m = Math.hypot(dx, dy) || 1;
+    dx /= m; dy /= m;
   }
+  const speed = d.config.moveSpeed;
+  d.x += dx * speed * dt;
+  d.y += dy * speed * dt;
 
-  // Lerp current velocity toward target velocity (acceleration model)
-  const dragonSpeed = CONFIG.arena.dragonMaxSpeed * (d.config.moveSpeed / 240);
-  const targetVx = inputX * dragonSpeed;
-  const targetVy = inputY * dragonSpeed;
-  const accel = CONFIG.arena.dragonAccel;
-  const vdx = targetVx - d.vx;
-  const vdy = targetVy - d.vy;
-  const vmag = Math.hypot(vdx, vdy);
-  if (vmag > 0) {
-    const maxDelta = accel * dt;
-    if (vmag <= maxDelta) {
-      d.vx = targetVx; d.vy = targetVy;
-    } else {
-      d.vx += vdx / vmag * maxDelta;
-      d.vy += vdy / vmag * maxDelta;
-    }
-  }
-
-  d.x += d.vx * dt;
-  d.y += d.vy * dt;
-
-  // Stage-based size
-  const stageScale = CONFIG.stageScales[game.stage - 1];
-  d.radius = 24 * stageScale;
-
-  // Clamp to arena bounds
-  d.x = Math.max(d.radius, Math.min(game.arenaWidth  - d.radius, d.x));
-  d.y = Math.max(d.radius, Math.min(game.arenaHeight - d.radius, d.y));
-
-  // Smooth facing toward velocity direction
-  const speed = Math.hypot(d.vx, d.vy);
-  if (speed > 30) {
-    const target = Math.atan2(d.vy, d.vx);
-    d.facing = lerpAngle(d.facing, target, CONFIG.arena.dragonRotationLerp);
-  }
+  // Constrain to flight area
+  const minX = cssW * CONFIG.dragonHorizBandMin;
+  const maxX = cssW * CONFIG.dragonHorizBandMax;
+  const minY = CONFIG.dragonTopMargin + d.radius;
+  const maxY = groundLineY() - CONFIG.dragonBottomMargin - d.radius;
+  d.x = Math.max(minX, Math.min(maxX, d.x));
+  d.y = Math.max(minY, Math.min(maxY, d.y));
   d.wingPhase += dt * 9;
-}
-
-function lerpAngle(a, b, t) {
-  let diff = b - a;
-  while (diff < -Math.PI) diff += Math.PI * 2;
-  while (diff >  Math.PI) diff -= Math.PI * 2;
-  return a + diff * t;
-}
-
-function updateCamera() {
-  const d = game.dragon;
-  if (!d) return;
-  let cx = d.x - cssW / 2;
-  let cy = d.y - cssH / 2;
-  if (CONFIG.arena.cameraEdgeClamp) {
-    cx = Math.max(0, Math.min(game.arenaWidth  - cssW, cx));
-    cy = Math.max(0, Math.min(game.arenaHeight - cssH, cy));
-  }
-  game.cameraX = cx;
-  game.cameraY = cy;
+  d.radius = 24 * CONFIG.stageScales[game.stage - 1];
 }
 
 function updateSpawning(dt) {
-  if (!game.spawningEnabled) return;
   game.spawnTimer -= dt;
   if (game.spawnTimer <= 0) {
-    spawnOneZombie();
-    game.spawnTimer = spawnIntervalForWave(game.wave);
+    game.zombies.push(makeZombie());
+    const districtMul = CONFIG.districtSpawnMul[districtAt(game.scrollX + cssW / 2).id] || 1;
+    game.spawnTimer = spawnIntervalForWave(game.wave) * districtMul;
   }
-}
-
-function spawnOneZombie() {
-  // ~50% from edges, ~50% from scenery (when possible)
-  const fromScenery = Math.random() < 0.5;
-  if (fromScenery) {
-    const candidates = game.scenery.filter(s => ARENA_SCENERY[s.type].canSpawnZombie);
-    if (candidates.length > 0) {
-      const s = candidates[Math.floor(Math.random() * candidates.length)];
-      const def = ARENA_SCENERY[s.type];
-      // Spawn at a point just outside the scenery footprint, in a random direction
-      const a = Math.random() * Math.PI * 2;
-      const r = def.r + 14;
-      const sx = s.x + Math.cos(a) * r;
-      const sy = s.y + Math.sin(a) * r;
-      game.zombies.push(makeZombie(sx, sy));
-      return;
-    }
-  }
-  // Edge spawn
-  const side = Math.floor(Math.random() * 4);
-  const m = 30;
-  let x, y;
-  if (side === 0)      { x = -m; y = Math.random() * game.arenaHeight; }
-  else if (side === 1) { x = game.arenaWidth + m; y = Math.random() * game.arenaHeight; }
-  else if (side === 2) { x = Math.random() * game.arenaWidth; y = -m; }
-  else                 { x = Math.random() * game.arenaWidth; y = game.arenaHeight + m; }
-  game.zombies.push(makeZombie(x, y));
 }
 
 function updateZombies(dt) {
-  const d = game.dragon;
+  const groundY = groundLineY();
   for (let i = game.zombies.length - 1; i >= 0; i--) {
     const z = game.zombies[i];
     z.touchCooldown = Math.max(0, z.touchCooldown - dt);
-    z.bounceT = Math.max(0, z.bounceT - dt);
     z.chatterCooldown -= dt;
-    z.emergeAlpha = Math.min(1, z.emergeAlpha + dt * 2.0);
+    z.emergeAlpha = Math.min(1, z.emergeAlpha + dt * 1.5);
 
-    // Frost slow check
+    // Zombie walks leftward in world coords. Also subject to world scrolling.
     let speedMul = 1;
     for (const c of game.cured) {
       if (!c.slowAura) continue;
       if (game.elapsed > c.slowAuraUntil) continue;
-      if (Math.hypot(c.x - z.x, c.y - z.y) < CONFIG.frostSlowRadius) {
+      const sx = c.x;
+      const zx = z.worldX - game.scrollX;
+      if (Math.hypot(sx - zx, 0) < CONFIG.frostSlowRadius) {
         speedMul *= CONFIG.frostSlowFactor;
         break;
       }
     }
+    z.worldX -= z.speed * speedMul * dt;
+    z.walkPhase += dt * 4.5 * speedMul;
 
-    if (z.bounceT > 0) {
-      z.x += z.bounceVx * dt;
-      z.y += z.bounceVy * dt;
-      z.bounceVx *= 0.9;
-      z.bounceVy *= 0.9;
-    } else if (d) {
-      // Path directly toward dragon
-      const dx = d.x - z.x;
-      const dy = d.y - z.y;
-      const dist = Math.hypot(dx, dy) || 1;
-      const nx = dx / dist;
-      const ny = dy / dist;
-      z.x += nx * z.speed * speedMul * dt;
-      z.y += ny * z.speed * speedMul * dt;
-      z.facing = Math.atan2(ny, nx);
-      z.vx = nx * z.speed;
-      z.vy = ny * z.speed;
+    // Hop logic
+    if (z.hopT > 0) {
+      z.hopT += dt;
+      const tNorm = z.hopT / CONFIG.hopDurationSec;
+      if (tNorm >= 1) {
+        z.hopT = 0;
+        z.y = 0;
+        z.nextHopAt = CONFIG.hopIntervalMin + Math.random() * (CONFIG.hopIntervalMax - CONFIG.hopIntervalMin);
+      } else {
+        // Parabola: y peaks at center of hop
+        z.y = Math.sin(tNorm * Math.PI) * CONFIG.hopHeight;
+      }
+    } else {
+      z.nextHopAt -= dt;
+      if (z.nextHopAt <= 0) {
+        z.hopT = 0.001;
+        z.hopFromY = 0;
+      }
     }
-    z.walkPhase += dt * 5 * speedMul;
 
-    // Clamp to arena (zombies can't leave either)
-    z.x = Math.max(-50, Math.min(game.arenaWidth + 50, z.x));
-    z.y = Math.max(-50, Math.min(game.arenaHeight + 50, z.y));
+    // Remove zombies that walked off the left — they "escaped" the puff.
+    if (z.worldX - game.scrollX < -60) {
+      game.zombies.splice(i, 1);
+      game.speeches = game.speeches.filter(s => s.targetId !== z.id);
+      game.meter = Math.min(CONFIG.sleepyMeterMax, game.meter + CONFIG.escapePenalty);
+      updateMeterUI();
+      sfx.uhOh();
+      if (game.meter >= CONFIG.sleepyMeterMax) { triggerNap(); return; }
+    }
   }
 }
 
@@ -1458,16 +1703,22 @@ function updateFireballs(dt) {
   for (let i = game.fireballs.length - 1; i >= 0; i--) {
     const f = game.fireballs[i];
     f.life += dt;
+    f.age += dt;
+    // Gravity
+    f.vy += CONFIG.fireballGravity * dt;
     f.x += f.vx * dt;
     f.y += f.vy * dt;
+    // Rainbow trail
     if (f.rainbow) {
       f.hue = (f.hue + dt * 360) % 360;
       makeRainbowTrail(f.x, f.y, f.hue);
     }
-    // Despawn off arena or expired
+    // Despawn
     if (f.life > f.maxLife ||
-        f.x < -50 || f.x > game.arenaWidth + 50 ||
-        f.y < -50 || f.y > game.arenaHeight + 50) {
+        f.x < -50 || f.x > cssW + 50 ||
+        f.y > groundLineY() + 8) {
+      // Small poof when hitting the ground
+      if (f.y > groundLineY() - 2) makePuff(f.x, groundLineY() - 4, '#fff5d0');
       game.fireballs.splice(i, 1);
     }
   }
@@ -1476,6 +1727,7 @@ function updateFireballs(dt) {
 function updateCollisions(dt) {
   const d = game.dragon;
   if (!d) return;
+  const groundY = groundLineY();
 
   // Fireball ↔ zombie
   for (let i = game.fireballs.length - 1; i >= 0; i--) {
@@ -1483,7 +1735,9 @@ function updateCollisions(dt) {
     let consumed = false;
     for (let j = game.zombies.length - 1; j >= 0; j--) {
       const z = game.zombies[j];
-      if (Math.hypot(f.x - z.x, f.y - z.y) < f.radius + z.radius + CONFIG.fireballHitPadding) {
+      const zx = z.worldX - game.scrollX;
+      const zy = groundY - 20 - z.y;
+      if (Math.hypot(f.x - zx, f.y - zy) < f.radius + z.radius + CONFIG.fireballHitPadding) {
         cureZombie(z, j);
         consumed = true;
         break;
@@ -1492,21 +1746,22 @@ function updateCollisions(dt) {
     if (consumed) game.fireballs.splice(i, 1);
   }
 
-  // Zombie ↔ dragon (touch)
+  // Zombie ↔ dragon (only if zombie is hopping high enough to reach)
   for (const z of game.zombies) {
     if (z.touchCooldown > 0) continue;
-    if (Math.hypot(z.x - d.x, z.y - d.y) < z.radius + d.radius - 4) {
+    const zx = z.worldX - game.scrollX;
+    const zy = groundY - 20 - z.y;
+    if (Math.hypot(zx - d.x, zy - d.y) < z.radius + d.radius - 6) {
       game.meter = Math.min(CONFIG.sleepyMeterMax, game.meter + CONFIG.zombieTouchPenalty);
       updateMeterUI();
-      // Bounce zombie away
-      const ang = Math.atan2(z.y - d.y, z.x - d.x);
-      z.bounceVx = Math.cos(ang) * 240;
-      z.bounceVy = Math.sin(ang) * 240;
-      z.bounceT = 0.5;
       z.touchCooldown = CONFIG.touchCooldownSec;
+      // Pop a small shock effect
       makePuff(d.x, d.y, '#cfd8e8');
       sfx.thud();
-      if (game.meter >= CONFIG.sleepyMeterMax) { triggerNap(); return; }
+      if (game.meter >= CONFIG.sleepyMeterMax) {
+        triggerNap();
+        return;
+      }
     }
   }
 }
@@ -1515,16 +1770,19 @@ function cureZombie(z, idx) {
   const palette = ['#ff9ec4', '#7fc9d9', '#ffd76b', '#a78bfa', '#8de0a4', '#f29849', '#e89cc7', '#ffb3a3'];
   const color = palette[Math.floor(Math.random() * palette.length)];
   const slowAura = !!game.dragon.config.slowAura;
-  game.cured.push(makeCured(z.x, z.y, game.stage, color, slowAura));
+  const groundY = groundLineY();
+  const zx = z.worldX - game.scrollX;
+  game.cured.push(makeCured(zx, groundY - 14, game.stage, color, slowAura));
   game.zombies.splice(idx, 1);
   game.speeches = game.speeches.filter(s => s.targetId !== z.id);
 
   game.score++;
+  // Cures reward active play by trimming a little sleep
   game.meter = Math.max(0, game.meter - CONFIG.cureSleepyRelief);
   updateMeterUI();
   updateScoreUI();
   sfx.cure();
-  makeSparkle(z.x, z.y, '#ffd76b');
+  makeSparkle(zx, groundY - 28, '#ffd76b');
   writeStr(KEYS.totalCured(), readNum(KEYS.totalCured(), 0) + 1);
 
   const nextThreshold = CONFIG.cureThresholds[game.stage - 1];
@@ -1543,6 +1801,7 @@ function advanceStage() {
   }
   const best = readNum(KEYS.biggestStage(), 1);
   if (game.stage > best) writeStr(KEYS.biggestStage(), game.stage);
+  // First time hitting stage 5 on this device unlocks Prism
   if (game.stage === 5 && !readBool(KEYS.prismUnlocked(), false)) {
     writeStr(KEYS.prismUnlocked(), 'true');
   }
@@ -1553,19 +1812,14 @@ function updateCured(dt) {
     const c = game.cured[i];
     c.age += dt;
     c.walkPhase += dt * 6;
-    // Stage-specific speed multiplier (keep flavor)
     let speedMul = 1;
-    if (c.stage === 1) speedMul = 0.6;
+    if (c.stage === 1) speedMul = 0.55;
     else if (c.stage === 2) speedMul = 1.2;
     else if (c.stage === 3) speedMul = 1.4;
     else if (c.stage === 4) speedMul = 1.0;
-    else speedMul = 0.55;
-    c.x += c.vx * speedMul * dt;
-    c.y += c.vy * speedMul * dt;
-    // Despawn if expired or off arena edge
-    if (c.age >= c.maxAge ||
-        c.x < -50 || c.x > game.arenaWidth + 50 ||
-        c.y < -50 || c.y > game.arenaHeight + 50) {
+    else speedMul = 0.45;
+    c.x -= CONFIG.curedWalkSpeed * speedMul * dt;
+    if (c.age >= c.maxAge || c.x < -60) {
       game.cured.splice(i, 1);
     }
   }
@@ -1580,6 +1834,7 @@ function updateParticles(dt) {
     p.y += p.vy * dt;
     p.vx *= 0.92;
     p.vy *= 0.92;
+    if (p.type === 'sparkle') p.vy += 80 * dt;
   }
 }
 
@@ -1613,504 +1868,510 @@ function updateShooting(dt) {
   const d = game.dragon;
   game.shootTimer -= dt;
   if (game.shootTimer > 0) return;
-  // Find nearest zombie
-  let nearest = null;
-  let nearestDist = Infinity;
+  // Find nearest zombie ahead of the dragon (to the right or near)
+  const groundY = groundLineY();
+  let target = null;
+  let bestScore = Infinity;
   for (const z of game.zombies) {
-    const dd = Math.hypot(z.x - d.x, z.y - d.y);
-    if (dd < nearestDist) { nearest = z; nearestDist = dd; }
+    const zx = z.worldX - game.scrollX;
+    if (zx < d.x - 20) continue; // ignore zombies behind
+    const zy = groundY - 20 - z.y;
+    const score = Math.hypot(zx - d.x, zy - d.y);
+    if (score < bestScore) { target = { x: zx, y: zy }; bestScore = score; }
   }
-  if (!nearest) {
+  if (!target) {
     game.shootTimer = 0.18;
     return;
   }
-  fireFromDragon(nearest.x, nearest.y);
+  fireFromDragon(target.x, target.y);
   game.shootTimer = d.config.shootInterval;
 }
 
-/* ----- Nap "fly up" — in top-down, dragon just floats upward off screen ----- */
-function updateDragonNap(dt) {
+function updateNapFlyUp(dt) {
+  if (screen !== 'playing') return;
   const d = game.dragon;
   if (!d) return;
-  d.napProgress = (d.napProgress || 0) + dt;
-  if (d.napProgress > 0.7) {
-    const t = d.napProgress - 0.7;
-    // Float up in screen space — move both dragon and camera so it visibly rises
+  d.flyUpProgress += dt;
+  if (d.flyUpProgress > 0.7) {
+    const t = d.flyUpProgress - 0.7;
     d.y -= (60 + t * 220) * dt;
   }
   d.wingPhase += dt * 12;
-  // After it's been long enough, show nap screen
-  if (d.napProgress > 2.4 && screen === 'playing') {
-    showNapScreen();
-  }
+  if (d.y < -140) showNapScreen();
 }
 
 /* ============================================================
-   RENDER — top-down arena
+   DRAGON DRAWING (HtTYD-inspired)
    ============================================================ */
-function render() {
-  drawArenaBg();
-  if (screen !== 'playing' && screen !== 'nap') return;
-
-  // Save context and translate by negative camera offset so we can draw in world coords
-  ctx.save();
-  ctx.translate(-game.cameraX, -game.cameraY);
-
-  // Scenery (sorted by y so things at the back render first)
-  const sortedScenery = [...game.scenery].sort((a, b) => a.y - b.y);
-  for (const s of sortedScenery) {
-    const def = ARENA_SCENERY[s.type];
-    if (!def) continue;
-    // Cull anything off-screen
-    if (s.x + def.r < game.cameraX || s.x - def.r > game.cameraX + cssW ||
-        s.y + def.r < game.cameraY || s.y - def.r > game.cameraY + cssH) continue;
-    def.draw(s.x, s.y, game.elapsed, s.props || {});
+function dragonPaint(cfg, x0, y0, x1, y1) {
+  // Returns the fill style for a dragon's body — solid color, or rainbow gradient
+  // when cfg.rainbow is true. Coordinates define the gradient axis (nose→tail).
+  if (cfg.rainbow) {
+    const g = ctx.createLinearGradient(x0, y0, x1, y1);
+    g.addColorStop(0,    '#ff4d4d');
+    g.addColorStop(0.16, '#ff8c30');
+    g.addColorStop(0.33, '#ffd200');
+    g.addColorStop(0.5,  '#3ed03e');
+    g.addColorStop(0.66, '#3aa7f0');
+    g.addColorStop(0.83, '#6c5cd9');
+    g.addColorStop(1,    '#a23ec6');
+    return g;
   }
-
-  // Y-sort entities for proper depth illusion
-  const ents = [];
-  for (const c of game.cured)   ents.push({ y: c.y, draw: () => drawCuredTopDown(c) });
-  for (const z of game.zombies) ents.push({ y: z.y, draw: () => drawZombieTopDown(z) });
-  if (game.dragon) ents.push({ y: game.dragon.y, draw: () => drawDragonTopDown(game.dragon) });
-  ents.sort((a, b) => a.y - b.y);
-  for (const e of ents) e.draw();
-
-  // Fireballs on top
-  for (const f of game.fireballs) drawFireball(f);
-
-  // Particles on top of those
-  for (const p of game.particles) drawParticle(p);
-
-  // Speech bubbles
-  ctx.font = '700 14px -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif';
-  for (const s of game.speeches) {
-    const z = game.zombies.find(zz => zz.id === s.targetId);
-    if (!z) continue;
-    drawSpeechBubble(z.x, z.y - 26, s.text);
-  }
-
-  ctx.restore();
-
-  // Screen-space overlays (drawn after restore so no camera offset)
-  drawEdgeVignette();
-  if (game.arenaFadeAlpha > 0.01) {
-    ctx.fillStyle = `rgba(255, 255, 255, ${game.arenaFadeAlpha})`;
-    ctx.fillRect(0, 0, cssW, cssH);
-  }
+  return cfg.color;
 }
 
-/* ----- Arena background — tiled ground + accent patches per district ----- */
-function drawArenaBg() {
-  const arenaDef = arenaById(game.arenaId);
-  // Base color
-  ctx.fillStyle = arenaDef.ground;
-  ctx.fillRect(0, 0, cssW, cssH);
-
-  // Tile pattern: darker checker stripes for texture
-  const tile = 64;
-  const ox = -((game.cameraX) % tile);
-  const oy = -((game.cameraY) % tile);
-  ctx.fillStyle = arenaDef.groundDark;
-  // Each arc needs its own subpath; without moveTo, the arcs connect
-  // and the fill paints a weird shape instead of separate dots.
-  ctx.beginPath();
-  for (let y = oy; y < cssH + tile; y += tile) {
-    for (let x = ox; x < cssW + tile; x += tile) {
-      ctx.moveTo(x + 14 + 3,   y + 18); ctx.arc(x + 14, y + 18, 3,   0, Math.PI * 2);
-      ctx.moveTo(x + 40 + 2.4, y + 36); ctx.arc(x + 40, y + 36, 2.4, 0, Math.PI * 2);
-      ctx.moveTo(x + 24 + 2,   y + 52); ctx.arc(x + 24, y + 52, 2,   0, Math.PI * 2);
-    }
-  }
-  ctx.fill();
-
-  // Arena-specific accent patches (water for river, dirt for farm, stone for castle)
-  drawAccentPatches(arenaDef);
-}
-
-function drawAccentPatches(arenaDef) {
-  if (arenaDef.id !== 'river' && arenaDef.id !== 'farm' && arenaDef.id !== 'castle') return;
-  // Place accent patches at deterministic positions across the arena
-  // so they don't shift between frames.
-  const aw = game.arenaWidth, ah = game.arenaHeight;
-  const tile = 240; // patches every ~240px
-  ctx.fillStyle = arenaDef.accent;
-  // Iterate the visible portion of the arena
-  const startX = Math.floor(game.cameraX / tile) * tile - tile;
-  const startY = Math.floor(game.cameraY / tile) * tile - tile;
-  const endX   = game.cameraX + cssW + tile;
-  const endY   = game.cameraY + cssH + tile;
-  for (let wy = startY; wy < endY; wy += tile) {
-    for (let wx = startX; wx < endX; wx += tile) {
-      // Pseudo-random patch per tile coord
-      const seed = (wx * 73856093) ^ (wy * 19349663);
-      const r1 = ((seed >>> 8)  & 0xff) / 255;
-      const r2 = ((seed >>> 16) & 0xff) / 255;
-      // For river: ~35% of tiles get a water patch
-      const threshold = arenaDef.id === 'river' ? 0.35 : (arenaDef.id === 'farm' ? 0.25 : 0.30);
-      if (r1 < threshold) {
-        const cx = wx + 60 + r2 * 120;
-        const cy = wy + 60 + r1 * 120;
-        const radius = 80 + r2 * 50;
-        const sx = cx - game.cameraX;
-        const sy = cy - game.cameraY;
-        if (sx + radius < 0 || sx - radius > cssW || sy + radius < 0 || sy - radius > cssH) continue;
-        ctx.beginPath();
-        ctx.ellipse(sx, sy, radius, radius * 0.7, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-  }
-}
-
-/* ----- Edge vignette: subtle darkening at the arena bounds ----- */
-function drawEdgeVignette() {
-  const pad = CONFIG.arena.edgeVignettePx;
-  // How close is the camera to each edge?
-  const left   = game.cameraX <= 1;
-  const right  = game.cameraX >= game.arenaWidth - cssW - 1;
-  const top    = game.cameraY <= 1;
-  const bottom = game.cameraY >= game.arenaHeight - cssH - 1;
-  if (left) {
-    const g = ctx.createLinearGradient(0, 0, pad, 0);
-    g.addColorStop(0, 'rgba(0,0,0,0.35)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, pad, cssH);
-  }
-  if (right) {
-    const g = ctx.createLinearGradient(cssW - pad, 0, cssW, 0);
-    g.addColorStop(0, 'rgba(0,0,0,0)');
-    g.addColorStop(1, 'rgba(0,0,0,0.35)');
-    ctx.fillStyle = g;
-    ctx.fillRect(cssW - pad, 0, pad, cssH);
-  }
-  if (top) {
-    const g = ctx.createLinearGradient(0, 0, 0, pad);
-    g.addColorStop(0, 'rgba(0,0,0,0.35)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, cssW, pad);
-  }
-  if (bottom) {
-    const g = ctx.createLinearGradient(0, cssH - pad, 0, cssH);
-    g.addColorStop(0, 'rgba(0,0,0,0)');
-    g.addColorStop(1, 'rgba(0,0,0,0.35)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, cssH - pad, cssW, pad);
-  }
-}
-
-/* ============================================================
-   DRAW DRAGON — top-down view, rotated to facing direction
-   ============================================================ */
-function drawDragonTopDown(d) {
+function drawDragon(d) {
   const cfg = d.config;
-  const stageScale = CONFIG.stageScales[game.stage - 1];
-  const tier = muscleTierFor(selectedDragonId);
-  // Muscle tier adds a small body bulk multiplier on top of stage scale
-  const muscleBulk = 1 + tier * 0.08;
-  const scale = stageScale * muscleBulk;
-  const wingFlap = Math.sin(d.wingPhase);
+  const scale = CONFIG.stageScales[game.stage - 1];
+  const x = d.x;
+  const y = d.y;
+  const flap = Math.sin(d.wingPhase);
+  const bob = Math.sin(d.wingPhase * 0.5) * 2;
 
-  // Shadow on ground
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+  // Shadow on the ground
+  const groundY = groundLineY();
+  const shadowAlpha = Math.max(0.05, 0.3 - (groundY - y) / 800);
+  ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha})`;
   ctx.beginPath();
-  ctx.ellipse(d.x, d.y + 8 * scale, 24 * scale, 8 * scale, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, groundY - 2, 30 * scale, 5 * scale, 0, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.save();
-  ctx.translate(d.x, d.y);
-  ctx.rotate(d.facing);
+  ctx.translate(x, y + bob);
   ctx.scale(scale, scale);
 
-  // Paint setup
-  const bodyFill = topDownDragonPaint(cfg);
+  // === Paint setup ===
+  // Body axis from nose (+50) to tail tip (-55) — gradient goes nose→tail (so red at nose for Prism)
+  const bodyFill = dragonPaint(cfg, 52, 0, -55, 0);
   const bellyFill = cfg.rainbow ? '#fff8e8' : cfg.belly;
-  const wingFill  = cfg.rainbow ? '#5a4998' : cfg.wing;
-  const irisColor = cfg.rainbow ? '#a23ec6' : cfg.wing;
+  const wingFill = cfg.rainbow ? '#5a4998' : cfg.wing;
 
-  // Wings spread perpendicular (left wing in local -y, right wing in local +y)
-  const wingSpread = 1 + wingFlap * 0.06;
+  // === Back wing (drawn first, behind body) ===
+  drawWing(-8 + flap * 4, -10, flap, wingFill, true);
+
+  // === Tail ===
+  ctx.fillStyle = bodyFill;
+  ctx.beginPath();
+  ctx.moveTo(-18, -3);
+  ctx.bezierCurveTo(-32, -2, -45, 3, -52, 1);
+  ctx.bezierCurveTo(-48, 5, -32, 8, -18, 7);
+  ctx.closePath();
+  ctx.fill();
+  // Tail fin
+  ctx.beginPath();
+  ctx.moveTo(-50, -1);
+  ctx.lineTo(-62, -8);
+  ctx.lineTo(-58, 0);
+  ctx.lineTo(-62, 8);
+  ctx.lineTo(-50, 3);
+  ctx.closePath();
+  ctx.fill();
+  // Tail fin inner accent
   ctx.fillStyle = wingFill;
-  // Left wing (above body in local space, since facing is along +x)
   ctx.beginPath();
-  ctx.moveTo(-2, -8);
-  ctx.quadraticCurveTo(8, -28 * wingSpread, 22, -30 * wingSpread);
-  ctx.quadraticCurveTo(18, -16, 8, -10);
-  ctx.closePath();
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(-4, -10);
-  ctx.quadraticCurveTo(-14, -34 * wingSpread, -2, -36 * wingSpread);
-  ctx.quadraticCurveTo(4, -22, -2, -10);
-  ctx.closePath();
-  ctx.fill();
-  // Right wing
-  ctx.beginPath();
-  ctx.moveTo(-2, 8);
-  ctx.quadraticCurveTo(8, 28 * wingSpread, 22, 30 * wingSpread);
-  ctx.quadraticCurveTo(18, 16, 8, 10);
-  ctx.closePath();
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(-4, 10);
-  ctx.quadraticCurveTo(-14, 34 * wingSpread, -2, 36 * wingSpread);
-  ctx.quadraticCurveTo(4, 22, -2, 10);
+  ctx.moveTo(-54, -4);
+  ctx.lineTo(-60, -7);
+  ctx.lineTo(-56, 0);
+  ctx.lineTo(-60, 7);
+  ctx.lineTo(-54, 4);
   ctx.closePath();
   ctx.fill();
 
-  // Wing membrane lines
-  ctx.strokeStyle = 'rgba(0,0,0,0.20)';
-  ctx.lineWidth = 1.1;
-  ctx.beginPath();
-  ctx.moveTo(-2, -8);  ctx.lineTo(22, -30 * wingSpread);
-  ctx.moveTo(-4, -10); ctx.lineTo(-2, -36 * wingSpread);
-  ctx.moveTo(-2, 8);   ctx.lineTo(22, 30 * wingSpread);
-  ctx.moveTo(-4, 10);  ctx.lineTo(-2, 36 * wingSpread);
-  ctx.stroke();
+  // === Back spines (along the back) ===
+  ctx.fillStyle = wingFill;
+  const spines = [
+    { x: -10, h: 7 },
+    { x: -4,  h: 8 },
+    { x: 2,   h: 9 },
+    { x: 8,   h: 8 },
+    { x: 14,  h: 6 },
+  ];
+  for (const sp of spines) {
+    ctx.beginPath();
+    ctx.moveTo(sp.x - 2.5, -10);
+    ctx.lineTo(sp.x, -10 - sp.h);
+    ctx.lineTo(sp.x + 2.5, -10);
+    ctx.closePath();
+    ctx.fill();
+  }
 
-  // Tail
+  // === Body ===
   ctx.fillStyle = bodyFill;
   ctx.beginPath();
-  ctx.moveTo(-14, -4);
-  ctx.lineTo(-32, -2);
-  ctx.lineTo(-38, 0);
-  ctx.lineTo(-32, 2);
-  ctx.lineTo(-14, 4);
-  ctx.closePath();
+  ctx.ellipse(0, 0, 22, 12, 0, 0, Math.PI * 2);
   ctx.fill();
-  // Tail fin (small triangle at tip)
-  ctx.beginPath();
-  ctx.moveTo(-38, 0);
-  ctx.lineTo(-46, -5);
-  ctx.lineTo(-42, 0);
-  ctx.lineTo(-46, 5);
-  ctx.closePath();
-  ctx.fill();
-
-  // Body
-  ctx.fillStyle = bodyFill;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 18, 12, 0, 0, Math.PI * 2);
-  ctx.fill();
-  // Belly highlight (lighter, centered)
+  // Belly
   ctx.fillStyle = bellyFill;
   ctx.beginPath();
-  ctx.ellipse(-2, 0, 11, 8, 0, 0, Math.PI * 2);
+  ctx.ellipse(2, 6, 17, 6, 0, 0, Math.PI * 2);
   ctx.fill();
-
-  // Muscle tier overlays — shoulder bulk visible from above
-  if (tier >= 1) {
-    ctx.fillStyle = bodyFill;
+  // Scale texture suggestion
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+  for (let i = -2; i <= 2; i++) {
     ctx.beginPath();
-    ctx.ellipse(0, -10, 6, 4, 0, 0, Math.PI * 2);  // top shoulder bulge
-    ctx.ellipse(0,  10, 6, 4, 0, 0, Math.PI * 2);  // bottom shoulder bulge
-    ctx.fill();
-  }
-  if (tier >= 2) {
-    ctx.fillStyle = bodyFill;
-    ctx.beginPath();
-    ctx.ellipse(2, -12, 9, 5, 0, 0, Math.PI * 2);
-    ctx.ellipse(2,  12, 9, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Subtle center line
-    ctx.strokeStyle = 'rgba(0,0,0,0.18)';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(-6, 0); ctx.lineTo(8, 0);
-    ctx.stroke();
-  }
-  if (tier >= 3) {
-    ctx.fillStyle = bodyFill;
-    ctx.beginPath();
-    ctx.ellipse(4, -15, 12, 7, 0, 0, Math.PI * 2);
-    ctx.ellipse(4,  15, 12, 7, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Highlight on bulges
-    ctx.fillStyle = 'rgba(255,255,255,0.20)';
-    ctx.beginPath();
-    ctx.ellipse(4, -16, 6, 3, 0, 0, Math.PI * 2);
-    ctx.ellipse(4,  14, 6, 3, 0, 0, Math.PI * 2);
+    ctx.arc(i * 6, -3, 2.2, 0, Math.PI);
     ctx.fill();
   }
 
-  // Head (forward)
+  // === Legs (tucked) ===
   ctx.fillStyle = bodyFill;
   ctx.beginPath();
-  ctx.ellipse(18, 0, 9, 7, 0, 0, Math.PI * 2);
+  ctx.ellipse(-4, 11, 4, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(8, 11, 4, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Toe claws
+  ctx.fillStyle = '#2d2438';
+  for (const lx of [-5, -3, 7, 9]) {
+    ctx.beginPath();
+    ctx.moveTo(lx - 0.7, 15.5);
+    ctx.lineTo(lx, 17);
+    ctx.lineTo(lx + 0.7, 15.5);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // === Neck + Head ===
+  ctx.fillStyle = bodyFill;
+  ctx.beginPath();
+  ctx.moveTo(18, -3);
+  ctx.bezierCurveTo(26, -9, 32, -10, 36, -8);
+  ctx.lineTo(36, -3);
+  ctx.lineTo(22, 5);
+  ctx.closePath();
+  ctx.fill();
+  // Head
+  ctx.beginPath();
+  ctx.ellipse(38, -10, 10, 8, 0, 0, Math.PI * 2);
   ctx.fill();
   // Snout
   ctx.beginPath();
-  ctx.moveTo(26, 0);
-  ctx.lineTo(22, -3);
-  ctx.lineTo(22,  3);
+  ctx.moveTo(45, -11);
+  ctx.lineTo(53, -9);
+  ctx.quadraticCurveTo(56, -7, 53, -5);
+  ctx.lineTo(45, -5);
   ctx.closePath();
   ctx.fill();
-  // Horns
+  // Nostril
+  ctx.fillStyle = 'rgba(45, 36, 56, 0.5)';
+  ctx.beginPath();
+  ctx.arc(52, -7, 0.9, 0, Math.PI * 2);
+  ctx.fill();
+
+  // === Horns ===
   ctx.fillStyle = wingFill;
   ctx.beginPath();
-  ctx.moveTo(13, -7); ctx.lineTo(10, -11); ctx.lineTo(15, -8);
+  ctx.moveTo(32, -17);
+  ctx.lineTo(31, -25);
+  ctx.lineTo(35, -17);
   ctx.closePath();
   ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(13, 7);  ctx.lineTo(10, 11);  ctx.lineTo(15, 8);
+  ctx.moveTo(37, -18);
+  ctx.lineTo(38, -26);
+  ctx.lineTo(41, -18);
   ctx.closePath();
   ctx.fill();
-  // Eyes (two visible from top-down)
-  ctx.fillStyle = '#fff';
+
+  // === Eye (large, expressive, cat-like) ===
+  const yawning = d.flyUpProgress > 0 && d.flyUpProgress < 0.7;
+  if (yawning) {
+    ctx.strokeStyle = '#2d2438';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(39, -10, 3.5, 0.2, Math.PI - 0.2);
+    ctx.stroke();
+    ctx.fillStyle = '#2d2438';
+    ctx.beginPath();
+    ctx.ellipse(50, -4, 3, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // Eye white (almond shape)
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(38, -11, 5.2, 4.3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Iris color
+    const irisColor = cfg.rainbow ? '#a23ec6' : cfg.wing;
+    ctx.fillStyle = irisColor;
+    ctx.beginPath();
+    ctx.arc(39, -10.5, 3, 0, Math.PI * 2);
+    ctx.fill();
+    // Cat-like pupil
+    ctx.fillStyle = '#2d2438';
+    ctx.beginPath();
+    ctx.ellipse(39.4, -10.5, 0.9, 2.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Highlight
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(40, -11.5, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+    // Sparkle for Prism
+    if (cfg.rainbow) {
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(37.5, -9.5, 0.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Eyelid line
+    ctx.strokeStyle = '#2d2438';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(34, -13);
+    ctx.quadraticCurveTo(38, -15, 42, -13);
+    ctx.stroke();
+    // Subtle mouth line
+    ctx.beginPath();
+    ctx.moveTo(46, -5);
+    ctx.lineTo(51, -5);
+    ctx.stroke();
+  }
+
+  // === Front wing (drawn last, on top) ===
+  drawWing(8, -10 + flap * 2, flap, wingFill, false);
+
+  ctx.restore();
+}
+
+function drawWing(rootX, rootY, flap, color, behind) {
+  // A bat-style wing with three "finger" bones meeting a curved membrane.
+  // The wing flaps via the `flap` value (-1..1).
+  ctx.save();
+  ctx.translate(rootX, rootY);
+  const lift = flap * 6;
+  const shoulder = { x: 0, y: 0 };
+  const elbow    = { x: -8, y: -18 - lift * 0.5 };
+  const tip      = { x: -22 + lift * 0.5, y: -28 - lift };
+  const finger1  = { x: -16, y: -10 + lift * 0.3 };
+  const finger2  = { x: -4,  y: -5 + lift * 0.4 };
+
+  // Membrane
+  ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.arc(19, -3.2, 2, 0, Math.PI * 2);
-  ctx.arc(19,  3.2, 2, 0, Math.PI * 2);
+  ctx.moveTo(shoulder.x, shoulder.y);
+  ctx.quadraticCurveTo(elbow.x - 6, elbow.y - 6, tip.x, tip.y);
+  ctx.quadraticCurveTo(finger1.x + 2, finger1.y - 4, finger1.x, finger1.y);
+  ctx.quadraticCurveTo(finger2.x + 2, finger2.y - 1, finger2.x, finger2.y);
+  ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = irisColor;
+
+  // Bone lines
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
+  ctx.lineWidth = 1.2;
+  ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.arc(20, -3.2, 1.1, 0, Math.PI * 2);
-  ctx.arc(20,  3.2, 1.1, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.moveTo(shoulder.x, shoulder.y);
+  ctx.lineTo(elbow.x, elbow.y);
+  ctx.lineTo(tip.x, tip.y);
+  ctx.moveTo(elbow.x, elbow.y);
+  ctx.lineTo(finger1.x, finger1.y);
+  ctx.moveTo(elbow.x, elbow.y);
+  ctx.lineTo(finger2.x, finger2.y);
+  ctx.stroke();
+
+  // Tip claw
   ctx.fillStyle = '#2d2438';
   ctx.beginPath();
-  ctx.arc(20.4, -3.2, 0.6, 0, Math.PI * 2);
-  ctx.arc(20.4,  3.2, 0.6, 0, Math.PI * 2);
+  ctx.arc(tip.x, tip.y, 1.2, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.restore();
 }
 
-function topDownDragonPaint(cfg) {
-  if (!cfg.rainbow) return cfg.color;
-  // For rainbow Prism — build a gradient in local coords (head→tail axis)
-  const g = ctx.createLinearGradient(28, 0, -46, 0);
-  g.addColorStop(0,    '#ff4d4d');
-  g.addColorStop(0.16, '#ff8c30');
-  g.addColorStop(0.33, '#ffd200');
-  g.addColorStop(0.5,  '#3ed03e');
-  g.addColorStop(0.66, '#3aa7f0');
-  g.addColorStop(0.83, '#6c5cd9');
-  g.addColorStop(1,    '#a23ec6');
-  return g;
-}
-
 /* ============================================================
-   DRAW ZOMBIE — top-down
+   ZOMBIE / CURED / FIREBALL DRAWING
    ============================================================ */
-function drawZombieTopDown(z) {
-  const wobble = Math.sin(z.walkPhase) * 1.5;
+function drawZombie(z) {
+  const groundY = groundLineY();
+  const x = z.worldX - game.scrollX;
+  const y = groundY - 20 - z.y;
+  const sway = Math.sin(z.walkPhase) * 1.5;
+  const legLift = Math.sin(z.walkPhase) * 2.5;
+
   ctx.globalAlpha = z.emergeAlpha;
 
   // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.22)';
+  ctx.fillStyle = `rgba(0, 0, 0, ${0.22 * Math.max(0.3, 1 - z.y / 80)})`;
   ctx.beginPath();
-  ctx.ellipse(z.x, z.y + 6, 12, 5, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, groundY - 2, 16, 4, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Body (round footprint)
+  // Body
   ctx.fillStyle = z.color;
   ctx.beginPath();
-  ctx.arc(z.x + wobble * 0.2, z.y, 11, 0, Math.PI * 2);
+  ctx.ellipse(x + sway * 0.3, y + 2, 12, 15, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Head visible at the front
-  ctx.save();
-  ctx.translate(z.x, z.y);
-  ctx.rotate(z.facing);
-  ctx.fillStyle = z.color;
-  ctx.beginPath();
-  ctx.arc(5, 0, 7, 0, Math.PI * 2);
-  ctx.fill();
+  // Legs
+  ctx.fillStyle = '#4a8a4a';
+  ctx.fillRect(x - 5, y + 12 + Math.max(0, legLift), 4, 8);
+  ctx.fillRect(x + 1, y + 12 + Math.max(0, -legLift), 4, 8);
 
-  // Arms outstretched (small ellipses perpendicular to facing)
+  // Arms out front
   ctx.fillStyle = z.color;
-  ctx.beginPath();
-  ctx.ellipse(3, -9, 3, 4, 0, 0, Math.PI * 2);
-  ctx.ellipse(3,  9, 3, 4, 0, 0, Math.PI * 2);
-  ctx.fill();
-  // Hands
+  ctx.fillRect(x - 14, y - 3, 6, 4);
+  ctx.fillRect(x + 8, y - 3, 6, 4);
   ctx.fillStyle = '#7ac27a';
   ctx.beginPath();
-  ctx.arc(4, -13, 2.5, 0, Math.PI * 2);
-  ctx.arc(4,  13, 2.5, 0, Math.PI * 2);
+  ctx.arc(x - 16, y - 1, 3, 0, Math.PI * 2);
+  ctx.arc(x + 16, y - 1, 3, 0, Math.PI * 2);
   ctx.fill();
 
-  // Sleepy eyes (closed arcs viewed from above)
-  ctx.strokeStyle = '#2d2438';
-  ctx.lineWidth = 1.4;
+  // Head
+  ctx.fillStyle = z.color;
   ctx.beginPath();
-  ctx.arc(7, -2, 1.3, 0.2, Math.PI - 0.2);
+  ctx.arc(x + sway * 0.3, y - 11, 9, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Half-closed eyes
+  ctx.strokeStyle = '#2d2438';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(x - 3 + sway * 0.3, y - 11, 2.2, 0.2, Math.PI - 0.2);
   ctx.stroke();
   ctx.beginPath();
-  ctx.arc(7, 2, 1.3, 0.2, Math.PI - 0.2);
+  ctx.arc(x + 3 + sway * 0.3, y - 11, 2.2, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+  // Sleepy smile
+  ctx.beginPath();
+  ctx.arc(x + sway * 0.3, y - 8, 2.2, 0.1, Math.PI - 0.1);
   ctx.stroke();
 
-  ctx.restore();
   ctx.globalAlpha = 1;
 }
 
-/* ============================================================
-   DRAW CURED VILLAGER — top-down
-   ============================================================ */
-function drawCuredTopDown(c) {
-  const t = c.age / c.maxAge;
-  const alpha = t < 0.85 ? 1 : Math.max(0, 1 - (t - 0.85) / 0.15);
+function drawCured(c) {
+  const x = c.x;
+  const y = c.y;
+  const ageT = c.age / c.maxAge;
+  const alpha = ageT < 0.85 ? 1 : Math.max(0, 1 - (ageT - 0.85) / 0.15);
   ctx.globalAlpha = alpha;
-  const bounce = Math.abs(Math.sin(c.walkPhase)) * 2;
 
   // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.15)';
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
   ctx.beginPath();
-  ctx.ellipse(c.x, c.y + 5, 8, 3, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, y + 16, 9, 3, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Round body footprint, color per villager
-  const size = c.stage === 1 ? 6 : c.stage === 5 ? 9 : 8;
-  ctx.fillStyle = c.color;
-  ctx.beginPath();
-  ctx.arc(c.x, c.y - bounce, size, 0, Math.PI * 2);
-  ctx.fill();
-  // Tiny smile dot (face viewed from above — just shows the head color + mini eyes)
-  ctx.fillStyle = '#2d2438';
-  ctx.beginPath();
-  ctx.arc(c.x - 1.5, c.y - bounce - 1, 0.8, 0, Math.PI * 2);
-  ctx.arc(c.x + 1.5, c.y - bounce - 1, 0.8, 0, Math.PI * 2);
-  ctx.fill();
+  const phase = c.walkPhase;
+  const bounce = Math.abs(Math.sin(phase)) * (c.stage === 2 ? 5 : c.stage === 3 ? 4 : 1.5);
+  const bodyY = y - bounce;
+
+  if (c.stage === 1) {
+    // Baby crawl
+    ctx.fillStyle = c.color;
+    ctx.beginPath(); ctx.ellipse(x, bodyY + 6, 10, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x - 5, bodyY + 2, 6, 0, Math.PI * 2); ctx.fill();
+    drawSmiley(x - 5, bodyY + 2, 4);
+  } else if (c.stage === 2) {
+    ctx.fillStyle = c.color;
+    ctx.beginPath(); ctx.ellipse(x, bodyY + 6, 8, 10, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, bodyY - 4, 7, 0, Math.PI * 2); ctx.fill();
+    drawSmiley(x, bodyY - 4, 5);
+    ctx.fillStyle = '#5a3d1f';
+    ctx.fillRect(x - 4, bodyY + 14, 3, 5 - bounce * 0.3);
+    ctx.fillRect(x + 1, bodyY + 14, 3, 5 + bounce * 0.3);
+  } else if (c.stage === 3) {
+    ctx.fillStyle = c.color;
+    ctx.beginPath(); ctx.ellipse(x, bodyY + 8, 9, 12, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, bodyY - 5, 8, 0, Math.PI * 2); ctx.fill();
+    drawSmiley(x, bodyY - 5, 6);
+    ctx.fillStyle = c.color;
+    ctx.fillRect(x - 11, bodyY + 4 + bounce * 0.4, 4, 8);
+    ctx.fillRect(x + 7, bodyY + 4 - bounce * 0.4, 4, 8);
+    ctx.fillStyle = '#5a3d1f';
+    ctx.fillRect(x - 5, bodyY + 18, 3, 6);
+    ctx.fillRect(x + 2, bodyY + 18, 3, 6);
+  } else if (c.stage === 4) {
+    ctx.fillStyle = c.color;
+    ctx.beginPath(); ctx.ellipse(x, bodyY + 10, 10, 14, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, bodyY - 6, 9, 0, Math.PI * 2); ctx.fill();
+    drawSmiley(x, bodyY - 6, 7);
+    const wave = Math.sin(phase * 2);
+    ctx.save();
+    ctx.translate(x + 9, bodyY + 4);
+    ctx.rotate(-0.8 + wave * 0.4);
+    ctx.fillRect(0, -2, 10, 4);
+    ctx.restore();
+    ctx.fillRect(x - 13, bodyY + 4, 4, 9);
+    ctx.fillStyle = '#3a4a6a';
+    ctx.fillRect(x - 5, bodyY + 22, 4, 7);
+    ctx.fillRect(x + 1, bodyY + 22, 4, 7);
+  } else {
+    // Elder shuffle with cane
+    ctx.fillStyle = c.color;
+    ctx.beginPath(); ctx.ellipse(x, bodyY + 10, 10, 14, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, bodyY - 6, 9, 0, Math.PI * 2); ctx.fill();
+    drawSmiley(x, bodyY - 6, 7);
+    ctx.fillStyle = '#f0f0f0';
+    ctx.beginPath(); ctx.arc(x, bodyY - 12, 6, Math.PI, 0); ctx.fill();
+    ctx.strokeStyle = '#8b6f4a';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x - 12, bodyY + 6);
+    ctx.lineTo(x - 14, bodyY + 26);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x - 12, bodyY + 6);
+    ctx.quadraticCurveTo(x - 9, bodyY + 4, x - 9, bodyY + 8);
+    ctx.stroke();
+    ctx.fillStyle = '#3a4a6a';
+    ctx.fillRect(x - 5, bodyY + 22, 4, 7);
+    ctx.fillRect(x + 1, bodyY + 22, 4, 7);
+  }
 
   // Frost slow aura
   if (c.slowAura && game.elapsed < c.slowAuraUntil) {
-    const auraT = (c.slowAuraUntil - game.elapsed) / CONFIG.frostSlowDurationSec;
-    ctx.globalAlpha = alpha * 0.35 * auraT;
+    const t = (c.slowAuraUntil - game.elapsed) / CONFIG.frostSlowDurationSec;
+    ctx.globalAlpha = alpha * 0.35 * t;
     ctx.strokeStyle = '#7fc9d9';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(c.x, c.y, CONFIG.frostSlowRadius * (1 - auraT * 0.2), 0, Math.PI * 2);
+    ctx.arc(x, y + 4, CONFIG.frostSlowRadius * (1 - t * 0.2), 0, Math.PI * 2);
     ctx.stroke();
   }
   ctx.globalAlpha = 1;
 }
 
-/* ============================================================
-   DRAW FIREBALL — same as before, just lives in arena coords
-   ============================================================ */
+function drawSmiley(cx, cy, r) {
+  ctx.fillStyle = '#2d2438';
+  ctx.beginPath();
+  ctx.arc(cx - r * 0.35, cy - r * 0.15, 0.9, 0, Math.PI * 2);
+  ctx.arc(cx + r * 0.35, cy - r * 0.15, 0.9, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#2d2438';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy + r * 0.05, r * 0.45, 0.1, Math.PI - 0.1);
+  ctx.stroke();
+}
+
 function drawFireball(f) {
+  const x = f.x, y = f.y;
   let core = f.color;
   if (f.rainbow) core = `hsl(${f.hue}, 85%, 60%)`;
+  // Outer glow
   ctx.globalAlpha = 0.4;
   ctx.fillStyle = core;
   ctx.beginPath();
-  ctx.arc(f.x, f.y, f.radius * 2.0, 0, Math.PI * 2);
+  ctx.arc(x, y, f.radius * 2.0, 0, Math.PI * 2);
   ctx.fill();
   ctx.globalAlpha = 1;
+  // Body
   ctx.fillStyle = core;
   ctx.beginPath();
-  ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+  ctx.arc(x, y, f.radius, 0, Math.PI * 2);
   ctx.fill();
+  // Hot center
   ctx.fillStyle = '#fff5d0';
   ctx.beginPath();
-  ctx.arc(f.x - f.radius * 0.3, f.y - f.radius * 0.3, f.radius * 0.5, 0, Math.PI * 2);
+  ctx.arc(x - f.radius * 0.3, y - f.radius * 0.3, f.radius * 0.5, 0, Math.PI * 2);
   ctx.fill();
 }
 
-/* ============================================================
-   DRAW PARTICLE / STAR / SPEECH BUBBLE — shared helpers
-   ============================================================ */
 function drawParticle(p) {
   const alpha = Math.max(0, p.life / p.maxLife);
   ctx.globalAlpha = alpha;
@@ -2137,7 +2398,9 @@ function drawStar(cx, cy, r) {
   ctx.closePath();
   ctx.fill();
 }
+
 function drawSpeechBubble(x, y, text) {
+  ctx.font = '700 14px -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif';
   const padX = 8;
   const tw = ctx.measureText(text).width;
   const bw = tw + padX * 2;
@@ -2175,6 +2438,109 @@ function roundRect(x, y, w, h, r) {
 }
 
 /* ============================================================
+   BACKGROUND / GROUND
+   ============================================================ */
+function drawBackground() {
+  const colors = getDistrictColors(game.scrollX + cssW * 0.5);
+  const groundY = groundLineY();
+  // Sky
+  const sky = ctx.createLinearGradient(0, 0, 0, groundY);
+  sky.addColorStop(0,    colors.skyTop);
+  sky.addColorStop(1,    colors.skyBottom);
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, cssW, groundY);
+  // Sun
+  ctx.fillStyle = 'rgba(255, 230, 140, 0.45)';
+  ctx.beginPath();
+  ctx.arc(cssW * 0.78, groundY * 0.25, 70, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffd76b';
+  ctx.beginPath();
+  ctx.arc(cssW * 0.78, groundY * 0.25, 38, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Far parallax silhouettes (very faint, behind everything)
+  ctx.fillStyle = `rgba(80, 100, 120, 0.18)`;
+  const farScroll = game.scrollX * 0.3;
+  for (let i = -2; i < 6; i++) {
+    const fx = i * 220 - (farScroll % 220);
+    const hh = 70 + Math.sin(i * 1.7) * 18;
+    ctx.beginPath();
+    ctx.moveTo(fx, groundY);
+    ctx.quadraticCurveTo(fx + 60, groundY - hh, fx + 110, groundY - hh * 0.6);
+    ctx.quadraticCurveTo(fx + 160, groundY - hh * 1.2, fx + 220, groundY);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Ground (the strip where everything walks)
+  ctx.fillStyle = colors.ground;
+  ctx.fillRect(0, groundY, cssW, cssH - groundY);
+  // Darker stripe at the top of the ground (the "line")
+  ctx.fillStyle = colors.groundDark;
+  ctx.fillRect(0, groundY - 3, cssW, 4);
+  // Repeating ground texture dots (scroll with world).
+  // Each arc needs its own subpath so they render as separate circles.
+  ctx.fillStyle = `rgba(0, 0, 0, 0.10)`;
+  const tex = 36;
+  const off = -((game.scrollX) % tex);
+  ctx.beginPath();
+  for (let i = 0; i < Math.ceil(cssW / tex) + 2; i++) {
+    const x = off + i * tex;
+    ctx.moveTo(x + 6 + 2.2, groundY + 12);
+    ctx.arc(x + 6,  groundY + 12, 2.2, 0, Math.PI * 2);
+    ctx.moveTo(x + 22 + 1.6, groundY + 28);
+    ctx.arc(x + 22, groundY + 28, 1.6, 0, Math.PI * 2);
+    ctx.moveTo(x + 14 + 1.4, groundY + 44);
+    ctx.arc(x + 14, groundY + 44, 1.4, 0, Math.PI * 2);
+  }
+  ctx.fill();
+}
+
+/* ============================================================
+   RENDER LOOP
+   ============================================================ */
+function render() {
+  drawBackground();
+  if (screen !== 'playing' && screen !== 'nap') return;
+
+  const groundY = groundLineY();
+
+  // Scenery first (after background, before entities)
+  // Sort by worldX so distant items render behind closer ones (simple)
+  // Actually since they're all at ground depth, draw in spawn order.
+  for (const s of game.scenery) {
+    const sx = s.worldX - game.scrollX;
+    if (sx > cssW + 40 || sx + SCENERY[s.type].width < -40) continue;
+    SCENERY[s.type].draw(sx, groundY, game.elapsed, s.props || {});
+  }
+
+  // Cured villagers (behind dragon, in front of scenery)
+  for (const c of game.cured) drawCured(c);
+
+  // Zombies
+  for (const z of game.zombies) drawZombie(z);
+
+  // Dragon
+  if (game.dragon) drawDragon(game.dragon);
+
+  // Fireballs (above everything)
+  for (const f of game.fireballs) drawFireball(f);
+
+  // Particles
+  for (const p of game.particles) drawParticle(p);
+
+  // Speech bubbles
+  for (const s of game.speeches) {
+    const z = game.zombies.find(zz => zz.id === s.targetId);
+    if (!z) continue;
+    const zx = z.worldX - game.scrollX;
+    const zy = groundY - 20 - z.y;
+    drawSpeechBubble(zx, zy - z.radius - 14, s.text);
+  }
+}
+
+/* ============================================================
    HUD / UI
    ============================================================ */
 const ui = {
@@ -2205,16 +2571,6 @@ const ui = {
   napStage:      document.getElementById('napStage'),
   napPlayAgain:  document.getElementById('napPlayAgain'),
   napPickDragon: document.getElementById('napPickDragon'),
-  napPickArena:  document.getElementById('napPickArena'),
-
-  // Arena picker
-  arenaPickerScreen: document.getElementById('arenaPickerScreen'),
-  apPlayerName:      document.getElementById('apPlayerName'),
-  apDragonName:      document.getElementById('apDragonName'),
-  arenaGrid:         document.getElementById('arenaGrid'),
-  apBack:            document.getElementById('apBack'),
-  arenaBanner:       document.getElementById('arenaBanner'),
-  arenaCountdown:    document.getElementById('arenaCountdown'),
 
   // Castle bedroom
   visitCastleBtn:      document.getElementById('visitCastleBtn'),
@@ -2302,7 +2658,6 @@ function showScreen(name) {
   screen = name;
   ui.dragonPicker.classList.toggle('hidden',      name !== 'dragonPicker');
   ui.controlPicker.classList.toggle('hidden',     name !== 'controlPicker');
-  ui.arenaPickerScreen.classList.toggle('hidden', name !== 'arenaPicker');
   ui.napScreen.classList.toggle('hidden',         name !== 'nap');
   ui.castleScreen.classList.toggle('hidden',      name !== 'castle');
   ui.castleHallScreen.classList.toggle('hidden',  name !== 'castleHall');
@@ -3272,8 +3627,7 @@ ui.modeAim .addEventListener('click', () => { onAnyTap(); pickMode('aim'); });
 function pickMode(m) {
   selectedMode = m;
   writeStr(KEYS.controlMode(), m);
-  // Go to arena picker instead of starting run directly
-  showArenaPicker();
+  startNewRun();
 }
 ui.cpBack.addEventListener('click', () => { onAnyTap(); showScreen('dragonPicker'); renderDragonPicker(); });
 ui.dpSwitch.addEventListener('click', () => {
@@ -3281,65 +3635,8 @@ ui.dpSwitch.addEventListener('click', () => {
   localStorage.removeItem('arcade-current-player');
   window.location.href = '/';
 });
-ui.napPlayAgain.addEventListener('click', () => { onAnyTap(); startNewRun(selectedArenaId); });
+ui.napPlayAgain.addEventListener('click', () => { onAnyTap(); startNewRun(); });
 ui.napPickDragon.addEventListener('click', () => { onAnyTap(); showScreen('dragonPicker'); renderDragonPicker(); });
-ui.napPickArena.addEventListener('click', () => { onAnyTap(); showArenaPicker(); });
-
-/* ----- Arena picker ----- */
-function showArenaPicker() {
-  ui.apPlayerName.textContent = player;
-  ui.apDragonName.textContent = CONFIG.dragons[selectedDragonId].name;
-  renderArenaPicker();
-  showScreen('arenaPicker');
-}
-function renderArenaPicker() {
-  ui.arenaGrid.innerHTML = '';
-  const last = readStr(KEYS.lastArena(), 'village');
-  for (const arenaDef of ARENAS) {
-    const card = document.createElement('button');
-    card.className = 'arena-card';
-    if (arenaDef.id === last) card.classList.add('favorite');
-    card.innerHTML = `
-      <svg class="arena-mini" viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg">${arenaDef.miniPaint()}</svg>
-      <div class="arena-emoji">${arenaDef.emoji}</div>
-      <div class="arena-name">${arenaDef.name}</div>
-    `;
-    card.addEventListener('click', () => {
-      onAnyTap();
-      selectedArenaId = arenaDef.id;
-      writeStr(KEYS.lastArena(), arenaDef.id);
-      startNewRun(arenaDef.id);
-    });
-    ui.arenaGrid.appendChild(card);
-  }
-}
-ui.apBack.addEventListener('click', () => { onAnyTap(); showControlPicker(); });
-
-/* ----- Arena entry banner + Ready/GO countdown ----- */
-let arenaBannerTimer = null;
-function showArenaBanner(arenaDef) {
-  ui.arenaBanner.textContent = arenaDef.emoji + ' ' + arenaDef.name + '!';
-  ui.arenaBanner.classList.add('show');
-  clearTimeout(arenaBannerTimer);
-  arenaBannerTimer = setTimeout(() => ui.arenaBanner.classList.remove('show'), 1400);
-}
-let arenaCountdownTimers = [];
-function startArenaCountdown() {
-  // Show "READY" then "GO!" — total CONFIG.arena.countdownSec
-  arenaCountdownTimers.forEach(t => clearTimeout(t));
-  arenaCountdownTimers = [];
-  showCountdownText('READY');
-  arenaCountdownTimers.push(setTimeout(() => showCountdownText('GO!'), CONFIG.arena.countdownSec * 1000 * 0.55));
-}
-function showCountdownText(txt) {
-  ui.arenaCountdown.textContent = txt;
-  ui.arenaCountdown.classList.remove('show');
-  void ui.arenaCountdown.offsetWidth;
-  ui.arenaCountdown.classList.add('show');
-}
-function hideArenaCountdown() {
-  ui.arenaCountdown.classList.remove('show');
-}
 
 // Castle bedroom — entry from dragon picker, exit via the door
 ui.visitCastleBtn.addEventListener('click', () => { onAnyTap(); openCastle(); });
@@ -3421,12 +3718,8 @@ window.addEventListener('keydown',     onAnyTap);
 /* ============================================================
    RUN LIFECYCLE
    ============================================================ */
-function startNewRun(arenaId) {
-  if (!arenaId) arenaId = selectedArenaId || 'village';
-  selectedArenaId = arenaId;
-  const arenaDef = arenaById(arenaId);
-
-  // Reset state
+function startNewRun() {
+  game.dragon = makeDragon();
   game.zombies = [];
   game.fireballs = [];
   game.cured = [];
@@ -3442,39 +3735,30 @@ function startNewRun(arenaId) {
   game.shootTimer = 0;
   game.manualCooldown = 0;
   game.napping = false;
+  game.scrollX = 0;
+  game.lastSceneryX = 0;
+  game.lastDistrictIdx = -1;
+  game.castlesPlacedThroughPass = -1;
 
-  // Set up arena
-  game.arenaId = arenaId;
-  computeArenaSize();
-  placeArenaScenery(arenaDef);
-
-  // Dragon spawns at arena center
-  game.dragon = makeDragon();
-
-  // Camera centered on dragon initially
-  updateCamera();
-
-  // Entry sequence: fade-in + arena banner + Ready/GO countdown
-  game.arenaFadeAlpha = 1;
-  game.fadingIn = true;
-  game.fadeT = 0;
-  game.countdownActive = true;
-  game.countdownT = CONFIG.arena.countdownSec;
-  game.spawningEnabled = false;
+  // Pre-seed scenery to fill the first screen
+  maybeSpawnScenery();
 
   showScreen('playing');
   updateScoreUI();
   updateStageUI();
   updateMeterUI();
 
-  setTimeout(() => showArenaBanner(arenaDef), 200);
-  setTimeout(() => startArenaCountdown(), 600);
+  // Show the starting district banner after a beat
+  setTimeout(() => {
+    const d = districtAt(game.scrollX + cssW * 0.5);
+    showDistrictBanner(d);
+  }, 600);
 }
 
 function triggerNap() {
   if (game.napping) return;
   game.napping = true;
-  game.dragon.napProgress = 0.001;
+  game.dragon.flyUpProgress = 0.001;
   sfx.yawn();
   const prev = readNum(KEYS.highScore(), 0);
   if (game.score > prev) writeStr(KEYS.highScore(), game.score);
@@ -3508,9 +3792,8 @@ function loop(now) {
   } else if (inCastle()) {
     // All castle rooms are pure CSS/SVG — no canvas work needed
   } else {
-    // Overlays (picker / control / arena picker) — clear the canvas;
-    // the body's CSS gradient shows through the transparent canvas.
-    ctx.clearRect(0, 0, cssW, cssH);
+    // Idle background so the canvas doesn't look blank on overlays
+    drawBackground();
   }
   requestAnimationFrame(loop);
 }
