@@ -2038,13 +2038,14 @@ canvas {
 .muscle-t1 .muscle-t1-only { display: inline; }
 .muscle-t2 .muscle-t2-only { display: inline; }
 .muscle-t3 .muscle-t3-only { display: inline; }
-/* Tier 3 has its own gentle "flex" pulse to suggest comically buff energy */
+/* Tier 3 holds a pronounced "double-bicep flex" pose every 4 seconds */
 .muscle-t3 .muscle-flex {
-  transform-origin: center;
+  transform-origin: center 30%;  /* anchor near the shoulders so the bulges visibly puff out */
   animation: muscleFlex 4s ease-in-out infinite;
 }
 @keyframes muscleFlex {
-  0%, 88%, 100% { transform: scale(1); }
-  92%           { transform: scale(1.06); }
-  96%           { transform: scale(0.98); }
+  0%, 76%, 100% { transform: scale(1)    translateY(0); }
+  80%           { transform: scale(1.07) translateY(-1px); }
+  84%, 92%      { transform: scale(1.20) translateY(-3px); }
+  96%           { transform: scale(1.05) translateY(-1px); }
 }

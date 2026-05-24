@@ -2753,25 +2753,48 @@ function dragonPickerSVG(cfg, id, tier = 0) {
     <!-- Body -->
     <ellipse cx="0" cy="0" rx="22" ry="12" fill="${bodyFill}"/>
     <ellipse cx="2" cy="6" rx="17" ry="6" fill="${bellyFill}"/>
-    <!-- Muscle overlays (smaller scale to match this viewBox) -->
+    <!-- Muscle overlays — scaled for this picker viewBox (-70 -40 140 80) -->
+    <!-- Tier 1 — athletic: visible biceps + small chest plates -->
     <g class="muscle-t1-only">
-      <ellipse cx="-15" cy="-6" rx="4" ry="5" fill="${bodyFill}"/>
-      <ellipse cx="15"  cy="-5" rx="4" ry="5" fill="${bodyFill}"/>
-      <path d="M -5 1 Q 0 4 5 1" stroke="rgba(0,0,0,0.12)" stroke-width="1" fill="none" stroke-linecap="round"/>
+      <ellipse cx="-17" cy="2"  rx="7" ry="9" fill="${bodyFill}"/>
+      <ellipse cx="17"  cy="2"  rx="7" ry="9" fill="${bodyFill}"/>
+      <ellipse cx="-7"  cy="2"  rx="5" ry="4" fill="${bodyFill}"/>
+      <ellipse cx="7"   cy="2"  rx="5" ry="4" fill="${bodyFill}"/>
+      <path d="M 0 -1 L 0 7" stroke="rgba(0,0,0,0.16)" stroke-width="1.2" stroke-linecap="round"/>
     </g>
+    <!-- Tier 2 — strong: substantial biceps, chest plates, thicker neck, traps -->
     <g class="muscle-t2-only">
-      <ellipse cx="-18" cy="0" rx="6" ry="9" fill="${bodyFill}"/>
-      <ellipse cx="18"  cy="1" rx="6" ry="9" fill="${bodyFill}"/>
-      <ellipse cx="-7"  cy="2" rx="6" ry="5" fill="${bodyFill}"/>
-      <ellipse cx="7"   cy="2" rx="6" ry="5" fill="${bodyFill}"/>
-      <path d="M 0 0 L 0 8" stroke="rgba(0,0,0,0.15)" stroke-width="1.2" stroke-linecap="round"/>
+      <ellipse cx="-21" cy="2"  rx="10" ry="12" fill="${bodyFill}"/>
+      <ellipse cx="21"  cy="2"  rx="10" ry="12" fill="${bodyFill}"/>
+      <ellipse cx="-10" cy="2"  rx="8"  ry="6"  fill="${bodyFill}"/>
+      <ellipse cx="10"  cy="2"  rx="8"  ry="6"  fill="${bodyFill}"/>
+      <path d="M 0 -2 L 0 9" stroke="rgba(0,0,0,0.20)" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- traps + thicker neck -->
+      <ellipse cx="-15" cy="-7" rx="6" ry="4" fill="${bodyFill}"/>
+      <ellipse cx="15"  cy="-7" rx="6" ry="4" fill="${bodyFill}"/>
+      <ellipse cx="16"  cy="-7" rx="6" ry="5" fill="${bodyFill}"/>
     </g>
+    <!-- Tier 3 — LEGENDARY: cartoonishly buff. Biceps bigger than head. -->
     <g class="muscle-t3-only muscle-flex">
-      <ellipse cx="-20" cy="1" rx="8" ry="11" fill="${bodyFill}"/>
-      <ellipse cx="20"  cy="2" rx="8" ry="11" fill="${bodyFill}"/>
-      <ellipse cx="-8"  cy="2" rx="7" ry="6" fill="${bodyFill}"/>
-      <ellipse cx="8"   cy="2" rx="7" ry="6" fill="${bodyFill}"/>
-      <path d="M 0 -1 L 0 9" stroke="rgba(0,0,0,0.2)" stroke-width="1.4" stroke-linecap="round"/>
+      <!-- Huge bicep bulges -->
+      <ellipse cx="-26" cy="3"  rx="14" ry="16" fill="${bodyFill}"/>
+      <ellipse cx="26"  cy="3"  rx="14" ry="16" fill="${bodyFill}"/>
+      <!-- Forearms tapering toward paws -->
+      <ellipse cx="-22" cy="14" rx="7"  ry="6" fill="${bodyFill}"/>
+      <ellipse cx="22"  cy="14" rx="7"  ry="6" fill="${bodyFill}"/>
+      <!-- Chiseled pecs -->
+      <ellipse cx="-13" cy="2"  rx="11" ry="9" fill="${bodyFill}"/>
+      <ellipse cx="13"  cy="2"  rx="11" ry="9" fill="${bodyFill}"/>
+      <!-- Deep pec line -->
+      <path d="M 0 -5 L 0 10" stroke="rgba(0,0,0,0.28)" stroke-width="1.8" stroke-linecap="round"/>
+      <!-- Massive traps -->
+      <ellipse cx="-18" cy="-8" rx="8" ry="5" fill="${bodyFill}"/>
+      <ellipse cx="18"  cy="-8" rx="8" ry="5" fill="${bodyFill}"/>
+      <!-- Bull neck -->
+      <ellipse cx="18"  cy="-9" rx="8" ry="6" fill="${bodyFill}"/>
+      <!-- Bicep highlights -->
+      <path d="M -32 -1 Q -27 3 -32 8" stroke="rgba(255,255,255,0.30)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M 32 -1  Q 27 3  32 8"  stroke="rgba(255,255,255,0.30)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
     </g>
     <!-- Back spines -->
     <path d="M -12.5 -10 L -10 -17 L -7.5 -10 Z M -6.5 -10 L -4 -18 L -1.5 -10 Z M -0.5 -10 L 2 -19 L 4.5 -10 Z M 5.5 -10 L 8 -18 L 10.5 -10 Z" fill="${wingFill}"/>
@@ -2870,40 +2893,63 @@ function dragonRestingSVG(cfg, id, tier = 0) {
       <ellipse cx="14"  cy="4" rx="3.5" ry="2" fill="rgba(0,0,0,0.07)"/>
 
       <!-- ======== MUSCLE OVERLAYS (visibility controlled by .muscle-tN class on <svg>) ======== -->
-      <!-- Tier 1 — subtle shoulder bumps + faint chest line -->
+      <!-- Tier 1 — ATHLETIC: clearly visible upper arms + small chest plates -->
       <g class="muscle-t1-only">
-        <ellipse cx="-28" cy="-4" rx="7" ry="9" fill="${bodyFill}"/>
-        <ellipse cx="28"  cy="-2" rx="7" ry="9" fill="${bodyFill}"/>
-        <path d="M -10 6 Q 0 12 10 6" stroke="rgba(0,0,0,0.12)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <!-- Biceps hanging off body sides -->
+        <ellipse cx="-32" cy="8" rx="11" ry="15" fill="${bodyFill}"/>
+        <ellipse cx="32"  cy="10" rx="11" ry="15" fill="${bodyFill}"/>
+        <!-- Small chest plates -->
+        <ellipse cx="-11" cy="10" rx="10" ry="8" fill="${bodyFill}"/>
+        <ellipse cx="11"  cy="10" rx="10" ry="8" fill="${bodyFill}"/>
+        <!-- Faint pec line -->
+        <path d="M 0 4 L 0 16" stroke="rgba(0,0,0,0.18)" stroke-width="1.6" stroke-linecap="round"/>
+        <!-- Subtle shoulder definition -->
+        <ellipse cx="-24" cy="-10" rx="8" ry="6" fill="${bodyFill}"/>
+        <ellipse cx="24"  cy="-10" rx="8" ry="6" fill="${bodyFill}"/>
       </g>
-      <!-- Tier 2 — bigger arms, chest plates, thicker neck -->
+      <!-- Tier 2 — STRONG: substantial biceps, bigger pecs, thicker neck, visible traps -->
       <g class="muscle-t2-only">
-        <!-- Upper arm bulges -->
-        <ellipse cx="-34" cy="6" rx="11" ry="16" fill="${bodyFill}"/>
-        <ellipse cx="34"  cy="8" rx="11" ry="16" fill="${bodyFill}"/>
-        <!-- Pec plates -->
-        <ellipse cx="-12" cy="10" rx="11" ry="9" fill="${bodyFill}"/>
-        <ellipse cx="12"  cy="10" rx="11" ry="9" fill="${bodyFill}"/>
-        <!-- Pec line -->
-        <path d="M 0 4 L 0 20" stroke="rgba(0,0,0,0.16)" stroke-width="2" stroke-linecap="round"/>
-        <!-- Thicker neck base -->
-        <ellipse cx="32" cy="-14" rx="10" ry="8" fill="${bodyFill}"/>
-      </g>
-      <!-- Tier 3 — comically buff (wrapped in muscle-flex for occasional pulse) -->
-      <g class="muscle-t3-only muscle-flex">
-        <!-- Huge bicep bulges -->
-        <ellipse cx="-38" cy="8" rx="16" ry="21" fill="${bodyFill}"/>
-        <ellipse cx="38"  cy="10" rx="16" ry="21" fill="${bodyFill}"/>
-        <!-- Big pec shapes -->
+        <!-- Substantial bicep bulges -->
+        <ellipse cx="-36" cy="10" rx="15" ry="20" fill="${bodyFill}"/>
+        <ellipse cx="36"  cy="12" rx="15" ry="20" fill="${bodyFill}"/>
+        <!-- Well-defined pecs -->
         <ellipse cx="-14" cy="8" rx="14" ry="12" fill="${bodyFill}"/>
         <ellipse cx="14"  cy="8" rx="14" ry="12" fill="${bodyFill}"/>
-        <!-- Deep pec line -->
-        <path d="M 0 -2 L 0 22" stroke="rgba(0,0,0,0.22)" stroke-width="2.4" stroke-linecap="round"/>
-        <!-- Thicker neck still -->
-        <ellipse cx="34" cy="-16" rx="13" ry="10" fill="${bodyFill}"/>
-        <!-- Bicep peak highlights -->
-        <path d="M -42 4 Q -38 8 -42 14" stroke="rgba(255,255,255,0.25)" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <path d="M 42 6 Q 38 10 42 16"   stroke="rgba(255,255,255,0.25)" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- Stronger pec line -->
+        <path d="M 0 0 L 0 22" stroke="rgba(0,0,0,0.25)" stroke-width="2.2" stroke-linecap="round"/>
+        <!-- Trap muscles between neck and shoulders -->
+        <ellipse cx="-28" cy="-12" rx="10" ry="8" fill="${bodyFill}"/>
+        <ellipse cx="28"  cy="-12" rx="10" ry="8" fill="${bodyFill}"/>
+        <!-- Thicker neck base -->
+        <ellipse cx="32"  cy="-14" rx="11" ry="9" fill="${bodyFill}"/>
+        <!-- Small bicep highlights -->
+        <path d="M -42 4 Q -38 10 -42 18" stroke="rgba(255,255,255,0.22)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M 42 6  Q 38 12  42 20"  stroke="rgba(255,255,255,0.22)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      </g>
+      <!-- Tier 3 — LEGENDARY: cartoon action-figure proportions. Biceps bigger than head. -->
+      <g class="muscle-t3-only muscle-flex">
+        <!-- HUGE bicep bulges (rx=22 ry=26 — visibly larger than the head's 18×15) -->
+        <ellipse cx="-44" cy="12" rx="22" ry="26" fill="${bodyFill}"/>
+        <ellipse cx="44"  cy="14" rx="22" ry="26" fill="${bodyFill}"/>
+        <!-- Forearms tapering toward the paws so the arms read as full limbs -->
+        <ellipse cx="-38" cy="36" rx="12" ry="11" fill="${bodyFill}"/>
+        <ellipse cx="38"  cy="38" rx="12" ry="11" fill="${bodyFill}"/>
+        <!-- Chiseled, prominent pec plates -->
+        <ellipse cx="-17" cy="8" rx="18" ry="15" fill="${bodyFill}"/>
+        <ellipse cx="17"  cy="8" rx="18" ry="15" fill="${bodyFill}"/>
+        <!-- Deep pec separation -->
+        <path d="M 0 -6 L 0 26" stroke="rgba(0,0,0,0.30)" stroke-width="3" stroke-linecap="round"/>
+        <!-- Massive traps connecting neck to shoulders -->
+        <ellipse cx="-30" cy="-14" rx="14" ry="11" fill="${bodyFill}"/>
+        <ellipse cx="30"  cy="-14" rx="14" ry="11" fill="${bodyFill}"/>
+        <!-- Bull neck -->
+        <ellipse cx="34"  cy="-18" rx="16" ry="13" fill="${bodyFill}"/>
+        <!-- Big bicep peak highlights -->
+        <path d="M -52 4 Q -44 12 -52 22" stroke="rgba(255,255,255,0.32)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <path d="M 52 6  Q 44 14  52 24"  stroke="rgba(255,255,255,0.32)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <!-- Hint of a bicep "vein" line (cartoonish, subtle) -->
+        <path d="M -48 6 Q -44 12 -48 20" stroke="rgba(0,0,0,0.18)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M 48 8  Q 44 14  48 22"  stroke="rgba(0,0,0,0.18)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
       </g>
 
       <!-- front paws -->
