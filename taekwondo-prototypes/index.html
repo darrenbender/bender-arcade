@@ -1,0 +1,164 @@
+<!doctype html>
+<!--
+  Prototype chooser for the taekwondo game. Not the final game — just a
+  menu listing the four candidate mechanics so James can pick a favorite.
+  Once a winner is picked, the full game (player picker, nav pattern,
+  belt progression, per-player save data) will be built per STANDARDS.md.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Taekwondo — Prototypes</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; min-height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    background: linear-gradient(180deg, #1a1f3a 0%, #2d1b3d 100%);
+    color: #fff;
+    user-select: none;
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 20px 48px;
+    text-align: center;
+  }
+  h1 { font-size: clamp(2rem, 6vw, 3rem); margin: 0 0 8px; letter-spacing: 0.5px; }
+  .subtitle {
+    font-size: clamp(1rem, 2.6vw, 1.2rem);
+    opacity: 0.8; margin: 0 0 8px;
+  }
+  .note {
+    display: inline-block;
+    font-size: 0.85rem;
+    opacity: 0.65;
+    background: rgba(255,255,255,0.06);
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 28px;
+  }
+  .grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 620px) {
+    .grid { grid-template-columns: 1fr 1fr; }
+  }
+  .tile {
+    display: block;
+    text-decoration: none;
+    color: #fff;
+    background: linear-gradient(180deg, var(--c1), var(--c2));
+    border-radius: 22px;
+    padding: 24px 20px;
+    text-align: left;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.4), 0 12px 28px rgba(0,0,0,0.25);
+    transition: transform 0.08s, box-shadow 0.08s;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .tile:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.4), 0 6px 14px rgba(0,0,0,0.25);
+  }
+  .tile .row { display: flex; align-items: center; gap: 14px; }
+  .tile .num {
+    font-size: 1.05rem; font-weight: 900;
+    background: rgba(0,0,0,0.25);
+    padding: 4px 12px;
+    border-radius: 999px;
+    letter-spacing: 1px;
+  }
+  .tile .emoji { font-size: 2.4rem; line-height: 1; }
+  .tile .name { font-size: 1.5rem; font-weight: 900; margin: 0; line-height: 1.1; }
+  .tile .pitch {
+    font-size: 1rem; line-height: 1.35;
+    opacity: 0.95;
+    margin: 0;
+  }
+  .tile .play {
+    align-self: flex-end;
+    font-size: 1rem; font-weight: 800;
+    background: rgba(0,0,0,0.3);
+    padding: 8px 18px;
+    border-radius: 999px;
+    letter-spacing: 1px;
+  }
+  .tile-1 { --c1: #ff5252; --c2: #8b1818; }
+  .tile-2 { --c1: #2f9e44; --c2: #0d3d1f; }
+  .tile-3 { --c1: #845ef7; --c2: #3b2566; }
+  .tile-4 { --c1: #228be6; --c2: #0d3a66; }
+
+  .back {
+    display: inline-block;
+    margin-top: 36px;
+    padding: 18px 36px;
+    font-size: 1.2rem; font-weight: 800;
+    color: #fff;
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 18px;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+  }
+  .back:active { background: rgba(255,255,255,0.22); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🥋 Taekwondo</h1>
+  <p class="subtitle">Four mini-games. Pick your favorite!</p>
+  <p class="note">prototypes — we'll build the real game from the winner</p>
+
+  <div class="grid">
+    <a class="tile tile-1" href="01-board-break/">
+      <div class="row">
+        <span class="num">01</span>
+        <span class="emoji">🪵</span>
+      </div>
+      <h2 class="name">Board Break</h2>
+      <p class="pitch">Tap BREAK exactly when the rings line up. Perfect timing = clean break.</p>
+      <span class="play">PLAY ▶</span>
+    </a>
+
+    <a class="tile tile-2" href="02-kick-target/">
+      <div class="row">
+        <span class="num">02</span>
+        <span class="emoji">🎯</span>
+      </div>
+      <h2 class="name">Kick Target</h2>
+      <p class="pitch">Kick blue pads as fast as you can. Don't hit sensei's hand!</p>
+      <span class="play">PLAY ▶</span>
+    </a>
+
+    <a class="tile tile-3" href="03-combo-sequence/">
+      <div class="row">
+        <span class="num">03</span>
+        <span class="emoji">👊</span>
+      </div>
+      <h2 class="name">Combo Sequence</h2>
+      <p class="pitch">Watch sensei's combo. Tap it back. Each round gets one move longer.</p>
+      <span class="play">PLAY ▶</span>
+    </a>
+
+    <a class="tile tile-4" href="04-dodge-and-strike/">
+      <div class="row">
+        <span class="num">04</span>
+        <span class="emoji">🥷</span>
+      </div>
+      <h2 class="name">Dodge &amp; Strike</h2>
+      <p class="pitch">Block the ninja's foam pads. When it glows yellow — STRIKE!</p>
+      <span class="play">PLAY ▶</span>
+    </a>
+  </div>
+
+  <a class="back" href="/">← Back to Arcade</a>
+</div>
+</body>
+</html>
