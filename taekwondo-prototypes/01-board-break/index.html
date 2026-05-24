@@ -1,0 +1,354 @@
+<!doctype html>
+<!--
+  PROTOTYPE 1 — BOARD BREAK
+  Mechanic: a shrinking ring closes in on a fixed target ring; tap BREAK when the
+  shrinking ring aligns with the target for a clean break. Off-timing = cracked board.
+  Score = clean breaks in 30 seconds.
+  To turn into the full game: add belt progression (every 10 clean breaks = next belt),
+  rising difficulty (faster shrinks, smaller sweet spot), and a sensei character that
+  reacts to each break.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Board Break — Prototype 1</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    background: linear-gradient(180deg, #1a1f3a 0%, #2d1b3d 100%);
+    color: #fff;
+    user-select: none;
+    overflow: hidden;
+  }
+  .wrap {
+    height: 100%; display: flex; flex-direction: column;
+    align-items: center; justify-content: space-between;
+    padding: 16px;
+  }
+  h1 { margin: 0; font-size: 28px; letter-spacing: 0.5px; }
+  .sub { font-size: 14px; opacity: 0.7; margin-top: 4px; }
+  .hud {
+    width: 100%; max-width: 480px;
+    display: flex; justify-content: space-between;
+    font-size: 24px; font-weight: 700;
+    padding: 8px 16px;
+  }
+  .hud .label { font-size: 12px; opacity: 0.6; font-weight: 500; display: block; }
+  .stage {
+    flex: 1; width: 100%; max-width: 480px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .board {
+    position: relative;
+    width: 280px; height: 200px;
+    border-radius: 8px;
+    background:
+      repeating-linear-gradient(180deg, #8b5a2b 0 12px, #7a4f24 12px 14px),
+      #8b5a2b;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4), inset 0 0 30px rgba(0,0,0,0.3);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.1s;
+  }
+  .board.broken .half-left,
+  .board.broken .half-right {
+    position: absolute; top: 0; width: 50%; height: 100%;
+    background: inherit; border-radius: 8px;
+    box-shadow: inherit;
+  }
+  .board.broken .half-left { left: 0; animation: flyLeft 0.6s ease-out forwards; }
+  .board.broken .half-right { right: 0; animation: flyRight 0.6s ease-out forwards; }
+  .board.broken .ring-wrap, .board.broken .target { opacity: 0; }
+  @keyframes flyLeft {
+    to { transform: translateX(-160px) rotate(-25deg); opacity: 0; }
+  }
+  @keyframes flyRight {
+    to { transform: translateX(160px) rotate(25deg); opacity: 0; }
+  }
+  .board.cracked {
+    animation: shake 0.3s;
+  }
+  .board.cracked::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      linear-gradient(135deg, transparent 48%, #2a1810 49%, #2a1810 51%, transparent 52%),
+      linear-gradient(45deg, transparent 48%, #2a1810 49%, #2a1810 51%, transparent 52%);
+    border-radius: 8px; pointer-events: none;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+  .ring-wrap {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .target {
+    position: absolute;
+    width: 70px; height: 70px;
+    border: 4px solid rgba(255, 230, 100, 0.9);
+    border-radius: 50%;
+    box-shadow: 0 0 12px rgba(255, 230, 100, 0.5);
+  }
+  .shrinker {
+    position: absolute;
+    border: 5px solid #fff;
+    border-radius: 50%;
+    will-change: width, height;
+  }
+  .particles { position: absolute; inset: 0; pointer-events: none; }
+  .spark {
+    position: absolute; width: 8px; height: 8px;
+    background: #ffd700; border-radius: 50%;
+    left: 50%; top: 50%;
+  }
+  .center-msg {
+    position: absolute;
+    font-size: 48px; font-weight: 900;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    pointer-events: none;
+    animation: popMsg 0.7s ease-out forwards;
+  }
+  .center-msg.good { color: #ffe066; }
+  .center-msg.bad { color: #ff6b6b; }
+  @keyframes popMsg {
+    0% { transform: scale(0.5); opacity: 0; }
+    30% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0; transform: translateY(-40px); }
+  }
+  .controls {
+    width: 100%; max-width: 480px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    padding-bottom: 16px;
+  }
+  .break-btn {
+    width: 90%; max-width: 360px; height: 88px;
+    border: none; border-radius: 16px;
+    background: linear-gradient(180deg, #ff5252 0%, #c62828 100%);
+    color: #fff; font-size: 32px; font-weight: 900;
+    letter-spacing: 2px;
+    box-shadow: 0 6px 0 #8b1818, 0 8px 20px rgba(0,0,0,0.3);
+    cursor: pointer;
+    transition: transform 0.05s, box-shadow 0.05s;
+  }
+  .break-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #8b1818; }
+  .break-btn:disabled { opacity: 0.4; cursor: default; }
+  .play-btn {
+    padding: 20px 60px; font-size: 28px; font-weight: 900;
+    background: linear-gradient(180deg, #4caf50 0%, #2e7d32 100%);
+    color: #fff; border: none; border-radius: 16px;
+    box-shadow: 0 6px 0 #1b5e20, 0 8px 20px rgba(0,0,0,0.3);
+    cursor: pointer; letter-spacing: 1px;
+  }
+  .play-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #1b5e20; }
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 20px;
+    z-index: 10;
+  }
+  .overlay h2 { margin: 0; font-size: 36px; }
+  .overlay p { margin: 0; font-size: 18px; opacity: 0.8; text-align: center; max-width: 320px; }
+  .final-score { font-size: 64px; font-weight: 900; color: #ffe066; margin: 0; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header style="text-align: center;">
+    <h1>🥋 Board Break</h1>
+    <div class="sub">Prototype 1 — tap BREAK when the rings line up</div>
+  </header>
+
+  <div class="hud">
+    <div><span class="label">SCORE</span><span id="score">0</span></div>
+    <div><span class="label">TIME</span><span id="time">30</span></div>
+  </div>
+
+  <div class="stage">
+    <div class="board" id="board">
+      <div class="ring-wrap">
+        <div class="target"></div>
+        <div class="shrinker" id="shrinker"></div>
+      </div>
+      <div class="particles" id="particles"></div>
+    </div>
+
+    <div class="overlay" id="startOverlay">
+      <h2>Ready, white belt?</h2>
+      <p>Wait for the ring to line up with the yellow target, then tap BREAK.</p>
+      <button class="play-btn" id="playBtn">PLAY</button>
+    </div>
+
+    <div class="overlay hidden" id="endOverlay">
+      <h2>Time's up!</h2>
+      <p>Boards broken:</p>
+      <p class="final-score" id="finalScore">0</p>
+      <button class="play-btn" id="againBtn">PLAY AGAIN</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="break-btn" id="breakBtn" disabled>BREAK!</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const scoreEl = document.getElementById('score');
+  const timeEl = document.getElementById('time');
+  const board = document.getElementById('board');
+  const shrinker = document.getElementById('shrinker');
+  const breakBtn = document.getElementById('breakBtn');
+  const particles = document.getElementById('particles');
+  const startOverlay = document.getElementById('startOverlay');
+  const endOverlay = document.getElementById('endOverlay');
+  const playBtn = document.getElementById('playBtn');
+  const againBtn = document.getElementById('againBtn');
+  const finalScore = document.getElementById('finalScore');
+
+  const TARGET_SIZE = 70;       // px (matches .target CSS)
+  const START_SIZE = 220;       // px — shrink starts large
+  const SHRINK_MS = 1400;       // time from start to fully closed
+  const SWEET_SPOT = 10;        // ± px around target for "clean break"
+  const CRACK_WINDOW = 30;      // ± px for cracked-board (no point, no penalty)
+
+  let score = 0, timeLeft = 30, running = false;
+  let shrinkStart = 0, currentSize = START_SIZE;
+  let rafId = null, timerId = null;
+
+  function setShrinkerSize(px) {
+    shrinker.style.width = px + 'px';
+    shrinker.style.height = px + 'px';
+  }
+
+  function tick() {
+    if (!running) return;
+    const elapsed = performance.now() - shrinkStart;
+    const t = Math.min(elapsed / SHRINK_MS, 1);
+    currentSize = START_SIZE - (START_SIZE - 0) * t;
+    setShrinkerSize(currentSize);
+    if (t >= 1) {
+      // Missed entirely — board resets
+      flashMessage('MISS', 'bad');
+      resetBoardAndContinue(400);
+      return;
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function startNewBoard() {
+    board.classList.remove('broken', 'cracked');
+    // re-add halves for next break animation
+    if (!board.querySelector('.half-left')) {
+      const l = document.createElement('div'); l.className = 'half-left';
+      const r = document.createElement('div'); r.className = 'half-right';
+      board.appendChild(l); board.appendChild(r);
+    }
+    setShrinkerSize(START_SIZE);
+    shrinker.style.opacity = '1';
+    shrinkStart = performance.now();
+    breakBtn.disabled = false;
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function resetBoardAndContinue(delay) {
+    cancelAnimationFrame(rafId);
+    breakBtn.disabled = true;
+    setTimeout(() => {
+      if (running) startNewBoard();
+    }, delay);
+  }
+
+  function flashMessage(text, kind) {
+    const m = document.createElement('div');
+    m.className = 'center-msg ' + kind;
+    m.textContent = text;
+    board.parentElement.appendChild(m);
+    setTimeout(() => m.remove(), 700);
+  }
+
+  function sparkBurst() {
+    for (let i = 0; i < 16; i++) {
+      const s = document.createElement('div');
+      s.className = 'spark';
+      const angle = (Math.PI * 2 * i) / 16;
+      const dist = 80 + Math.random() * 40;
+      s.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+      s.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+      s.style.transform = 'translate(-50%, -50%)';
+      s.animate(
+        [
+          { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+          { transform: `translate(calc(-50% + ${Math.cos(angle) * dist}px), calc(-50% + ${Math.sin(angle) * dist}px)) scale(0)`, opacity: 0 }
+        ],
+        { duration: 600, easing: 'ease-out' }
+      );
+      particles.appendChild(s);
+      setTimeout(() => s.remove(), 600);
+    }
+  }
+
+  function handleBreak() {
+    if (!running || breakBtn.disabled) return;
+    const diff = Math.abs(currentSize - TARGET_SIZE);
+    cancelAnimationFrame(rafId);
+    breakBtn.disabled = true;
+
+    if (diff <= SWEET_SPOT) {
+      // Clean break
+      score++;
+      scoreEl.textContent = score;
+      board.classList.add('broken');
+      sparkBurst();
+      flashMessage('CLEAN BREAK!', 'good');
+      resetBoardAndContinue(700);
+    } else if (diff <= CRACK_WINDOW) {
+      board.classList.add('cracked');
+      flashMessage('CRACK', 'bad');
+      resetBoardAndContinue(500);
+    } else {
+      flashMessage('MISS', 'bad');
+      resetBoardAndContinue(400);
+    }
+  }
+
+  function startGame() {
+    score = 0; timeLeft = 30; running = true;
+    scoreEl.textContent = '0';
+    timeEl.textContent = '30';
+    startOverlay.classList.add('hidden');
+    endOverlay.classList.add('hidden');
+    startNewBoard();
+    timerId = setInterval(() => {
+      timeLeft--;
+      timeEl.textContent = timeLeft;
+      if (timeLeft <= 0) endGame();
+    }, 1000);
+  }
+
+  function endGame() {
+    running = false;
+    clearInterval(timerId);
+    cancelAnimationFrame(rafId);
+    breakBtn.disabled = true;
+    finalScore.textContent = score;
+    endOverlay.classList.remove('hidden');
+  }
+
+  breakBtn.addEventListener('click', handleBreak);
+  // Tapping the board itself also breaks — bigger tap target
+  board.addEventListener('click', handleBreak);
+  playBtn.addEventListener('click', startGame);
+  againBtn.addEventListener('click', startGame);
+})();
+</script>
+</body>
+</html>

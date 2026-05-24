@@ -1,0 +1,302 @@
+<!doctype html>
+<!--
+  PROTOTYPE 3 — COMBO SEQUENCE
+  Mechanic: Simon-style. Sensei demonstrates a combo (punch/kick/block/dodge),
+  player taps the buttons in the same order. Each round adds one move.
+  Score = longest combo completed.
+  To turn into the full game: belt promotion based on max combo length reached
+  (e.g. white→yellow at 4, yellow→green at 6, ... black belt at 14), unique
+  belt-test demo on promotion, and a sensei character demonstrating the combos.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Combo Sequence — Prototype 3</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    background: linear-gradient(180deg, #2d1b3d 0%, #1a1f3a 100%);
+    color: #fff;
+    user-select: none;
+    overflow: hidden;
+  }
+  .wrap {
+    height: 100%; display: flex; flex-direction: column;
+    align-items: center; padding: 16px;
+  }
+  header { text-align: center; }
+  h1 { margin: 0; font-size: 28px; letter-spacing: 0.5px; }
+  .sub { font-size: 14px; opacity: 0.7; margin-top: 4px; }
+  .hud {
+    width: 100%; max-width: 480px;
+    display: flex; justify-content: space-around;
+    font-size: 22px; font-weight: 700;
+    padding: 12px 16px;
+    text-align: center;
+  }
+  .hud .label { font-size: 11px; opacity: 0.6; font-weight: 500; display: block; }
+  .stage {
+    flex: 1; width: 100%; max-width: 480px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative; gap: 16px;
+  }
+  .status {
+    min-height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 900;
+    letter-spacing: 1px;
+    text-align: center;
+    transition: color 0.2s;
+  }
+  .status.watch { color: #ffe066; }
+  .status.your-turn { color: #69db7c; }
+  .status.wrong { color: #ff6b6b; }
+  .combo-pad {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    width: min(95vw, 380px);
+    aspect-ratio: 1;
+  }
+  .move-btn {
+    border: none;
+    border-radius: 20px;
+    color: #fff;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 6px;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.4), inset 0 -8px 12px rgba(0,0,0,0.2);
+    transition: transform 0.06s, box-shadow 0.06s, filter 0.12s;
+    opacity: 0.55;
+  }
+  .move-btn .icon { font-size: 56px; line-height: 1; }
+  .move-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.4); }
+  .move-btn.active, .move-btn.demo {
+    opacity: 1;
+    filter: brightness(1.4) saturate(1.2);
+    transform: scale(1.05);
+  }
+  .move-btn[disabled] { cursor: default; }
+  .move-btn[data-move="punch"]  { background: linear-gradient(180deg, #ff5252, #c62828); }
+  .move-btn[data-move="kick"]   { background: linear-gradient(180deg, #4dabf7, #1971c2); }
+  .move-btn[data-move="block"]  { background: linear-gradient(180deg, #ffd43b, #e67700); color: #2a1810; }
+  .move-btn[data-move="dodge"]  { background: linear-gradient(180deg, #69db7c, #2f9e44); }
+  .progress {
+    display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+    min-height: 14px;
+  }
+  .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+  }
+  .dot.done { background: #69db7c; }
+  .play-btn {
+    padding: 20px 60px; font-size: 28px; font-weight: 900;
+    background: linear-gradient(180deg, #4caf50 0%, #2e7d32 100%);
+    color: #fff; border: none; border-radius: 16px;
+    box-shadow: 0 6px 0 #1b5e20, 0 8px 20px rgba(0,0,0,0.3);
+    cursor: pointer; letter-spacing: 1px;
+  }
+  .play-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #1b5e20; }
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.78);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 18px;
+    z-index: 10;
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .overlay h2 { margin: 0; font-size: 32px; text-align: center; }
+  .overlay p { margin: 0; font-size: 16px; opacity: 0.85; text-align: center; max-width: 320px; line-height: 1.4; }
+  .final-score { font-size: 64px; font-weight: 900; color: #ffe066; margin: 0; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🥋 Combo Sequence</h1>
+    <div class="sub">Prototype 3 — watch sensei, then repeat the combo</div>
+  </header>
+
+  <div class="hud">
+    <div><span class="label">COMBO LENGTH</span><span id="length">0</span></div>
+    <div><span class="label">BEST</span><span id="best">0</span></div>
+  </div>
+
+  <div class="stage">
+    <div class="status" id="status">&nbsp;</div>
+    <div class="progress" id="progress"></div>
+
+    <div class="combo-pad">
+      <button class="move-btn" data-move="punch" disabled>
+        <span class="icon">👊</span><span>PUNCH</span>
+      </button>
+      <button class="move-btn" data-move="kick" disabled>
+        <span class="icon">🦵</span><span>KICK</span>
+      </button>
+      <button class="move-btn" data-move="block" disabled>
+        <span class="icon">🛡️</span><span>BLOCK</span>
+      </button>
+      <button class="move-btn" data-move="dodge" disabled>
+        <span class="icon">💨</span><span>DODGE</span>
+      </button>
+    </div>
+
+    <div class="overlay" id="startOverlay">
+      <h2>Ready, white belt?</h2>
+      <p>Sensei will show you a combo. Watch the buttons light up, then tap them back in the same order. Each round adds one more move!</p>
+      <button class="play-btn" id="playBtn">PLAY</button>
+    </div>
+
+    <div class="overlay hidden" id="endOverlay">
+      <h2 id="endTitle">Combo broken!</h2>
+      <p>Longest combo:</p>
+      <p class="final-score" id="finalScore">0</p>
+      <button class="play-btn" id="againBtn">TRY AGAIN</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const MOVES = ['punch', 'kick', 'block', 'dodge'];
+  const STARTING_LENGTH = 2;
+
+  const lengthEl = document.getElementById('length');
+  const bestEl = document.getElementById('best');
+  const statusEl = document.getElementById('status');
+  const progressEl = document.getElementById('progress');
+  const startOverlay = document.getElementById('startOverlay');
+  const endOverlay = document.getElementById('endOverlay');
+  const endTitle = document.getElementById('endTitle');
+  const playBtn = document.getElementById('playBtn');
+  const againBtn = document.getElementById('againBtn');
+  const finalScore = document.getElementById('finalScore');
+  const buttons = Array.from(document.querySelectorAll('.move-btn'));
+
+  let sequence = [];
+  let playerIndex = 0;
+  let best = 0;
+  let acceptingInput = false;
+
+  function setButtonsEnabled(on) {
+    buttons.forEach(b => b.disabled = !on);
+  }
+
+  function renderProgress(filled) {
+    progressEl.innerHTML = '';
+    for (let i = 0; i < sequence.length; i++) {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i < filled ? ' done' : '');
+      progressEl.appendChild(d);
+    }
+  }
+
+  function highlight(move, kind, ms) {
+    return new Promise(resolve => {
+      const btn = buttons.find(b => b.dataset.move === move);
+      btn.classList.add(kind);
+      setTimeout(() => {
+        btn.classList.remove(kind);
+        setTimeout(resolve, 120);
+      }, ms);
+    });
+  }
+
+  async function playSequence() {
+    acceptingInput = false;
+    setButtonsEnabled(false);
+    statusEl.textContent = 'WATCH';
+    statusEl.className = 'status watch';
+    // brief pause so the user sees the "WATCH" cue
+    await new Promise(r => setTimeout(r, 600));
+    // Speed up a touch as sequence grows
+    const showMs = Math.max(280, 600 - sequence.length * 18);
+    for (const move of sequence) {
+      await highlight(move, 'demo', showMs);
+    }
+    statusEl.textContent = 'YOUR TURN';
+    statusEl.className = 'status your-turn';
+    playerIndex = 0;
+    renderProgress(0);
+    acceptingInput = true;
+    setButtonsEnabled(true);
+  }
+
+  function nextRound() {
+    sequence.push(MOVES[Math.floor(Math.random() * MOVES.length)]);
+    lengthEl.textContent = sequence.length;
+    renderProgress(0);
+    playSequence();
+  }
+
+  function handleInput(move) {
+    if (!acceptingInput) return;
+    const expected = sequence[playerIndex];
+    if (move !== expected) {
+      acceptingInput = false;
+      setButtonsEnabled(false);
+      statusEl.textContent = 'OOPS!';
+      statusEl.className = 'status wrong';
+      // Flash the correct button briefly so the player sees what it was
+      highlight(expected, 'demo', 500).then(() => endGame());
+      return;
+    }
+    // Correct
+    highlight(move, 'active', 220);
+    playerIndex++;
+    renderProgress(playerIndex);
+    if (playerIndex >= sequence.length) {
+      acceptingInput = false;
+      setButtonsEnabled(false);
+      const completed = sequence.length;
+      if (completed > best) {
+        best = completed;
+        bestEl.textContent = best;
+      }
+      statusEl.textContent = 'NICE!';
+      statusEl.className = 'status your-turn';
+      setTimeout(nextRound, 800);
+    }
+  }
+
+  function startGame() {
+    sequence = [];
+    playerIndex = 0;
+    lengthEl.textContent = '0';
+    startOverlay.classList.add('hidden');
+    endOverlay.classList.add('hidden');
+    // Seed with starting length
+    for (let i = 0; i < STARTING_LENGTH; i++) {
+      sequence.push(MOVES[Math.floor(Math.random() * MOVES.length)]);
+    }
+    lengthEl.textContent = sequence.length;
+    playSequence();
+  }
+
+  function endGame() {
+    const completed = sequence.length - 1; // last full one completed
+    finalScore.textContent = Math.max(0, completed);
+    endOverlay.classList.remove('hidden');
+  }
+
+  buttons.forEach(b => {
+    b.addEventListener('click', () => handleInput(b.dataset.move));
+  });
+  playBtn.addEventListener('click', startGame);
+  againBtn.addEventListener('click', startGame);
+})();
+</script>
+</body>
+</html>

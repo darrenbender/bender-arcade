@@ -1,0 +1,274 @@
+<!doctype html>
+<!--
+  PROTOTYPE 2 — KICK TARGET
+  Mechanic: kicking pads pop up on a 3x3 grid; tap blue pads for points, avoid red
+  pads (sensei's hand — that hurts!). Reaction speed game over 30 seconds.
+  To turn into the full game: add belt progression (score thresholds promote you),
+  add new pad types per belt (e.g. green-belt unlocks moving pads, blue-belt unlocks
+  double-tap pads), and a sensei character that visibly reacts.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Kick Target — Prototype 2</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    background: linear-gradient(180deg, #0d2818 0%, #1a3a2e 100%);
+    color: #fff;
+    user-select: none;
+    overflow: hidden;
+  }
+  .wrap {
+    height: 100%; display: flex; flex-direction: column;
+    align-items: center; padding: 16px;
+  }
+  header { text-align: center; }
+  h1 { margin: 0; font-size: 28px; letter-spacing: 0.5px; }
+  .sub { font-size: 14px; opacity: 0.7; margin-top: 4px; }
+  .hud {
+    width: 100%; max-width: 480px;
+    display: flex; justify-content: space-between;
+    font-size: 24px; font-weight: 700;
+    padding: 12px 16px;
+  }
+  .hud .label { font-size: 12px; opacity: 0.6; font-weight: 500; display: block; }
+  .stage {
+    flex: 1; width: 100%; max-width: 480px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 14px;
+    width: min(95vw, 420px);
+    aspect-ratio: 1;
+    padding: 14px;
+    background: rgba(0,0,0,0.25);
+    border-radius: 20px;
+  }
+  .slot {
+    background: rgba(255,255,255,0.05);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .pad {
+    position: absolute; inset: 8%;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    cursor: pointer;
+    transform: scale(0);
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 -8px 12px rgba(0,0,0,0.25);
+  }
+  .pad.show { transform: scale(1); }
+  .pad.kick {
+    background: radial-gradient(circle at 35% 30%, #4dabf7, #1971c2);
+  }
+  .pad.sensei {
+    background: radial-gradient(circle at 35% 30%, #ff8787, #c92a2a);
+  }
+  .pad.hit {
+    animation: hitPop 0.3s ease-out forwards;
+  }
+  @keyframes hitPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(0); opacity: 0; }
+  }
+  .float-msg {
+    position: absolute;
+    font-size: 28px; font-weight: 900;
+    pointer-events: none;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    animation: floatUp 0.7s ease-out forwards;
+  }
+  .float-msg.plus { color: #69db7c; }
+  .float-msg.minus { color: #ff6b6b; }
+  @keyframes floatUp {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-60px); opacity: 0; }
+  }
+  .play-btn {
+    padding: 20px 60px; font-size: 28px; font-weight: 900;
+    background: linear-gradient(180deg, #4caf50 0%, #2e7d32 100%);
+    color: #fff; border: none; border-radius: 16px;
+    box-shadow: 0 6px 0 #1b5e20, 0 8px 20px rgba(0,0,0,0.3);
+    cursor: pointer; letter-spacing: 1px;
+  }
+  .play-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #1b5e20; }
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.78);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 18px;
+    z-index: 10;
+    border-radius: 20px;
+  }
+  .overlay h2 { margin: 0; font-size: 32px; text-align: center; }
+  .overlay p { margin: 0; font-size: 16px; opacity: 0.85; text-align: center; max-width: 320px; line-height: 1.4; }
+  .legend { display: flex; gap: 20px; align-items: center; }
+  .legend > div { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .swatch {
+    width: 32px; height: 32px; border-radius: 50%;
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.3);
+  }
+  .swatch.blue { background: radial-gradient(circle at 35% 30%, #4dabf7, #1971c2); }
+  .swatch.red { background: radial-gradient(circle at 35% 30%, #ff8787, #c92a2a); }
+  .final-score { font-size: 64px; font-weight: 900; color: #ffe066; margin: 0; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🥋 Kick Target</h1>
+    <div class="sub">Prototype 2 — kick blue pads, never sensei's hand</div>
+  </header>
+
+  <div class="hud">
+    <div><span class="label">SCORE</span><span id="score">0</span></div>
+    <div><span class="label">TIME</span><span id="time">30</span></div>
+  </div>
+
+  <div class="stage">
+    <div class="grid" id="grid"></div>
+
+    <div class="overlay" id="startOverlay">
+      <h2>Ready, white belt?</h2>
+      <div class="legend">
+        <div><div class="swatch blue"></div> +1</div>
+        <div><div class="swatch red"></div> -2</div>
+      </div>
+      <p>Kick blue pads as fast as you can. Don't hit the red ones — that's sensei's hand!</p>
+      <button class="play-btn" id="playBtn">PLAY</button>
+    </div>
+
+    <div class="overlay hidden" id="endOverlay">
+      <h2>Time's up!</h2>
+      <p>Final score:</p>
+      <p class="final-score" id="finalScore">0</p>
+      <button class="play-btn" id="againBtn">PLAY AGAIN</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const grid = document.getElementById('grid');
+  const scoreEl = document.getElementById('score');
+  const timeEl = document.getElementById('time');
+  const startOverlay = document.getElementById('startOverlay');
+  const endOverlay = document.getElementById('endOverlay');
+  const playBtn = document.getElementById('playBtn');
+  const againBtn = document.getElementById('againBtn');
+  const finalScore = document.getElementById('finalScore');
+
+  const SLOTS = 9;
+  const SENSEI_CHANCE = 0.22;      // ~22% of pads are red
+  const SPAWN_INTERVAL_MS = 650;   // new pad every X ms
+  const PAD_LIFETIME_MS = 1300;    // how long a pad stays up
+
+  let score = 0, timeLeft = 30, running = false;
+  let spawnTimer = null, gameTimer = null;
+  const slots = [];
+
+  // Build slots
+  for (let i = 0; i < SLOTS; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    slot.dataset.index = i;
+    grid.appendChild(slot);
+    slots.push(slot);
+  }
+
+  function floatMsg(slot, text, kind) {
+    const m = document.createElement('div');
+    m.className = 'float-msg ' + kind;
+    m.textContent = text;
+    slot.appendChild(m);
+    setTimeout(() => m.remove(), 700);
+  }
+
+  function spawnPad() {
+    if (!running) return;
+    // Find an empty slot
+    const empties = slots.filter(s => !s.querySelector('.pad:not(.hit)'));
+    if (empties.length === 0) return;
+    const slot = empties[Math.floor(Math.random() * empties.length)];
+
+    const isSensei = Math.random() < SENSEI_CHANCE;
+    const pad = document.createElement('div');
+    pad.className = 'pad ' + (isSensei ? 'sensei' : 'kick');
+    pad.textContent = isSensei ? '✋' : '🎯';
+    slot.appendChild(pad);
+
+    requestAnimationFrame(() => pad.classList.add('show'));
+
+    const lifetime = PAD_LIFETIME_MS + Math.random() * 400;
+    const lifeTimer = setTimeout(() => {
+      if (pad.parentElement) {
+        pad.classList.remove('show');
+        setTimeout(() => pad.remove(), 200);
+      }
+    }, lifetime);
+
+    pad.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (pad.classList.contains('hit')) return;
+      clearTimeout(lifeTimer);
+      pad.classList.add('hit');
+      if (isSensei) {
+        score = Math.max(0, score - 2);
+        floatMsg(slot, '-2', 'minus');
+      } else {
+        score++;
+        floatMsg(slot, '+1', 'plus');
+      }
+      scoreEl.textContent = score;
+      setTimeout(() => pad.remove(), 300);
+    });
+  }
+
+  function startGame() {
+    score = 0; timeLeft = 30; running = true;
+    scoreEl.textContent = '0';
+    timeEl.textContent = '30';
+    startOverlay.classList.add('hidden');
+    endOverlay.classList.add('hidden');
+    // clear any pads from previous round
+    slots.forEach(s => s.innerHTML = '');
+    spawnTimer = setInterval(spawnPad, SPAWN_INTERVAL_MS);
+    gameTimer = setInterval(() => {
+      timeLeft--;
+      timeEl.textContent = timeLeft;
+      if (timeLeft <= 0) endGame();
+    }, 1000);
+    // Start spawning immediately for snappiness
+    spawnPad();
+  }
+
+  function endGame() {
+    running = false;
+    clearInterval(spawnTimer);
+    clearInterval(gameTimer);
+    slots.forEach(s => s.innerHTML = '');
+    finalScore.textContent = score;
+    endOverlay.classList.remove('hidden');
+  }
+
+  playBtn.addEventListener('click', startGame);
+  againBtn.addEventListener('click', startGame);
+})();
+</script>
+</body>
+</html>

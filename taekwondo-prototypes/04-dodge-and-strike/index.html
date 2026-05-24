@@ -1,0 +1,459 @@
+<!doctype html>
+<!--
+  PROTOTYPE 4 — DODGE & STRIKE
+  Mechanic: a cartoon ninja-blob throws foam pads in a rhythm; tap BLOCK as each
+  pad lands. When the ninja "winds up" (glows yellow), tap STRIKE for big points.
+  Get it wrong and you take a (cartoon) bonk. 30-second round.
+  To turn into the full game: belt progression by score milestones, multiple ninja
+  blobs with different rhythms per belt, "boss" ninja at the end of each belt,
+  and a sensei narrating in the corner.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Dodge & Strike — Prototype 4</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    background: linear-gradient(180deg, #1a3a5c 0%, #0d2240 100%);
+    color: #fff;
+    user-select: none;
+    overflow: hidden;
+  }
+  .wrap {
+    height: 100%; display: flex; flex-direction: column;
+    align-items: center; padding: 12px;
+  }
+  header { text-align: center; }
+  h1 { margin: 0; font-size: 26px; letter-spacing: 0.5px; }
+  .sub { font-size: 13px; opacity: 0.7; margin-top: 4px; }
+  .hud {
+    width: 100%; max-width: 480px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 22px; font-weight: 700;
+    padding: 10px 16px;
+  }
+  .hud .label { font-size: 11px; opacity: 0.6; font-weight: 500; display: block; }
+  .lives { font-size: 22px; letter-spacing: 4px; }
+  .stage {
+    flex: 1; width: 100%; max-width: 480px;
+    position: relative;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0.2) 100%);
+    border-radius: 16px;
+    overflow: hidden;
+    margin: 8px 0;
+  }
+  .ninja {
+    position: absolute;
+    top: 14%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px; height: 110px;
+    border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+    background: radial-gradient(circle at 35% 30%, #6a4f8f, #3d2557);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4), inset 0 -10px 16px rgba(0,0,0,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 50px;
+    transition: filter 0.18s, transform 0.12s;
+  }
+  .ninja::before, .ninja::after {
+    content: ""; position: absolute; top: 38%;
+    width: 16px; height: 16px; border-radius: 50%; background: #fff;
+  }
+  .ninja::before { left: 22%; }
+  .ninja::after { right: 22%; }
+  .ninja .band {
+    position: absolute; top: 36%; left: -6%; right: -6%; height: 10px;
+    background: #000;
+  }
+  .ninja.windup {
+    filter: drop-shadow(0 0 18px #ffe066) brightness(1.15);
+    animation: windupBounce 0.6s ease-in-out infinite;
+  }
+  .ninja.bonked {
+    animation: bonk 0.4s;
+  }
+  @keyframes windupBounce {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.1); }
+  }
+  @keyframes bonk {
+    0%, 100% { transform: translateX(-50%); }
+    25% { transform: translateX(-65%) rotate(-15deg); }
+    75% { transform: translateX(-35%) rotate(15deg); }
+  }
+  .pad-projectile {
+    position: absolute;
+    width: 56px; height: 56px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #ff922b, #d9480f);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 -6px 10px rgba(0,0,0,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    will-change: top, left, transform;
+    pointer-events: none;
+  }
+  .pad-projectile.blocked {
+    animation: padBlocked 0.4s ease-out forwards;
+  }
+  @keyframes padBlocked {
+    to { transform: scale(0.4) rotate(180deg); opacity: 0; }
+  }
+  .star-burst {
+    position: absolute;
+    font-size: 30px;
+    pointer-events: none;
+    animation: starFloat 0.8s ease-out forwards;
+  }
+  @keyframes starFloat {
+    0% { transform: translateY(0) scale(0.5); opacity: 1; }
+    100% { transform: translateY(-60px) scale(1.2); opacity: 0; }
+  }
+  .float-msg {
+    position: absolute;
+    font-size: 30px; font-weight: 900;
+    pointer-events: none;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    animation: floatUp 0.8s ease-out forwards;
+    z-index: 5;
+  }
+  .float-msg.plus { color: #69db7c; }
+  .float-msg.big { color: #ffe066; font-size: 38px; }
+  .float-msg.minus { color: #ff6b6b; }
+  @keyframes floatUp {
+    0% { transform: translate(-50%, 0); opacity: 1; }
+    100% { transform: translate(-50%, -50px); opacity: 0; }
+  }
+  .player-zone {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 90px;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.06));
+    border-top: 2px dashed rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 1px;
+  }
+  .controls {
+    width: 100%; max-width: 480px;
+    display: flex; gap: 12px;
+    padding: 8px 4px 16px;
+  }
+  .action-btn {
+    flex: 1; height: 88px;
+    border: none; border-radius: 16px;
+    color: #fff; font-size: 26px; font-weight: 900;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.4), inset 0 -8px 12px rgba(0,0,0,0.2);
+    transition: transform 0.06s, box-shadow 0.06s;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 2px;
+  }
+  .action-btn .icon { font-size: 30px; line-height: 1; }
+  .action-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.4); }
+  .block-btn { background: linear-gradient(180deg, #4dabf7, #1864ab); }
+  .strike-btn { background: linear-gradient(180deg, #ff6b6b, #c92a2a); }
+  .play-btn {
+    padding: 20px 60px; font-size: 28px; font-weight: 900;
+    background: linear-gradient(180deg, #4caf50 0%, #2e7d32 100%);
+    color: #fff; border: none; border-radius: 16px;
+    box-shadow: 0 6px 0 #1b5e20, 0 8px 20px rgba(0,0,0,0.3);
+    cursor: pointer; letter-spacing: 1px;
+  }
+  .play-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #1b5e20; }
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.78);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 16px;
+    z-index: 20;
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .overlay h2 { margin: 0; font-size: 30px; text-align: center; }
+  .overlay p { margin: 0; font-size: 15px; opacity: 0.85; text-align: center; max-width: 320px; line-height: 1.4; }
+  .final-score { font-size: 56px; font-weight: 900; color: #ffe066; margin: 0; }
+  .hidden { display: none !important; }
+  .hud-mini-legend { display: flex; gap: 14px; font-size: 13px; opacity: 0.8; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🥋 Dodge &amp; Strike</h1>
+    <div class="sub">Prototype 4 — BLOCK the pads, STRIKE when the ninja glows</div>
+  </header>
+
+  <div class="hud">
+    <div><span class="label">SCORE</span><span id="score">0</span></div>
+    <div><span class="label">TIME</span><span id="time">30</span></div>
+    <div><span class="label">LIVES</span><span class="lives" id="lives">❤️❤️❤️</span></div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="ninja" id="ninja">
+      <div class="band"></div>
+    </div>
+    <div class="player-zone">— YOUR ZONE —</div>
+
+    <div class="overlay" id="startOverlay">
+      <h2>Ready, white belt?</h2>
+      <div class="hud-mini-legend">
+        <span>🟧 pad → tap BLOCK</span>
+        <span>✨ glow → tap STRIKE</span>
+      </div>
+      <p>The ninja throws foam pads — tap BLOCK as each one reaches your zone. When the ninja glows yellow, tap STRIKE for bonus points!</p>
+      <button class="play-btn" id="playBtn">PLAY</button>
+    </div>
+
+    <div class="overlay hidden" id="endOverlay">
+      <h2 id="endTitle">Round over!</h2>
+      <p>Final score:</p>
+      <p class="final-score" id="finalScore">0</p>
+      <button class="play-btn" id="againBtn">PLAY AGAIN</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="action-btn block-btn" id="blockBtn">
+      <span class="icon">🛡️</span><span>BLOCK</span>
+    </button>
+    <button class="action-btn strike-btn" id="strikeBtn">
+      <span class="icon">👊</span><span>STRIKE</span>
+    </button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const scoreEl = document.getElementById('score');
+  const timeEl = document.getElementById('time');
+  const livesEl = document.getElementById('lives');
+  const stage = document.getElementById('stage');
+  const ninja = document.getElementById('ninja');
+  const blockBtn = document.getElementById('blockBtn');
+  const strikeBtn = document.getElementById('strikeBtn');
+  const startOverlay = document.getElementById('startOverlay');
+  const endOverlay = document.getElementById('endOverlay');
+  const endTitle = document.getElementById('endTitle');
+  const playBtn = document.getElementById('playBtn');
+  const againBtn = document.getElementById('againBtn');
+  const finalScore = document.getElementById('finalScore');
+
+  const ROUND_SEC = 30;
+  const PAD_TRAVEL_MS = 1300;     // time for a pad to traverse the stage
+  const PAD_INTERVAL_MS = 1100;   // base interval between events
+  const BLOCK_WINDOW_MS = 320;    // window where pad is in player zone
+  const STRIKE_WINDUP_MS = 900;   // how long the ninja glows during a windup
+  const STRIKE_CHANCE = 0.28;     // chance an event is a strike-windup instead of a pad
+
+  let score = 0, lives = 3, timeLeft = ROUND_SEC, running = false;
+  let spawnTimer = null, gameTimer = null;
+  let activePads = [];     // {el, arrivalTime, blocked}
+  let windupUntil = 0;     // timestamp when windup ends; 0 if no windup
+  let windupTimer = null;
+
+  function setLives() {
+    livesEl.textContent = '❤️'.repeat(lives) + '🤍'.repeat(Math.max(0, 3 - lives));
+  }
+
+  function floatMsg(x, y, text, kind) {
+    const m = document.createElement('div');
+    m.className = 'float-msg ' + kind;
+    m.textContent = text;
+    m.style.left = x + 'px';
+    m.style.top = y + 'px';
+    stage.appendChild(m);
+    setTimeout(() => m.remove(), 800);
+  }
+
+  function starBurst(x, y) {
+    for (let i = 0; i < 5; i++) {
+      const s = document.createElement('div');
+      s.className = 'star-burst';
+      s.textContent = '⭐';
+      const dx = (Math.random() - 0.5) * 80;
+      s.style.left = (x + dx) + 'px';
+      s.style.top = y + 'px';
+      stage.appendChild(s);
+      setTimeout(() => s.remove(), 800);
+    }
+  }
+
+  function spawnPad() {
+    if (!running) return;
+    const stageRect = stage.getBoundingClientRect();
+    const ninjaRect = ninja.getBoundingClientRect();
+    // origin: center of the ninja, in stage coords
+    const startX = (ninjaRect.left - stageRect.left) + ninjaRect.width / 2 - 28;
+    const startY = (ninjaRect.top - stageRect.top) + ninjaRect.height / 2 - 28;
+    // target: player zone (bottom band)
+    const endX = startX + (Math.random() * 200 - 100);
+    const endY = stageRect.height - 90 + 10; // into the player zone
+    const pad = document.createElement('div');
+    pad.className = 'pad-projectile';
+    pad.textContent = '🟧';
+    pad.style.left = startX + 'px';
+    pad.style.top = startY + 'px';
+    stage.appendChild(pad);
+
+    const startTime = performance.now();
+    const arrivalTime = startTime + PAD_TRAVEL_MS;
+    const padObj = { el: pad, arrivalTime, blocked: false };
+    activePads.push(padObj);
+
+    // Animate via Web Animations API (smooth, GPU-friendly)
+    pad.animate(
+      [
+        { left: startX + 'px', top: startY + 'px', transform: 'rotate(0deg)' },
+        { left: endX + 'px', top: endY + 'px', transform: 'rotate(540deg)' }
+      ],
+      { duration: PAD_TRAVEL_MS, easing: 'linear', fill: 'forwards' }
+    );
+
+    // If not blocked in time, miss
+    setTimeout(() => {
+      if (!running) return;
+      const idx = activePads.indexOf(padObj);
+      if (idx === -1) return;
+      activePads.splice(idx, 1);
+      if (!padObj.blocked) {
+        // Miss: lose a life
+        loseLife(endX + 28, endY);
+        pad.remove();
+      }
+    }, PAD_TRAVEL_MS + BLOCK_WINDOW_MS / 2);
+  }
+
+  function startWindup() {
+    if (!running) return;
+    ninja.classList.add('windup');
+    windupUntil = performance.now() + STRIKE_WINDUP_MS;
+    clearTimeout(windupTimer);
+    windupTimer = setTimeout(() => {
+      ninja.classList.remove('windup');
+      windupUntil = 0;
+      // If player failed to strike during windup, no penalty — just a missed opportunity
+    }, STRIKE_WINDUP_MS);
+  }
+
+  function nextEvent() {
+    if (!running) return;
+    if (Math.random() < STRIKE_CHANCE && windupUntil === 0) {
+      startWindup();
+    } else {
+      spawnPad();
+    }
+  }
+
+  function loseLife(x, y) {
+    lives = Math.max(0, lives - 1);
+    setLives();
+    ninja.classList.remove('bonked'); // restart anim
+    void ninja.offsetWidth;
+    floatMsg(x, y, 'OUCH!', 'minus');
+    if (lives <= 0) endGame('Out of lives!');
+  }
+
+  function onBlock() {
+    if (!running) return;
+    // Find the pad nearest to arrival
+    const now = performance.now();
+    let target = null;
+    let bestDiff = Infinity;
+    for (const p of activePads) {
+      if (p.blocked) continue;
+      const diff = Math.abs(p.arrivalTime - now);
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        target = p;
+      }
+    }
+    if (target && bestDiff <= BLOCK_WINDOW_MS) {
+      target.blocked = true;
+      target.el.classList.add('blocked');
+      const r = target.el.getBoundingClientRect();
+      const sr = stage.getBoundingClientRect();
+      const cx = r.left - sr.left + r.width / 2;
+      const cy = r.top - sr.top + r.height / 2;
+      starBurst(cx, cy);
+      floatMsg(cx, cy, '+1', 'plus');
+      score++;
+      scoreEl.textContent = score;
+      setTimeout(() => target.el.remove(), 400);
+    }
+    // No penalty for empty taps — keeps it friendly for younger players
+  }
+
+  function onStrike() {
+    if (!running) return;
+    if (windupUntil > 0 && performance.now() <= windupUntil) {
+      // Successful strike
+      score += 3;
+      scoreEl.textContent = score;
+      const r = ninja.getBoundingClientRect();
+      const sr = stage.getBoundingClientRect();
+      const cx = r.left - sr.left + r.width / 2;
+      const cy = r.top - sr.top + r.height / 2;
+      starBurst(cx, cy);
+      floatMsg(cx, cy, '+3 STRIKE!', 'big');
+      ninja.classList.remove('windup');
+      ninja.classList.add('bonked');
+      windupUntil = 0;
+      clearTimeout(windupTimer);
+      setTimeout(() => ninja.classList.remove('bonked'), 400);
+    }
+    // No penalty for missed strikes — strict enough already
+  }
+
+  function clearStage() {
+    activePads.forEach(p => p.el.remove());
+    activePads = [];
+    ninja.classList.remove('windup', 'bonked');
+    clearTimeout(windupTimer);
+    windupUntil = 0;
+  }
+
+  function startGame() {
+    score = 0; lives = 3; timeLeft = ROUND_SEC; running = true;
+    scoreEl.textContent = '0';
+    timeEl.textContent = ROUND_SEC;
+    setLives();
+    startOverlay.classList.add('hidden');
+    endOverlay.classList.add('hidden');
+    clearStage();
+    spawnTimer = setInterval(nextEvent, PAD_INTERVAL_MS);
+    gameTimer = setInterval(() => {
+      timeLeft--;
+      timeEl.textContent = timeLeft;
+      if (timeLeft <= 0) endGame("Time's up!");
+    }, 1000);
+    // Kick off the first event quickly so it feels responsive
+    setTimeout(nextEvent, 400);
+  }
+
+  function endGame(title) {
+    running = false;
+    clearInterval(spawnTimer);
+    clearInterval(gameTimer);
+    clearStage();
+    endTitle.textContent = title;
+    finalScore.textContent = score;
+    endOverlay.classList.remove('hidden');
+  }
+
+  blockBtn.addEventListener('click', onBlock);
+  strikeBtn.addEventListener('click', onStrike);
+  playBtn.addEventListener('click', startGame);
+  againBtn.addEventListener('click', startGame);
+})();
+</script>
+</body>
+</html>
