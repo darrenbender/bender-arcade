@@ -351,13 +351,24 @@
     <div class="rhythm-track" id="rhythmTrack">
       <div class="rhythm-zone" id="rhythmZone">
         <div class="rhythm-zone-inner"></div>
-        <div class="rhythm-zone-label">TAP!</div>
+        <div class="rhythm-zone-label">★</div>
       </div>
       <!-- Targets get appended here -->
     </div>
 
     <!-- Floating feedback texts (PERFECT!/GOOD!/MISS) -->
     <div class="rhythm-feedback" id="rhythmFeedback"></div>
+
+    <!-- Countoff number ("1","2","3","4") shown above the track on each count beat -->
+    <div class="rhythm-countoff" id="rhythmCountoff"></div>
+
+    <!-- "GET READY!" banner shown before the countoff -->
+    <div class="rhythm-ready" id="rhythmReady">GET READY!</div>
+
+    <!-- The big, persistent TAP button — the kid-obvious thing to tap -->
+    <button class="rhythm-tap-button" id="rhythmTapButton" aria-label="Tap to the beat">
+      <span class="tap-button-label">TAP!</span>
+    </button>
 
     <!-- The dragon performing lifts at the bottom -->
     <div class="rhythm-dragon-area">
@@ -371,8 +382,18 @@
       </div>
     </div>
 
-    <!-- Tap-anywhere overlay for input on iPad -->
+    <!-- Tap-anywhere shield for input on iPad — sits behind the visible TAP button -->
     <button class="rhythm-tap-shield" id="rhythmTapShield" aria-label="Tap to lift"></button>
+
+    <!-- Instruction overlay shown before each session ("Tap to the beat!" + GO) -->
+    <div class="rhythm-instructions" id="rhythmInstructions">
+      <div class="instructions-card">
+        <div class="instructions-icon">🎵</div>
+        <h2>Tap to the beat!</h2>
+        <p>Tap when each <span class="star-icon">★</span> reaches the green zone</p>
+        <button class="big-btn instructions-go" id="rhythmGoBtn">GO!</button>
+      </div>
+    </div>
   </div>
 </div>
 

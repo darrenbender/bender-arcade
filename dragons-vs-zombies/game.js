@@ -2609,6 +2609,11 @@ const ui = {
   rhythmFeedback:      document.getElementById('rhythmFeedback'),
   rhythmDragon:        document.getElementById('rhythmDragon'),
   rhythmTapShield:     document.getElementById('rhythmTapShield'),
+  rhythmTapButton:     document.getElementById('rhythmTapButton'),
+  rhythmReady:         document.getElementById('rhythmReady'),
+  rhythmCountoff:      document.getElementById('rhythmCountoff'),
+  rhythmInstructions:  document.getElementById('rhythmInstructions'),
+  rhythmGoBtn:         document.getElementById('rhythmGoBtn'),
   rhythmResultsScreen: document.getElementById('rhythmResultsScreen'),
   resultsReps:         document.getElementById('resultsReps'),
   resultsLifetime:     document.getElementById('resultsLifetime'),
@@ -3183,43 +3188,66 @@ function updateStrengthPlaque(id) {
 }
 
 /* ============================================================
-   RHYTHM MINI-GAME
-   Tap targets scroll right-to-left into a tap zone on the left.
-   Press space / tap anywhere when a target reaches the zone.
-   Lasts CONFIG.castle.rhythmSessionSec; awards reps; persists.
+   RHYTHM MINI-GAME — v2
+   Beat-driven: a steady drum plays on a constant tempo (scheduled
+   via Web Audio's AudioContext.currentTime for sample-accuracy).
+   Targets arrive in the tap zone EXACTLY on a beat. A 4-beat
+   countoff lets the player find the tempo before targets start.
    ============================================================ */
+
+// Constants for the look-ahead scheduler
+const SCHED_LOOKAHEAD_SEC = 0.10;   // schedule audio 100ms ahead
+const SCHED_INTERVAL_MS   = 25;     // check every 25ms
+const COUNTOFF_BEATS      = 4;      // beats 0,1,2,3 = "1","2","3","4"
+const TARGET_FIRST_BEAT   = COUNTOFF_BEATS; // first target arrives on beat 4
+
 const rhythm = {
-  active: false,
-  startMs: 0,
-  endMs: 0,
-  nextSpawnMs: 0,
-  targets: [],          // { id, el, spawnMs, expectedHitMs, hit, missed }
+  active: false,        // true between beginRhythmGame() and finishRhythm()
+  // Time anchors, set once at game start
+  startPerf: 0,         // performance.now() when beat 0 plays
+  startAudio: 0,        // actx.currentTime  when beat 0 plays
+  lastBeatNumber: 0,    // highest beat we'll schedule (computed from session length)
+
+  // Scheduling pointers (incremented as we handle each beat)
+  nextScheduledBeat: 0, // next beat to schedule audio for
+  nextVisualBeat: 0,    // next beat to trigger visual pulse for
+  nextTargetBeat: TARGET_FIRST_BEAT, // next beat that needs a target spawned
+
+  schedulerHandle: 0,   // setInterval id for the audio look-ahead scheduler
+  rafId: 0,             // requestAnimationFrame id for the visual loop
+
+  targets: [],          // live { id, el, spawnPerf, expectedHitPerf, hit, missed }
   nextId: 1,
+
   sessionReps: 0,
   sessionStartReps: 0,
   sessionStartTier: 0,
-  rafId: 0,
-  tickHandle: 0,
+
+  // Cached track geometry (recomputed at game start)
   trackWidth: 0,
   zoneCenterX: 0,
   spawnX: 0,
 };
 
 function rhythmZoneCenterPx() {
-  // Calculated from CSS: zone left 6%, width 110px → center = 6% + 55px
+  // CSS: zone left 6%, width 110px → center = 6% + 55px
   return ui.rhythmTrack.clientWidth * 0.06 + 55;
 }
 function rhythmSpawnX() {
-  return ui.rhythmTrack.clientWidth + 60; // start a bit past the right edge
+  return ui.rhythmTrack.clientWidth + 60;
 }
 
+/* ----- Entry point: tap on the central barbell calls this ----- */
 function startRhythm() {
   // Stop ambient timers so they don't fire mid-game
   clearAmbientTimers();
+  // Make sure audio is unlocked — the player has tapped already, but be safe
+  if (!audioUnlocked) unlockAudioOnGesture();
+
   const { id, cfg } = activeDragonCfg();
+  const tier = muscleTierFor(id);
 
   // Inject the dragon performing lifts
-  const tier = muscleTierFor(id);
   const dragonSvgHost = ui.rhythmDragon.querySelector('.rhythm-dragon-svg');
   if (dragonSvgHost) dragonSvgHost.innerHTML = dragonRestingSVG(cfg, 'rhy', tier);
 
@@ -3227,76 +3255,180 @@ function startRhythm() {
   const targetColor = cfg.rainbow ? '#ffd76b' : cfg.color;
   ui.rhythmScreen.style.setProperty('--target-color', targetColor);
 
-  // Reset state
-  rhythm.active = true;
-  rhythm.startMs = performance.now();
-  rhythm.endMs = rhythm.startMs + CONFIG.castle.rhythmSessionSec * 1000;
-  rhythm.nextSpawnMs = rhythm.startMs + 500;          // first target after a short lead
+  // Reset display
+  ui.rhythmTime.textContent = CONFIG.castle.rhythmSessionSec;
+  ui.rhythmReps.textContent = 0;
+  ui.rhythmTrack.querySelectorAll('.rhythm-target').forEach(n => n.remove());
+  ui.rhythmFeedback.innerHTML = '';
+  ui.rhythmCountoff.textContent = '';
+  ui.rhythmCountoff.classList.remove('show');
+  ui.rhythmReady.classList.remove('show');
+  ui.rhythmInstructions.classList.remove('hide');
+  ui.rhythmInstructions.style.display = '';
+
+  showScreen('rhythm');
+
+  // Auto-dismiss the instructions after 5s if the player hasn't tapped GO
+  if (rhythmIntroTimeout) clearTimeout(rhythmIntroTimeout);
+  rhythmIntroTimeout = setTimeout(dismissRhythmIntro, 5000);
+}
+
+/* ----- After "GO!" tap (or auto-timeout), show "GET READY!" then start ----- */
+let rhythmIntroTimeout = null;
+let rhythmReadyTimeout = null;
+function dismissRhythmIntro() {
+  if (rhythmIntroTimeout) { clearTimeout(rhythmIntroTimeout); rhythmIntroTimeout = null; }
+  ui.rhythmInstructions.classList.add('hide');
+  setTimeout(() => {
+    ui.rhythmInstructions.style.display = 'none';
+  }, 300);
+  beginRhythmReady();
+}
+
+function beginRhythmReady() {
+  // "GET READY!" banner for ~1 second, then start the game
+  ui.rhythmReady.classList.remove('show');
+  void ui.rhythmReady.offsetWidth;
+  ui.rhythmReady.classList.add('show');
+  if (rhythmReadyTimeout) clearTimeout(rhythmReadyTimeout);
+  rhythmReadyTimeout = setTimeout(() => {
+    ui.rhythmReady.classList.remove('show');
+    beginRhythmGame();
+  }, 1100);
+}
+
+/* ----- The actual game starts here: anchor clocks, kick off scheduler + rAF ----- */
+function beginRhythmGame() {
+  const { id } = activeDragonCfg();
+  // Cache track geometry
+  rhythm.trackWidth  = ui.rhythmTrack.clientWidth;
+  rhythm.zoneCenterX = rhythmZoneCenterPx();
+  rhythm.spawnX      = rhythmSpawnX();
+
+  // Compute how many beats we need (countoff + target phase + a little tail).
+  // We want roughly CONFIG.castle.rhythmSessionSec of target phase, so:
+  const tempoSec = CONFIG.castle.rhythmTempoSec;
+  const sessionTargets = Math.floor(CONFIG.castle.rhythmSessionSec / tempoSec);
+  rhythm.lastBeatNumber = TARGET_FIRST_BEAT + sessionTargets - 1;
+
+  // Anchor clocks. Give the audio scheduler a small buffer so the first drum
+  // hit is comfortably ahead of "now".
+  const audioBuffer = 0.18; // seconds
+  rhythm.startAudio = (actx ? actx.currentTime : 0) + audioBuffer;
+  rhythm.startPerf  = performance.now() + audioBuffer * 1000;
+
+  rhythm.nextScheduledBeat = 0;
+  rhythm.nextVisualBeat    = 0;
+  rhythm.nextTargetBeat    = TARGET_FIRST_BEAT;
   rhythm.targets = [];
   rhythm.nextId = 1;
   rhythm.sessionReps = 0;
   rhythm.sessionStartReps = getDragonReps(id);
   rhythm.sessionStartTier = muscleTierFor(id);
-  rhythm.trackWidth = ui.rhythmTrack.clientWidth;
-  rhythm.zoneCenterX = rhythmZoneCenterPx();
-  rhythm.spawnX = rhythmSpawnX();
 
-  ui.rhythmTime.textContent = CONFIG.castle.rhythmSessionSec;
-  ui.rhythmReps.textContent = 0;
+  rhythm.active = true;
 
-  // Clear any previous targets in the track DOM
-  ui.rhythmTrack.querySelectorAll('.rhythm-target').forEach(n => n.remove());
-  ui.rhythmFeedback.innerHTML = '';
-
-  showScreen('rhythm');
-
+  // Kick off the audio look-ahead scheduler (sample-accurate)
+  rhythm.schedulerHandle = setInterval(beatScheduler, SCHED_INTERVAL_MS);
+  // Kick off the visual loop
   rhythm.rafId = requestAnimationFrame(rhythmTick);
 }
 
+/* ----- Audio look-ahead scheduler — runs on setInterval, schedules with currentTime ----- */
+function beatScheduler() {
+  if (!rhythm.active || !actx) return;
+  const lookEnd = actx.currentTime + SCHED_LOOKAHEAD_SEC;
+  while (rhythm.nextScheduledBeat <= rhythm.lastBeatNumber) {
+    const beatAudioTime = rhythm.startAudio + rhythm.nextScheduledBeat * CONFIG.castle.rhythmTempoSec;
+    if (beatAudioTime > lookEnd) break;
+    scheduleDrumAt(beatAudioTime);
+    rhythm.nextScheduledBeat++;
+  }
+}
+
+/* ----- Soft low drum (sine pulse with fast decay) — scheduled at exact AudioContext time ----- */
+function scheduleDrumAt(audioTime) {
+  if (muted || !actx) return;
+  const o = actx.createOscillator();
+  const g = actx.createGain();
+  o.type = 'sine';
+  // Pitch sweep from ~95Hz down to ~42Hz gives a soft "thump"
+  o.frequency.setValueAtTime(95, audioTime);
+  o.frequency.exponentialRampToValueAtTime(42, audioTime + 0.10);
+  // Fast attack, fast decay — soft heartbeat feel
+  g.gain.setValueAtTime(0, audioTime);
+  g.gain.linearRampToValueAtTime(0.11, audioTime + 0.004);
+  g.gain.exponentialRampToValueAtTime(0.001, audioTime + 0.20);
+  o.connect(g); g.connect(actx.destination);
+  o.start(audioTime);
+  o.stop(audioTime + 0.22);
+}
+
+/* ----- Visual loop: positions, pulses, target lifecycle, end check ----- */
 function rhythmTick(now) {
   if (!rhythm.active) return;
-  const elapsed = now - rhythm.startMs;
-  const remaining = Math.max(0, rhythm.endMs - now);
-  ui.rhythmTime.textContent = Math.ceil(remaining / 1000);
 
-  // Spawn new targets at the configured tempo, but don't spawn in the
-  // last second (so the run finishes cleanly).
-  if (now >= rhythm.nextSpawnMs && now < rhythm.endMs - 1000) {
-    spawnRhythmTarget(now);
-    rhythm.nextSpawnMs = now + CONFIG.castle.rhythmTempoSec * 1000;
+  const tempoMs       = CONFIG.castle.rhythmTempoSec * 1000;
+  const targetTravelMs = CONFIG.castle.rhythmTargetTravelSec * 1000;
+  const elapsed       = now - rhythm.startPerf;
+  const targetPhaseStart = TARGET_FIRST_BEAT * tempoMs;
+  const sessionMs     = CONFIG.castle.rhythmSessionSec * 1000;
+
+  // Timer display — counts down once the target phase begins. Before that,
+  // show the full session length so the player sees what's coming.
+  if (elapsed >= targetPhaseStart) {
+    const gameMs = elapsed - targetPhaseStart;
+    const remaining = Math.max(0, sessionMs - gameMs);
+    ui.rhythmTime.textContent = Math.ceil(remaining / 1000);
+  } else {
+    ui.rhythmTime.textContent = CONFIG.castle.rhythmSessionSec;
   }
 
-  // Update target positions and check for misses
-  const trackW = rhythm.trackWidth;
-  const zoneX = rhythm.zoneCenterX;
+  // Trigger visual beats whose perf time has passed
+  while (rhythm.nextVisualBeat <= rhythm.lastBeatNumber) {
+    const beatPerf = rhythm.startPerf + rhythm.nextVisualBeat * tempoMs;
+    if (now < beatPerf) break;
+    triggerVisualBeat(rhythm.nextVisualBeat);
+    rhythm.nextVisualBeat++;
+  }
+
+  // Spawn targets so they arrive in the tap zone EXACTLY on their beat
+  while (rhythm.nextTargetBeat <= rhythm.lastBeatNumber) {
+    const arrivePerf = rhythm.startPerf + rhythm.nextTargetBeat * tempoMs;
+    const spawnPerf = arrivePerf - targetTravelMs;
+    if (now < spawnPerf) break;
+    spawnRhythmTarget(rhythm.nextTargetBeat, spawnPerf, arrivePerf);
+    rhythm.nextTargetBeat++;
+  }
+
+  // Update target positions + miss detection
+  const zoneX  = rhythm.zoneCenterX;
   const spawnX = rhythm.spawnX;
-  const travelMs = CONFIG.castle.rhythmTargetTravelSec * 1000;
   for (let i = rhythm.targets.length - 1; i >= 0; i--) {
     const t = rhythm.targets[i];
     if (t.hit || t.missed) {
-      // After fade-out animation has played, remove from DOM
-      if (now - t.removedAtMs > 600) {
+      if (now - t.removedAtPerf > 600) {
         t.el.remove();
         rhythm.targets.splice(i, 1);
       }
       continue;
     }
-    const age = now - t.spawnMs;
-    const progress = age / travelMs; // 0..1
+    const age = now - t.spawnPerf;
+    const progress = age / targetTravelMs;
     const x = spawnX - (spawnX - zoneX) * progress;
     t.el.style.left = (x - 46) + 'px'; // 46 = half of 92px target
 
-    // Miss: target left the good window
-    if (now > t.expectedHitMs + CONFIG.castle.rhythmGoodWindowMs) {
+    if (now > t.expectedHitPerf + CONFIG.castle.rhythmGoodWindowMs) {
       t.missed = true;
-      t.removedAtMs = now;
+      t.removedAtPerf = now;
       t.el.classList.add('missed');
       showRhythmFeedback('miss');
     }
   }
 
-  // End the session
-  if (now >= rhythm.endMs) {
+  // End the session once we've passed the last target's grace window
+  const lastBeatPerf = rhythm.startPerf + rhythm.lastBeatNumber * tempoMs;
+  if (now > lastBeatPerf + CONFIG.castle.rhythmGoodWindowMs + 200) {
     finishRhythm();
     return;
   }
@@ -3304,53 +3436,81 @@ function rhythmTick(now) {
   rhythm.rafId = requestAnimationFrame(rhythmTick);
 }
 
-function spawnRhythmTarget(now) {
+/* ----- Visual pulse on every beat: zone, tap button, dragon, countoff number ----- */
+function triggerVisualBeat(beatNumber) {
+  pulseClass(ui.rhythmZone,      'beat-pulse', 320);
+  pulseClass(ui.rhythmTapButton, 'beat-pulse', 320);
+  pulseClass(ui.rhythmDragon,    'beat-bob',   360);
+
+  if (beatNumber < COUNTOFF_BEATS) {
+    showCountoffNumber(beatNumber + 1);
+  }
+}
+
+function pulseClass(el, cls, ms) {
+  if (!el) return;
+  el.classList.remove(cls);
+  void el.offsetWidth;       // force reflow so the animation restarts
+  el.classList.add(cls);
+  setTimeout(() => el.classList.remove(cls), ms);
+}
+
+function showCountoffNumber(n) {
+  ui.rhythmCountoff.textContent = String(n);
+  ui.rhythmCountoff.classList.remove('show');
+  void ui.rhythmCountoff.offsetWidth;
+  ui.rhythmCountoff.classList.add('show');
+}
+
+function spawnRhythmTarget(beatNumber, spawnPerf, arrivePerf) {
   const id = rhythm.nextId++;
   const el = document.createElement('div');
   el.className = 'rhythm-target';
   el.dataset.id = String(id);
-  // place at spawn point initially (off-screen right)
   el.style.left = (rhythm.spawnX - 46) + 'px';
+  el.textContent = '★';
   ui.rhythmTrack.appendChild(el);
-  const travelMs = CONFIG.castle.rhythmTargetTravelSec * 1000;
   rhythm.targets.push({
     id, el,
-    spawnMs: now,
-    expectedHitMs: now + travelMs,
+    beatNumber,
+    spawnPerf,
+    expectedHitPerf: arrivePerf,
     hit: false,
     missed: false,
-    removedAtMs: 0,
+    removedAtPerf: 0,
   });
 }
 
+/* ----- Tap handling: spacebar or any tap on the tap button / shield ----- */
 function onRhythmTap() {
   if (!rhythm.active) return;
+  // Always give visual tap feedback so the player sees their tap registered
+  pulseClass(ui.rhythmTapButton, 'tap-pressed', 180);
   const now = performance.now();
-  // Find target closest to expectedHitMs
+  // Find target whose expected hit time is closest to now
   let best = null;
   let bestDelta = Infinity;
   for (const t of rhythm.targets) {
     if (t.hit || t.missed) continue;
-    const d = Math.abs(now - t.expectedHitMs);
+    const d = Math.abs(now - t.expectedHitPerf);
     if (d < bestDelta) { best = t; bestDelta = d; }
   }
-  if (!best) return; // no targets — silent tap
+  if (!best) return; // tap with no target nearby — silent
 
   const perfectMs = CONFIG.castle.rhythmPerfectWindowMs;
   const goodMs    = CONFIG.castle.rhythmGoodWindowMs;
   if (bestDelta <= perfectMs) {
     best.hit = true;
-    best.removedAtMs = now;
+    best.removedAtPerf = now;
     best.el.classList.add('hit');
     best.el.textContent = '✨';
     awardRhythm(CONFIG.castle.perfectReps, 'perfect');
   } else if (bestDelta <= goodMs) {
     best.hit = true;
-    best.removedAtMs = now;
+    best.removedAtPerf = now;
     best.el.classList.add('hit');
     awardRhythm(CONFIG.castle.goodReps, 'good');
   } else {
-    // Too far off — count nothing
     showRhythmFeedback('miss');
   }
 }
@@ -3359,12 +3519,10 @@ function awardRhythm(reps, kind) {
   rhythm.sessionReps += reps;
   ui.rhythmReps.textContent = rhythm.sessionReps;
   showRhythmFeedback(kind);
-  // Trigger lift animation on the dragon
   ui.rhythmDragon.classList.remove('lifting');
-  void ui.rhythmDragon.offsetWidth; // restart animation
+  void ui.rhythmDragon.offsetWidth;
   ui.rhythmDragon.classList.add('lifting');
   setTimeout(() => ui.rhythmDragon.classList.remove('lifting'), 400);
-  // Sound
   if (kind === 'perfect') liftClang(true);
   else liftClang(false);
 }
@@ -3383,18 +3541,16 @@ function finishRhythm() {
   rhythm.active = false;
   if (rhythm.rafId) cancelAnimationFrame(rhythm.rafId);
   rhythm.rafId = 0;
+  if (rhythm.schedulerHandle) clearInterval(rhythm.schedulerHandle);
+  rhythm.schedulerHandle = 0;
 
-  // Persist reps
   const { id } = activeDragonCfg();
-  const lifetimeBefore = rhythm.sessionStartReps;
   const lifetimeAfter = addDragonReps(id, rhythm.sessionReps);
-  const tierBefore = rhythm.sessionStartTier;
   const tierAfter = muscleTierFor(id);
 
-  // Populate results screen
   ui.resultsReps.textContent = rhythm.sessionReps;
   ui.resultsLifetime.textContent = lifetimeAfter;
-  if (tierAfter > tierBefore) {
+  if (tierAfter > rhythm.sessionStartTier) {
     const cfg = CONFIG.dragons[id];
     ui.resultsTierBanner.innerHTML = `<div class="tier-banner">🎉 ${cfg.name} reached Tier ${tierAfter}: ${CONFIG.castle.tierNames[tierAfter]}! 🎉</div>`;
     tierUpChord();
@@ -3407,7 +3563,6 @@ function finishRhythm() {
 
 function liftClang(perfect) {
   if (muted || !actx) return;
-  // Short metallic clang for hit, slightly higher for perfect
   const f = perfect ? 660 : 440;
   tone(f, 0.10, 'square', 0.04, 0.005);
   setTimeout(() => tone(f * 0.5, 0.14, 'sine', 0.05, 0.005), 30);
@@ -3465,12 +3620,22 @@ ui.gymHallDoorBtn.addEventListener('click', () => {
 // Tap the central barbell to start the rhythm mini-game
 ui.liftBtn.addEventListener('click', () => { onAnyTap(); startRhythm(); });
 
-// Rhythm input: tap-shield catches all taps; spacebar also fires when active
-ui.rhythmTapShield.addEventListener('click', () => { onAnyTap(); onRhythmTap(); });
+// Rhythm input: TAP button, tap-shield, and spacebar all score taps.
+// During the instruction overlay phase, the GO button dismisses it instead.
+ui.rhythmTapShield .addEventListener('click', () => { onAnyTap(); onRhythmTap(); });
+ui.rhythmTapButton .addEventListener('click', (e) => { e.stopPropagation(); onAnyTap(); onRhythmTap(); });
+ui.rhythmGoBtn     .addEventListener('click', (e) => { e.stopPropagation(); onAnyTap(); dismissRhythmIntro(); });
 window.addEventListener('keydown', (e) => {
-  if (screen === 'rhythm' && e.key === ' ') {
+  if (screen !== 'rhythm') return;
+  if (e.key === ' ' || e.key === 'Enter') {
     e.preventDefault();
-    onRhythmTap();
+    // If the instruction overlay is still up, treat key as the GO button
+    if (!ui.rhythmInstructions.classList.contains('hide') &&
+        ui.rhythmInstructions.style.display !== 'none') {
+      dismissRhythmIntro();
+    } else {
+      onRhythmTap();
+    }
   }
 });
 
