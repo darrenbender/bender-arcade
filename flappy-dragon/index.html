@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Flappy Dragon</title>
+<style>
+  /* ============================================================
+     RESET + BASE
+     Standard arcade reset: no margins, no iOS tap highlights,
+     no text selection, no pinch-zoom. System font per STANDARDS.
+     ============================================================ */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    background: linear-gradient(160deg, #87ceeb 0%, #4a8fb8 100%);
+    color: #fff;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  /* ============================================================
+     SCREEN SYSTEM (same as quantum-quest)
+     Each <section class="screen"> is a full-viewport panel.
+     Only the .active one is visible; goto() swaps which.
+     ============================================================ */
+  #game { position: fixed; inset: 0; }
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+    overflow-y: auto;
+  }
+  .screen.active { display: flex; }
+
+  /* ============================================================
+     TYPOGRAPHY — generous sizes for a 6-year-old.
+     ============================================================ */
+  h1 {
+    font-size: 48px;
+    margin-bottom: 12px;
+    text-shadow: 0 3px 10px rgba(0,0,0,0.35);
+  }
+  p {
+    font-size: 22px;
+    margin-bottom: 14px;
+    max-width: 480px;
+  }
+  .player {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .high-score {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffd86b;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    margin-bottom: 20px;
+  }
+  .new-best {
+    font-size: 30px;
+    font-weight: 900;
+    color: #ffd86b;
+    text-shadow: 0 0 10px #fff, 0 3px 8px rgba(0,0,0,0.4);
+    margin: 10px 0;
+    animation: pop 0.6s ease-out;
+  }
+  @keyframes pop {
+    0%   { transform: scale(0.6); opacity: 0; }
+    60%  { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+
+  /* ============================================================
+     BUTTONS — big, chunky, with a satisfying press animation.
+     Primary 84px tall (well above the 64px standard).
+     ============================================================ */
+  .btn {
+    font-family: inherit;
+    font-size: 28px;
+    font-weight: 800;
+    padding: 22px 40px;
+    min-width: 200px;
+    min-height: 84px;
+    border: none;
+    border-radius: 22px;
+    cursor: pointer;
+    background: linear-gradient(180deg, #ffd86b 0%, #ffb347 100%);
+    color: #2d1b69;
+    box-shadow: 0 6px 0 #b97a1f, 0 8px 20px rgba(0,0,0,0.3);
+    transition: transform 0.08s, box-shadow 0.08s;
+    margin: 10px;
+  }
+  .btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #b97a1f, 0 4px 10px rgba(0,0,0,0.3);
+  }
+  .btn.green {
+    background: linear-gradient(180deg, #7fe896 0%, #4cc66e 100%);
+    color: #1a3d28;
+    box-shadow: 0 6px 0 #2a7c45, 0 8px 20px rgba(0,0,0,0.3);
+  }
+  .btn.green:active { box-shadow: 0 2px 0 #2a7c45, 0 4px 10px rgba(0,0,0,0.3); }
+  .btn.purple {
+    background: linear-gradient(180deg, #c490ff 0%, #9b59ff 100%);
+    color: #fff;
+    box-shadow: 0 6px 0 #5e2cb5, 0 8px 20px rgba(0,0,0,0.3);
+  }
+  .btn.purple:active { box-shadow: 0 2px 0 #5e2cb5, 0 4px 10px rgba(0,0,0,0.3); }
+
+  .btn-secondary {
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 16px 32px;
+    min-height: 64px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    cursor: pointer;
+    margin-top: 18px;
+    transition: transform 0.1s, background 0.15s;
+  }
+  .btn-secondary:active {
+    transform: scale(0.96);
+    background: rgba(255, 255, 255, 0.28);
+  }
+
+  /* Mute pill — same look on the menu and the try-again screen. */
+  .mute-toggle {
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 12px 22px;
+    min-height: 56px;
+    min-width: 200px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  .mute-toggle:active { transform: scale(0.96); }
+
+  /* ============================================================
+     PLAY AREA — canvas centered in the viewport. The canvas
+     drawing buffer is fixed at 400×600; CSS scales the display
+     to fit whichever viewport dimension is tighter while
+     preserving the 2:3 aspect ratio.
+     ============================================================ */
+  .play-area {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+  .canvas-wrap {
+    position: relative;
+    aspect-ratio: 400 / 600;
+    width:  min(100vw, calc(100vh * 400 / 600));
+    height: min(100vh, calc(100vw * 600 / 400));
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+  canvas#flappy {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #87ceeb;
+  }
+  .play-hud {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 5;
+  }
+  .score-overlay {
+    font-size: 44px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 3px 0 #2a4d6a, 0 5px 12px rgba(0,0,0,0.4);
+    pointer-events: none;
+    line-height: 1;
+  }
+  .mute-mini {
+    width: 44px;
+    height: 44px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+  }
+  .mute-mini:active { transform: scale(0.92); }
+
+  .tap-hint {
+    position: absolute;
+    bottom: 28%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 18px;
+    font-size: 22px;
+    font-weight: 800;
+    pointer-events: none;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: translateX(-50%) scale(1);    opacity: 0.85; }
+    50%      { transform: translateX(-50%) scale(1.08); opacity: 1;    }
+  }
+
+  /* ============================================================
+     NAV BAR (STANDARDS §8). Hidden on menu / try-again,
+     visible during active play. White-on-dark to pop against
+     the sky.
+     ============================================================ */
+  .nav-bar {
+    position: fixed;
+    top: env(safe-area-inset-top, 12px);
+    right: 12px;
+    display: none;
+    gap: 12px;
+    z-index: 50;
+    padding-top: 12px;
+  }
+  .nav-bar.visible { display: flex; }
+  .nav-btn {
+    width: 64px;
+    height: 64px;
+    background: rgba(255,255,255,0.95);
+    border: none;
+    border-radius: 50%;
+    font-size: 28px;
+    color: #2d1b69;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.12s ease;
+    padding: 0;
+    font-family: inherit;
+  }
+  .nav-btn:active { transform: scale(0.9); }
+
+  /* ============================================================
+     CONFIRM DIALOG — soft mid-play exit safeguard.
+     ============================================================ */
+  .confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(15, 10, 40, 0.72);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .confirm-backdrop.show { display: flex; }
+  .confirm-card {
+    background: #fff;
+    color: #2d1b69;
+    border-radius: 28px;
+    padding: 28px 24px;
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    animation: pop 0.28s ease-out;
+  }
+  .confirm-card h2 {
+    font-size: 28px;
+    margin: 0 0 10px;
+    color: #2d1b69;
+    text-shadow: none;
+  }
+  .confirm-card p {
+    color: #5a4a6e;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0 0 22px;
+  }
+  .confirm-card .btn { display: block; width: 100%; margin: 0 0 12px; }
+  .confirm-card .btn:last-child { margin-bottom: 0; }
+
+  .fade-in { animation: fadeIn 0.4s ease-out; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<main id="game">
+
+  <!-- ====================================================
+       MENU SCREEN
+       ==================================================== -->
+  <section class="screen active" id="screen-menu">
+    <h1>Flappy Dragon 🐉</h1>
+    <div class="player">Hi <span id="menu-player">friend</span>!</div>
+    <div class="high-score">Best: <span id="menu-high">0</span></div>
+    <button class="btn green" id="menu-start" type="button">Start</button>
+    <button class="mute-toggle" id="menu-mute" type="button">🔇 Sound: Off</button>
+    <button class="btn-secondary" type="button" onclick="goHome()">← Back to Arcade</button>
+  </section>
+
+  <!-- ====================================================
+       PLAYING SCREEN — just the canvas + a small HUD overlay.
+       ==================================================== -->
+  <section class="screen" id="screen-play">
+    <div class="play-area">
+      <div class="canvas-wrap">
+        <canvas id="flappy" width="400" height="600"></canvas>
+        <div class="play-hud">
+          <button class="mute-mini" id="play-mute" type="button" aria-label="Toggle sound">🔇</button>
+          <div class="score-overlay" id="score-overlay">0</div>
+        </div>
+        <div class="tap-hint" id="tap-hint">Tap to flap!</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       TRY AGAIN SCREEN — soft "Oh no!" landing, never harsh.
+       ==================================================== -->
+  <section class="screen" id="screen-tryagain">
+    <h1>Oh no! Try again 🐉</h1>
+    <p>You got <span id="final-score" style="font-weight:900;color:#ffd86b">0</span>!</p>
+    <div id="new-best" class="new-best" style="display:none;">⭐ New best! ⭐</div>
+    <button class="btn green" id="ta-flap" type="button">Flap Again</button>
+    <button class="mute-toggle" id="ta-mute" type="button">🔇 Sound: Off</button>
+    <button class="btn-secondary" type="button" onclick="goHome()">← Back to Arcade</button>
+  </section>
+
+</main>
+
+<!-- Top-right nav bar (STANDARDS §8). goto() flips .visible. -->
+<div class="nav-bar" id="nav-bar">
+  <button class="nav-btn" id="nav-menu"   type="button" aria-label="Back to start screen">↩</button>
+  <button class="nav-btn" id="nav-arcade" type="button" aria-label="Back to arcade">🏠</button>
+</div>
+
+<!-- Mid-play confirm. Stops a stray finger from killing a run. -->
+<div class="confirm-backdrop" id="confirm-backdrop">
+  <div class="confirm-card">
+    <h2>Leave game?</h2>
+    <p>Your score won't be saved.</p>
+    <button class="btn green"  id="confirm-stay"  type="button">Keep Playing</button>
+    <button class="btn purple" id="confirm-leave" type="button">Yes, Leave</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   PLAYER CHECK (STANDARDS §5)
+   Read who's playing from localStorage. If empty, send them
+   back to the landing page so they can pick a name.
+   ============================================================ */
+let player = localStorage.getItem('arcade-current-player');
+if (!player) {
+  window.location.href = '/';
+}
+
+const STORAGE_PREFIX = 'flappy-dragon';
+const HIGH_KEY = `${STORAGE_PREFIX}:${player}:highScore`;
+const MUTE_KEY = `${STORAGE_PREFIX}:${player}:muted`;
+
+let highScore = Number(localStorage.getItem(HIGH_KEY)) || 0;
+// Default to MUTED on first load. The browser won't let us
+// play sound before a user gesture anyway (iOS rule), and
+// silent-by-default is friendlier in mixed environments.
+let muted = localStorage.getItem(MUTE_KEY) !== 'false';
+
+document.getElementById('menu-player').textContent = player || 'friend';
+document.getElementById('menu-high').textContent = highScore;
+
+/* ============================================================
+   AUDIO — Web Audio API. Lazy-initialised on the first user
+   gesture so iOS Safari permits sound. Three short tones:
+     flap   — quick high → low whoosh
+     score  — bright triangle ding
+     crash  — soft low boop (never harsh, no buzzers)
+   ============================================================ */
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function tone(freqStart, freqEnd, durationMs, type, volume) {
+  if (muted || !audioCtx) return;
+  const t   = audioCtx.currentTime;
+  const dur = durationMs / 1000;
+  const osc  = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freqStart, t);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(40, freqEnd), t + dur);
+  // Tiny attack + exponential decay so the tone never clicks.
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(volume, t + 0.008);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + dur + 0.02);
+}
+function sndFlap()  { tone(620, 240, 110, 'sine',     0.18); }
+function sndScore() { tone(880, 880, 140, 'triangle', 0.16); }
+function sndCrash() { tone(220, 110, 280, 'sine',     0.22); }
+
+function updateMuteUI() {
+  const longLabel = muted ? '🔇 Sound: Off' : '🔊 Sound: On';
+  const shortLabel = muted ? '🔇' : '🔊';
+  const menuBtn = document.getElementById('menu-mute');
+  const playBtn = document.getElementById('play-mute');
+  const taBtn   = document.getElementById('ta-mute');
+  if (menuBtn) menuBtn.textContent = longLabel;
+  if (taBtn)   taBtn.textContent   = longLabel;
+  if (playBtn) playBtn.textContent = shortLabel;
+}
+function toggleMute() {
+  muted = !muted;
+  localStorage.setItem(MUTE_KEY, String(muted));
+  updateMuteUI();
+  if (!muted) ensureAudio();
+}
+document.getElementById('menu-mute').addEventListener('click', toggleMute);
+document.getElementById('play-mute').addEventListener('click', toggleMute);
+document.getElementById('ta-mute').addEventListener('click', toggleMute);
+updateMuteUI();
+
+/* ============================================================
+   SCREEN MANAGER
+   ============================================================ */
+let currentScreen = 'screen-menu';
+function goto(screenId) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.classList.remove('fade-in');
+  });
+  const target = document.getElementById(screenId);
+  target.classList.add('active');
+  requestAnimationFrame(() => target.classList.add('fade-in'));
+  currentScreen = screenId;
+  // Nav bar visible only while a run is on screen.
+  const showNav = screenId === 'screen-play';
+  document.getElementById('nav-bar').classList.toggle('visible', showNav);
+}
+function goHome() { window.location.href = '/'; }
+
+/* ============================================================
+   GAME CONSTANTS — physics tuning knobs.
+   All speeds/accelerations are in "px per frame at 60Hz".
+   The loop scales by dt so the *real* speed stays constant
+   regardless of the display's refresh rate.
+   ============================================================ */
+const CANVAS_W       = 400;
+const CANVAS_H       = 600;
+const GROUND_H       = 60;
+const PLAY_H         = CANVAS_H - GROUND_H;     // 540 px of flying room
+
+const DRAGON_SIZE    = 48;
+const DRAGON_HALF    = DRAGON_SIZE / 2;
+const DRAGON_X       = 80;
+
+const GRAVITY        = 0.4;     // px/frame² pulling the dragon down
+const FLAP_VY        = -7;      // instant upward velocity on a tap
+const MAX_FALL       = 8;       // terminal downward velocity
+
+const TOWER_W        = 70;
+const TOWER_SPACING  = 280;     // horizontal distance between tower pairs
+const TOWER_CREN_H   = 12;      // crenellation depth on the gap-facing edge
+
+const BASE_SPEED     = 2;       // starting scroll speed
+const BASE_GAP       = 200;     // starting gap height (very generous)
+const MIN_GAP        = 140;     // hardest gap
+const MAX_SPEED      = 3.5;     // hardest scroll speed
+
+const canvas = document.getElementById('flappy');
+const ctx    = canvas.getContext('2d');
+
+// Mutable game state — reset by resetGame().
+let dragon, towers, score, speed, gapHeight;
+let wingTimer;
+let clouds, mountains, groundOffset;
+let running = false;     // is the requestAnimationFrame loop active?
+let crashed = false;     // has the dragon already hit something this run?
+let lastTime = 0;
+
+function resetGame() {
+  dragon       = { x: DRAGON_X, y: 300, vy: 0 };
+  towers       = [];
+  score        = 0;
+  speed        = BASE_SPEED;
+  gapHeight    = BASE_GAP;
+  wingTimer    = 0;
+  groundOffset = 0;
+  crashed      = false;
+  // Three slow-drifting clouds at varied heights & sizes.
+  clouds = [
+    { x:  60, y:  80, r: 22 },
+    { x: 220, y:  50, r: 30 },
+    { x: 320, y: 130, r: 18 },
+  ];
+  // Static far-away mountain peaks (don't visibly parallax).
+  mountains = [
+    { x:  40, h:  90 },
+    { x: 130, h: 130 },
+    { x: 230, h: 100 },
+    { x: 330, h: 140 },
+  ];
+  // Spawn the first tower with extra runway so the dragon has
+  // time to settle before the first obstacle.
+  spawnTower(CANVAS_W + 80);
+  document.getElementById('score-overlay').textContent = '0';
+  document.getElementById('tap-hint').style.display = 'block';
+}
+
+function spawnTower(x) {
+  // gapY is the Y of the top of the gap (bottom edge of the
+  // upper tower). Keep the gap fully inside the play area with
+  // a 50 px buffer top and bottom so it's always reachable.
+  const margin = 50;
+  const gapY = margin + Math.random() * (PLAY_H - gapHeight - margin * 2);
+  towers.push({ x, gapY, gapH: gapHeight, passed: false });
+}
+
+/* ============================================================
+   INPUT
+   Tap, click, or spacebar = flap. The first flap on a fresh
+   play screen also kicks off the requestAnimationFrame loop
+   so the kid gets a moment to orient before the dragon falls.
+   ============================================================ */
+function flap() {
+  ensureAudio();
+  if (currentScreen !== 'screen-play') return;
+  if (crashed) return;                      // dead dragon doesn't flap
+  if (!running) {
+    running  = true;
+    lastTime = 0;
+    document.getElementById('tap-hint').style.display = 'none';
+    requestAnimationFrame(loop);
+  }
+  dragon.vy = FLAP_VY;
+  wingTimer = 8;                            // wings "up" for ~8 frames
+  sndFlap();
+}
+
+canvas.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  flap();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.code !== 'Space') return;
+  e.preventDefault();
+  if (currentScreen === 'screen-menu')          startGame();
+  else if (currentScreen === 'screen-play')     flap();
+  else if (currentScreen === 'screen-tryagain') startGame();
+});
+
+/* ============================================================
+   STARTING A GAME
+   ============================================================ */
+function startGame() {
+  ensureAudio();
+  resetGame();
+  goto('screen-play');
+  // Paint one static frame so the dragon is visible while the
+  // player gets ready. The loop only starts on the first flap.
+  draw();
+}
+document.getElementById('menu-start').addEventListener('click', startGame);
+document.getElementById('ta-flap').addEventListener('click', startGame);
+// Tapping anywhere on the menu (other than its own buttons)
+// also starts the game — extra forgiving for tiny fingers.
+document.getElementById('screen-menu').addEventListener('click', (e) => {
+  if (e.target.closest('button')) return;
+  startGame();
+});
+
+/* ============================================================
+   THE GAME LOOP
+   requestAnimationFrame fires roughly once per screen refresh
+   (≈60 Hz on most displays, 120 Hz on iPad Pro). We measure
+   the real elapsed time between ticks and scale all per-frame
+   motion by (dt / 16.67) so the game runs at the same real
+   speed regardless of refresh rate.
+   ============================================================ */
+function loop(now) {
+  if (!running) return;
+  if (!lastTime) lastTime = now;
+  // Cap dt so a tab regain after a long pause doesn't teleport
+  // the dragon through every tower in one giant step.
+  const dt      = Math.min(40, now - lastTime);
+  lastTime      = now;
+  const dtScale = dt / 16.67;
+
+  update(dtScale);
+  draw();
+
+  if (running) requestAnimationFrame(loop);
+}
+
+/* ============================================================
+   UPDATE — gravity → velocity → position; scroll the world;
+   spawn / score / cull towers; detect collisions.
+   ============================================================ */
+function update(s) {
+  /* ---- Dragon physics ----------------------------------------
+     Acceleration (gravity) changes velocity each frame; velocity
+     changes position. Cap downward velocity so the dragon never
+     falls faster than the kid can react to. */
+  dragon.vy += GRAVITY * s;
+  if (dragon.vy > MAX_FALL) dragon.vy = MAX_FALL;
+  dragon.y  += dragon.vy * s;
+
+  // Wing flap timer decays over time.
+  if (wingTimer > 0) wingTimer -= s;
+
+  /* ---- World scroll ----------------------------------------- */
+  for (const t of towers) t.x -= speed * s;
+  groundOffset = (groundOffset + speed * s) % 40;
+  // Clouds drift slower than the foreground (parallax).
+  for (const c of clouds) {
+    c.x -= speed * 0.3 * s;
+    if (c.x + c.r < 0) { c.x = CANVAS_W + c.r; c.y = 40 + Math.random() * 120; }
+  }
+
+  /* ---- Tower spawn / cleanup -------------------------------- */
+  const last = towers[towers.length - 1];
+  if (last && last.x < CANVAS_W - TOWER_SPACING) {
+    spawnTower(CANVAS_W);
+  }
+  while (towers.length && towers[0].x + TOWER_W < 0) towers.shift();
+
+  /* ---- Scoring + difficulty ramp ---------------------------- */
+  for (const t of towers) {
+    // Score when the tower's right edge passes the dragon's x.
+    if (!t.passed && t.x + TOWER_W < dragon.x) {
+      t.passed = true;
+      score++;
+      sndScore();
+      document.getElementById('score-overlay').textContent = score;
+      // Past score 5: shrink the gap 5 px per tower, floor 140.
+      if (score > 5) {
+        gapHeight = Math.max(MIN_GAP, BASE_GAP - (score - 5) * 5);
+      }
+      // Past score 10: speed up 0.1 per tower, cap 3.5.
+      if (score > 10) {
+        speed = Math.min(MAX_SPEED, BASE_SPEED + (score - 10) * 0.1);
+      }
+    }
+  }
+
+  /* ---- Collision detection ---------------------------------
+     AABB (axis-aligned bounding box): two rectangles overlap
+     when one's right edge is past the other's left edge AND
+     one's bottom is past the other's top, on BOTH axes.
+     The dragon's hitbox is a 32×32 square centered on its
+     position — smaller than its 48×48 visual so close shaves
+     feel forgiving instead of frustrating. */
+  const HITBOX = 16;     // half-size
+  const dL = dragon.x - HITBOX, dR = dragon.x + HITBOX;
+  const dT = dragon.y - HITBOX, dB = dragon.y + HITBOX;
+
+  // Ground = the green strip at the bottom of the play area.
+  if (dB >= PLAY_H) { crash(); return; }
+  // Soft ceiling — bump back instead of crashing on top edge.
+  if (dT < 0) { dragon.y = HITBOX; dragon.vy = 0; }
+
+  for (const t of towers) {
+    const tL = t.x, tR = t.x + TOWER_W;
+    if (dR < tL || dL > tR) continue;                  // miss horizontally
+    if (dT < t.gapY)               { crash(); return; } // hit top tower
+    if (dB > t.gapY + t.gapH)      { crash(); return; } // hit bottom tower
+  }
+}
+
+function crash() {
+  running = false;
+  crashed = true;
+  sndCrash();
+  // Save / surface high score.
+  let newBest = false;
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem(HIGH_KEY, String(highScore));
+    newBest = true;
+  }
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('menu-high').textContent   = highScore;
+  // Re-trigger the new-best animation if applicable.
+  const nbEl = document.getElementById('new-best');
+  if (newBest) {
+    nbEl.style.display = 'block';
+    nbEl.classList.remove('new-best');
+    void nbEl.offsetWidth;          // force reflow → restart animation
+    nbEl.classList.add('new-best');
+  } else {
+    nbEl.style.display = 'none';
+  }
+  // Brief delay so the kid sees what they hit before the swap.
+  setTimeout(() => goto('screen-tryagain'), 450);
+}
+
+/* ============================================================
+   DRAW — paints one frame, back to front.
+   ============================================================ */
+function draw() {
+  // Sky gradient (cheap enough to rebuild each frame).
+  const sky = ctx.createLinearGradient(0, 0, 0, PLAY_H);
+  sky.addColorStop(0, '#87ceeb');
+  sky.addColorStop(1, '#b8e0f5');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, CANVAS_W, PLAY_H);
+
+  drawMountains();
+  drawClouds();
+  drawTowers();
+  drawGround();
+  drawDragon();
+}
+
+function drawMountains() {
+  // Back layer — far peaks, dusty blue.
+  ctx.fillStyle = '#6a8db0';
+  for (const m of mountains) {
+    ctx.beginPath();
+    ctx.moveTo(m.x - 70, PLAY_H);
+    ctx.lineTo(m.x,       PLAY_H - m.h);
+    ctx.lineTo(m.x + 70,  PLAY_H);
+    ctx.closePath();
+    ctx.fill();
+  }
+  // Front layer — slightly darker, slightly forward.
+  ctx.fillStyle = '#557a9c';
+  ctx.beginPath();
+  ctx.moveTo(0,   PLAY_H);
+  ctx.lineTo(80,  PLAY_H - 60);
+  ctx.lineTo(180, PLAY_H);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(260, PLAY_H);
+  ctx.lineTo(330, PLAY_H - 70);
+  ctx.lineTo(400, PLAY_H);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawClouds() {
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  for (const c of clouds) {
+    ctx.beginPath();
+    ctx.arc(c.x,         c.y,         c.r,         0, Math.PI * 2);
+    ctx.arc(c.x + c.r,   c.y + 4,     c.r * 0.8,   0, Math.PI * 2);
+    ctx.arc(c.x - c.r,   c.y + 4,     c.r * 0.8,   0, Math.PI * 2);
+    ctx.arc(c.x + c.r/2, c.y - c.r/2, c.r * 0.7,   0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawTowers() {
+  for (const t of towers) {
+    drawTowerHalf(t.x, 0,                t.gapY,                  true);   // top
+    drawTowerHalf(t.x, t.gapY + t.gapH,  PLAY_H - (t.gapY + t.gapH), false); // bottom
+  }
+}
+
+// One half of a tower pair. `flipped` means the crenellation
+// lives on the BOTTOM edge (the top tower hanging from above).
+// We draw the body, then the merlons (the solid blocks). The
+// crenels (the notches between merlons) are simply *not drawn*,
+// so the sky/mountains behind show through cleanly.
+function drawTowerHalf(x, y, h, flipped) {
+  if (h <= 0) return;
+  const cH = TOWER_CREN_H;
+  const M  = 18, C = 8;                       // 3 merlons of 18, 2 crenels of 8 = 70
+
+  // Body
+  ctx.fillStyle = '#888';
+  if (flipped) ctx.fillRect(x, y,        TOWER_W, h - cH);
+  else         ctx.fillRect(x, y + cH,   TOWER_W, h - cH);
+
+  // Merlons (solid blocks on the gap-facing edge)
+  const merlonY = flipped ? (y + h - cH) : y;
+  ctx.fillRect(x + 0,         merlonY, M, cH);
+  ctx.fillRect(x + M + C,     merlonY, M, cH);
+  ctx.fillRect(x + 2*(M + C), merlonY, M, cH);
+
+  // Mortar lines — aligned to absolute Y so adjacent towers'
+  // courses line up across the gap. Skip lines that would land
+  // inside the crenellation strip.
+  ctx.fillStyle = '#6c6c6c';
+  const bodyTop    = flipped ? y          : (y + cH);
+  const bodyBottom = flipped ? (y + h - cH) : (y + h);
+  for (let yy = Math.ceil(bodyTop / 40) * 40; yy < bodyBottom; yy += 40) {
+    if (yy >= bodyTop) ctx.fillRect(x, yy, TOWER_W, 2);
+  }
+
+  // Side shadow — a darker stripe down the right edge gives a
+  // hint of depth without needing a real 3D render.
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.fillRect(x + TOWER_W - 6, bodyTop, 6, bodyBottom - bodyTop);
+}
+
+function drawGround() {
+  // Main green strip
+  ctx.fillStyle = '#7ec850';
+  ctx.fillRect(0, PLAY_H, CANVAS_W, GROUND_H);
+  // Darker line on top
+  ctx.fillStyle = '#5fa83a';
+  ctx.fillRect(0, PLAY_H, CANVAS_W, 6);
+  // Little grass tufts that scroll with the world
+  ctx.fillStyle = '#5fa83a';
+  for (let gx = -groundOffset; gx < CANVAS_W; gx += 40) {
+    ctx.fillRect(gx + 6,  PLAY_H + 10, 4, 8);
+    ctx.fillRect(gx + 14, PLAY_H + 14, 4, 6);
+  }
+}
+
+function drawDragon() {
+  ctx.save();
+  ctx.translate(dragon.x, dragon.y);
+  // Tilt up when flapping, down when falling — clamped so we
+  // never spin the dragon all the way around.
+  const tilt = Math.max(-0.35, Math.min(0.7, dragon.vy * 0.06));
+  ctx.rotate(tilt);
+
+  // Body — rounded green square.
+  ctx.fillStyle = '#5fb04a';
+  roundRect(-DRAGON_HALF, -DRAGON_HALF, DRAGON_SIZE, DRAGON_SIZE, 14);
+  ctx.fill();
+
+  // Belly highlight
+  ctx.fillStyle = '#8ed178';
+  roundRect(-12, 0, 24, 16, 8);
+  ctx.fill();
+
+  // Tail
+  ctx.fillStyle = '#5fb04a';
+  ctx.beginPath();
+  ctx.moveTo(-DRAGON_HALF,      -2);
+  ctx.lineTo(-DRAGON_HALF - 12,  4);
+  ctx.lineTo(-DRAGON_HALF,      10);
+  ctx.closePath();
+  ctx.fill();
+
+  // Wing — darker green. Snaps "up" right after a flap, droops
+  // back down once the wingTimer has decayed to zero.
+  const wingUp = wingTimer > 0;
+  ctx.fillStyle = '#3e7e2e';
+  ctx.beginPath();
+  if (wingUp) {
+    ctx.moveTo(-4, -4);
+    ctx.lineTo(-18, -20);
+    ctx.lineTo( 6, -10);
+  } else {
+    ctx.moveTo(-4,  0);
+    ctx.lineTo(-18, 14);
+    ctx.lineTo( 6,  4);
+  }
+  ctx.closePath();
+  ctx.fill();
+
+  // Eye — friendly black dot with a white highlight.
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(8, -6, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#222';
+  ctx.beginPath(); ctx.arc(10, -6, 3, 0, Math.PI * 2); ctx.fill();
+
+  // Tiny smile
+  ctx.strokeStyle = '#1a3d28';
+  ctx.lineWidth   = 2;
+  ctx.beginPath();
+  ctx.arc(8, 6, 5, 0.1 * Math.PI, 0.9 * Math.PI);
+  ctx.stroke();
+
+  // Little horn nub on the head
+  ctx.fillStyle = '#3e7e2e';
+  ctx.beginPath();
+  ctx.moveTo(4,  -DRAGON_HALF);
+  ctx.lineTo(8,  -DRAGON_HALF - 6);
+  ctx.lineTo(12, -DRAGON_HALF);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// Traces a rounded-rectangle path; call ctx.fill() afterward.
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+/* ============================================================
+   NAV BAR + CONFIRM DIALOG (STANDARDS §8)
+   Two corner buttons leave the game. While a run is live,
+   opening the soft-confirm modal first prevents a stray tap
+   from killing it. The dragon-not-yet-flapped state isn't
+   "live" — leaving there has no progress to protect.
+   ============================================================ */
+function isActivePlay() {
+  return currentScreen === 'screen-play' && running;
+}
+
+let pendingLeaveAction = null;
+let pausedByConfirm    = false;
+
+function showConfirm(action) {
+  pendingLeaveAction = action;
+  // Freeze the run while the dialog is up — otherwise the dragon
+  // keeps falling in the background and dies while the kid is
+  // deciding. Resume on hideConfirm if "Keep Playing" wins.
+  if (running) { pausedByConfirm = true; running = false; }
+  document.getElementById('confirm-backdrop').classList.add('show');
+}
+function hideConfirm() {
+  document.getElementById('confirm-backdrop').classList.remove('show');
+  pendingLeaveAction = null;
+  if (pausedByConfirm) {
+    pausedByConfirm = false;
+    running  = true;
+    lastTime = 0;                       // avoid a giant dt spike
+    requestAnimationFrame(loop);
+  }
+}
+
+function leaveToMenu()   { running = false; crashed = false; goto('screen-menu'); }
+function leaveToArcade() { running = false; window.location.href = '/'; }
+
+document.getElementById('nav-menu').addEventListener('click', () => {
+  if (isActivePlay()) showConfirm(leaveToMenu); else leaveToMenu();
+});
+document.getElementById('nav-arcade').addEventListener('click', () => {
+  if (isActivePlay()) showConfirm(leaveToArcade); else leaveToArcade();
+});
+document.getElementById('confirm-stay').addEventListener('click', hideConfirm);
+document.getElementById('confirm-leave').addEventListener('click', () => {
+  const action = pendingLeaveAction;
+  hideConfirm();
+  if (action) action();
+});
+</script>
+
+</body>
+</html>
