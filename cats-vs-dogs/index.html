@@ -127,10 +127,103 @@
     </div>
     <div class="team-actions">
       <button class="btn-primary" type="button" id="team-save">Save My Team</button>
-      <button class="btn-tertiary" type="button" id="team-edit">Edit Team</button>
       <button class="btn-tertiary" type="button" id="team-restart">Start Over</button>
     </div>
     <button class="btn-secondary" type="button" onclick="goHome()">← Back to Arcade</button>
+  </section>
+
+  <!-- ============================================================
+       PICK PLAYER — "Who do you want to be?"
+       ============================================================ -->
+  <section class="screen" id="screen-pick-player">
+    <h1>Who do you want to be?</h1>
+    <p class="lead">Tap one to play!</p>
+    <div class="pick-player-grid">
+      <button class="pick-player-card" type="button" id="pick-cat">
+        <div class="pick-player-art" id="pick-cat-art"></div>
+        <div class="pick-player-label">Play as Cat</div>
+      </button>
+      <button class="pick-player-card" type="button" id="pick-dog">
+        <div class="pick-player-art" id="pick-dog-art"></div>
+        <div class="pick-player-label">Play as Dog</div>
+      </button>
+    </div>
+    <div class="pick-player-actions">
+      <button class="btn-tertiary" type="button" id="pick-edit">Edit Team</button>
+    </div>
+    <button class="btn-secondary" type="button" onclick="goHome()">← Back to Arcade</button>
+  </section>
+
+  <!-- ============================================================
+       PLAY AREA — the prototype
+       ============================================================ -->
+  <section class="screen" id="screen-play">
+    <div class="play-area" id="play-area">
+      <!-- Background pattern (soft wood + rug) -->
+      <svg class="play-bg" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <radialGradient id="floorGlow" cx="50%" cy="50%" r="80%">
+            <stop offset="0%" stop-color="#fff4dc"/>
+            <stop offset="100%" stop-color="#f0d9b0"/>
+          </radialGradient>
+          <linearGradient id="rugFill" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#d99b76"/>
+            <stop offset="100%" stop-color="#c47a55"/>
+          </linearGradient>
+          <pattern id="weave" width="20" height="20" patternUnits="userSpaceOnUse">
+            <rect width="20" height="20" fill="url(#rugFill)"/>
+            <path d="M 0 10 L 20 10 M 10 0 L 10 20" stroke="#a85e3a" stroke-width="0.6" opacity="0.4"/>
+          </pattern>
+        </defs>
+        <!-- floor -->
+        <rect class="bg-floor" width="100%" height="100%" fill="url(#floorGlow)"/>
+        <!-- soft wood plank hint -->
+        <g class="bg-planks" opacity="0.18" stroke="#a87850" stroke-width="1.2" fill="none">
+          <line x1="0" y1="14%" x2="100%" y2="14%"/>
+          <line x1="0" y1="34%" x2="100%" y2="34%"/>
+          <line x1="0" y1="58%" x2="100%" y2="58%"/>
+          <line x1="0" y1="82%" x2="100%" y2="82%"/>
+        </g>
+        <!-- rug centered -->
+        <rect class="bg-rug" x="6%" y="10%" width="88%" height="80%" rx="42" ry="42"
+              fill="url(#weave)" stroke="#8b4a2a" stroke-width="6" stroke-linejoin="round"/>
+        <!-- decorative border stripe inside the rug -->
+        <rect x="9%" y="14%" width="82%" height="72%" rx="32" ry="32"
+              fill="none" stroke="#fff4dc" stroke-width="3" opacity="0.55" stroke-dasharray="14 10"/>
+        <!-- corner flowers -->
+        <g class="bg-flowers" opacity="0.6">
+          <circle cx="12%" cy="16%" r="6" fill="#fff4dc"/>
+          <circle cx="88%" cy="16%" r="6" fill="#fff4dc"/>
+          <circle cx="12%" cy="84%" r="6" fill="#fff4dc"/>
+          <circle cx="88%" cy="84%" r="6" fill="#fff4dc"/>
+        </g>
+      </svg>
+
+      <!-- Actors are inserted by JS -->
+      <div class="actor" id="actor-cat"><div class="actor-inner" id="actor-cat-inner"></div></div>
+      <div class="actor" id="actor-dog"><div class="actor-inner" id="actor-dog-inner"></div></div>
+
+      <!-- Dust puff overlay (positioned at bump center by JS) -->
+      <div class="dust-puff" id="dust-puff" aria-hidden="true">
+        <svg viewBox="0 0 100 100">
+          <circle class="puff-a" cx="50" cy="50" r="22" fill="#fff4dc"/>
+          <circle class="puff-b" cx="32" cy="40" r="14" fill="#ffe4b5"/>
+          <circle class="puff-c" cx="68" cy="42" r="14" fill="#ffe4b5"/>
+          <circle class="puff-d" cx="42" cy="62" r="10" fill="#fff4dc"/>
+          <circle class="puff-e" cx="62" cy="64" r="10" fill="#fff4dc"/>
+          <g class="puff-sparkles" stroke="#ffd86b" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.85">
+            <path d="M 20 28 l 6 6 M 26 28 l -6 6"/>
+            <path d="M 76 30 l 6 6 M 82 30 l -6 6"/>
+            <path d="M 50 16 l 0 8 M 46 20 l 8 0"/>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Optional "tap and drag" hint shown briefly on first entry -->
+      <div class="play-hint" id="play-hint">
+        <span>Arrow keys, WASD, or drag to move</span>
+      </div>
+    </div>
   </section>
 
 </main>

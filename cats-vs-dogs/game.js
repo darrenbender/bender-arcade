@@ -21,15 +21,19 @@ const state = {
 };
 
 /* ---------- SCREEN NAV ---------- */
-const SCREENS = ['intro', 'cat-choose', 'cat-customize', 'dog-choose', 'dog-customize', 'team'];
+const SCREENS = ['intro', 'cat-choose', 'cat-customize', 'dog-choose', 'dog-customize', 'team', 'pick-player', 'play'];
 function goto(name) {
+  // Stop the play loop whenever we leave the play screen.
+  if (name !== 'play') stopPlay();
   SCREENS.forEach(s => {
     const el = document.getElementById(`screen-${s}`);
     if (el) el.classList.toggle('active', s === name);
   });
-  // Nav bar visible on choose/customize screens, hidden on intro/team
-  const showNav = (name !== 'intro' && name !== 'team');
+  // Nav bar visible on choose/customize screens AND play, hidden on intro/team/pick-player.
+  const showNav = !(name === 'intro' || name === 'team' || name === 'pick-player');
   document.getElementById('nav-bar').classList.toggle('visible', showNav);
+  if (name === 'play') startPlay();
+  if (name === 'pick-player') paintPickPlayer();
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 function goHome() { window.location.href = '/'; }
@@ -1987,14 +1991,14 @@ function paintTeam(savedAlready) {
   document.getElementById('team-cat-slot').innerHTML = renderAnimal('cat', state.cat);
   document.getElementById('team-dog-slot').innerHTML = renderAnimal('dog', state.dog);
   document.getElementById('team-save').classList.toggle('hidden', !!savedAlready);
-  document.getElementById('team-edit').classList.toggle('hidden', !savedAlready);
   document.getElementById('team-restart').classList.toggle('hidden', !!savedAlready);
 }
 function saveTeam() {
   localStorage.setItem(CAT_KEY, JSON.stringify(state.cat));
   localStorage.setItem(DOG_KEY, JSON.stringify(state.dog));
   toast('Saved! 🎉');
-  paintTeam(true);
+  // Advance to "Who do you want to be?"
+  setTimeout(() => goto('pick-player'), 350);
 }
 function startOver() {
   state.cat = { ...DEFAULT_CAT };
@@ -2004,6 +2008,7 @@ function startOver() {
 }
 function editTeam() {
   goto('cat-choose');
+  paintChooseGrid('cat');
 }
 
 /* ============================================================
@@ -2015,6 +2020,14 @@ function paintIntro() {
     catSitting({ ...DEFAULT_CAT });
   document.getElementById('intro-dog-slot').innerHTML =
     dogSitting({ ...DEFAULT_DOG, eyeColor: 'blue' });
+}
+
+/* ============================================================
+   PICK-PLAYER SCREEN — "Who do you want to be?"
+   ============================================================ */
+function paintPickPlayer() {
+  document.getElementById('pick-cat-art').innerHTML = renderAnimal('cat', state.cat);
+  document.getElementById('pick-dog-art').innerHTML = renderAnimal('dog', state.dog);
 }
 
 /* ============================================================
@@ -2030,11 +2043,389 @@ function toast(msg) {
 }
 
 /* ============================================================
-   NAV BAR HANDLERS — since there's no live gameplay in step 1
-   the nav buttons just go (no confirm dialog needed per brief).
+   PLAY SCREEN — the prototype game loop
+   ============================================================ */
+
+// Tunables
+const PLAYER_SPEED       = 5.2;   // pixels per frame at 60fps
+const AI_SPEED_MULT      = 0.7;
+const KEY_DECEL          = 0.85;  // velocity multiplier per frame when no input
+const AI_BEHAVIOR_MIN_MS = 1500;
+const AI_BEHAVIOR_MAX_MS = 3000;
+const BUMP_FREEZE_MS     = 1500;  // play-fight animation length
+const BUMP_COOLDOWN_MS   = 800;   // after the freeze ends, ignore collisions for this long
+const PUSH_APART_PX      = 14;    // how far to nudge them after a bump
+
+// Runtime state
+const play = {
+  running: false,
+  playerKind: 'cat',          // 'cat' or 'dog'
+  aiKind: 'dog',
+  cat: makeActorState(),
+  dog: makeActorState(),
+  areaW: 0,
+  areaH: 0,
+  keys: { left:false, right:false, up:false, down:false },
+  touch: { active: false, x: 0, y: 0 },
+  aiNextChange: 0,
+  aiBehavior: 'wander',       // 'wander' | 'chase' | 'flee'
+  aiTargetX: 0,
+  aiTargetY: 0,
+  bumpUntil: 0,               // timestamp the freeze ends
+  bumpCooldownUntil: 0,       // timestamp until which collisions are ignored
+  bumping: false,
+  rafId: 0,
+  lastT: 0,
+  hintTimer: 0,
+};
+function makeActorState() {
+  return { x: 0, y: 0, vx: 0, vy: 0, facing: 1, radius: 40, frame: 100 };
+}
+
+function startPlay() {
+  if (play.running) return;
+  initPlay();
+  play.running = true;
+  play.lastT = performance.now();
+  play.rafId = requestAnimationFrame(tick);
+  showHint();
+}
+function stopPlay() {
+  if (!play.running) return;
+  play.running = false;
+  cancelAnimationFrame(play.rafId);
+  // remove keyboard listeners by toggling a flag (handlers check play.running)
+}
+function initPlay() {
+  const area = document.getElementById('play-area');
+  const rect = area.getBoundingClientRect();
+  play.areaW = rect.width;
+  play.areaH = rect.height;
+
+  // size both actors based on play area height (~1/6)
+  const baseFrame = Math.min(rect.height, rect.width) * 0.22;
+  const catFrame = baseFrame * (SIZE_SCALE[state.cat.size] || 1);
+  const dogFrame = baseFrame * (SIZE_SCALE[state.dog.size] || 1);
+
+  // The SIZE_SCALE inside renderAnimal also shrinks the SVG, but here we want
+  // size variation to affect the visible play area sprite. We'll set the
+  // wrapper frame from baseFrame * SIZE_SCALE and inject the raw SVG so the
+  // SVG fills the wrapper (skip the renderAnimal size-wrap layer).
+  document.getElementById('actor-cat-inner').innerHTML = rawSvg('cat', state.cat);
+  document.getElementById('actor-dog-inner').innerHTML = rawSvg('dog', state.dog);
+
+  const catEl = document.getElementById('actor-cat');
+  const dogEl = document.getElementById('actor-dog');
+  catEl.style.width = catEl.style.height = `${catFrame}px`;
+  dogEl.style.width = dogEl.style.height = `${dogFrame}px`;
+
+  play.cat.frame = catFrame;
+  play.dog.frame = dogFrame;
+  play.cat.radius = catFrame * 0.30;
+  play.dog.radius = dogFrame * 0.30;
+
+  // initial positions: cat left-middle, dog right-middle, both inside bounds
+  play.cat.x = clamp(rect.width * 0.30, play.cat.radius, rect.width - play.cat.radius);
+  play.cat.y = rect.height * 0.55;
+  play.dog.x = clamp(rect.width * 0.70, play.dog.radius, rect.width - play.dog.radius);
+  play.dog.y = rect.height * 0.55;
+  play.cat.vx = play.cat.vy = 0;
+  play.dog.vx = play.dog.vy = 0;
+  play.cat.facing = 1;  // cat starts facing right (toward dog)
+  play.dog.facing = -1; // dog starts facing left (toward cat)
+
+  play.aiKind = (play.playerKind === 'cat') ? 'dog' : 'cat';
+  pickAiBehavior(performance.now());
+
+  // reset timers
+  play.bumpUntil = 0;
+  play.bumpCooldownUntil = 0;
+  play.bumping = false;
+
+  // remove any leftover bumping class
+  document.getElementById('actor-cat-inner').classList.remove('bumping');
+  document.getElementById('actor-dog-inner').classList.remove('bumping');
+  document.getElementById('dust-puff').classList.remove('active');
+
+  updateActorTransform('cat');
+  updateActorTransform('dog');
+}
+
+// Render JUST the SVG (no size wrapper). For the play screen we want the SVG
+// to fill the actor frame; the size variation has already been applied by
+// scaling the actor frame itself.
+function rawSvg(kind, opts) {
+  const fn = (kind === 'cat' ? CAT_RENDERERS : DOG_RENDERERS)[opts.designId];
+  return fn(opts);
+}
+
+function pickAiBehavior(now) {
+  const r = Math.random();
+  if (r < 0.50) play.aiBehavior = 'wander';
+  else if (r < 0.80) play.aiBehavior = 'chase';
+  else play.aiBehavior = 'flee';
+  play.aiNextChange = now + AI_BEHAVIOR_MIN_MS + Math.random() * (AI_BEHAVIOR_MAX_MS - AI_BEHAVIOR_MIN_MS);
+  // wander target: random point inside bounds
+  play.aiTargetX = play.cat.radius + Math.random() * (play.areaW - 2 * play.cat.radius);
+  play.aiTargetY = play.cat.radius + Math.random() * (play.areaH - 2 * play.cat.radius);
+}
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function tick(now) {
+  if (!play.running) return;
+  const dtMs = Math.min(40, now - play.lastT);
+  play.lastT = now;
+  const dt = dtMs / 16.67; // normalize to 60fps frames
+
+  const player = play[play.playerKind];
+  const ai     = play[play.aiKind];
+
+  if (!play.bumping) {
+    // ---- PLAYER MOVEMENT ----
+    if (play.touch.active) {
+      // Move toward touch point at constant speed
+      const dx = play.touch.x - player.x;
+      const dy = play.touch.y - player.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 4) {
+        player.vx = (dx / dist) * PLAYER_SPEED;
+        player.vy = (dy / dist) * PLAYER_SPEED;
+      } else {
+        player.vx = 0; player.vy = 0;
+      }
+    } else {
+      const ax = (play.keys.right ? 1 : 0) - (play.keys.left ? 1 : 0);
+      const ay = (play.keys.down  ? 1 : 0) - (play.keys.up   ? 1 : 0);
+      if (ax || ay) {
+        const len = Math.hypot(ax, ay) || 1;
+        player.vx = (ax / len) * PLAYER_SPEED;
+        player.vy = (ay / len) * PLAYER_SPEED;
+      } else {
+        player.vx *= Math.pow(KEY_DECEL, dt);
+        player.vy *= Math.pow(KEY_DECEL, dt);
+        if (Math.abs(player.vx) < 0.05) player.vx = 0;
+        if (Math.abs(player.vy) < 0.05) player.vy = 0;
+      }
+    }
+    player.x += player.vx * dt;
+    player.y += player.vy * dt;
+    player.x = clamp(player.x, player.radius, play.areaW - player.radius);
+    player.y = clamp(player.y, player.radius, play.areaH - player.radius);
+    if (player.vx >  0.15) player.facing = -1; // SVG is drawn facing left; flip to face right
+    if (player.vx < -0.15) player.facing =  1;
+
+    // ---- AI MOVEMENT ----
+    if (now > play.aiNextChange) pickAiBehavior(now);
+    let aiDx = 0, aiDy = 0;
+    if (play.aiBehavior === 'wander') {
+      aiDx = play.aiTargetX - ai.x;
+      aiDy = play.aiTargetY - ai.y;
+      if (Math.hypot(aiDx, aiDy) < 8) pickAiBehavior(now); // arrived; pick new behavior
+    } else if (play.aiBehavior === 'chase') {
+      aiDx = player.x - ai.x;
+      aiDy = player.y - ai.y;
+    } else { // flee
+      aiDx = ai.x - player.x;
+      aiDy = ai.y - player.y;
+    }
+    const aiLen = Math.hypot(aiDx, aiDy) || 1;
+    const aiSpeed = PLAYER_SPEED * AI_SPEED_MULT;
+    ai.vx = (aiDx / aiLen) * aiSpeed;
+    ai.vy = (aiDy / aiLen) * aiSpeed;
+    ai.x += ai.vx * dt;
+    ai.y += ai.vy * dt;
+    // If fleeing into a wall, bail out to wander to avoid getting stuck.
+    const hitWall = (ai.x <= ai.radius + 1 || ai.x >= play.areaW - ai.radius - 1 ||
+                     ai.y <= ai.radius + 1 || ai.y >= play.areaH - ai.radius - 1);
+    ai.x = clamp(ai.x, ai.radius, play.areaW - ai.radius);
+    ai.y = clamp(ai.y, ai.radius, play.areaH - ai.radius);
+    if (hitWall && play.aiBehavior === 'flee') {
+      play.aiBehavior = 'wander';
+      play.aiNextChange = now + 800;
+      play.aiTargetX = ai.radius + Math.random() * (play.areaW - 2 * ai.radius);
+      play.aiTargetY = ai.radius + Math.random() * (play.areaH - 2 * ai.radius);
+    }
+    if (ai.vx >  0.15) ai.facing = -1;
+    if (ai.vx < -0.15) ai.facing =  1;
+
+    // ---- COLLISION ----
+    if (now > play.bumpCooldownUntil) {
+      const dx = player.x - ai.x;
+      const dy = player.y - ai.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < player.radius + ai.radius) {
+        triggerBump(now, dx, dy, dist);
+      }
+    }
+  } else {
+    // Bumping — check if the freeze has ended.
+    if (now >= play.bumpUntil) {
+      endBump();
+    }
+  }
+
+  updateActorTransform('cat');
+  updateActorTransform('dog');
+
+  play.rafId = requestAnimationFrame(tick);
+}
+
+function updateActorTransform(kind) {
+  const a = play[kind];
+  const el = document.getElementById(`actor-${kind}`);
+  if (!el) return;
+  const left = a.x - a.frame / 2;
+  const top  = a.y - a.frame / 2;
+  el.style.transform = `translate(${left}px, ${top}px)`;
+  const inner = document.getElementById(`actor-${kind}-inner`);
+  if (inner) inner.style.setProperty('--flip', String(a.facing));
+}
+
+function triggerBump(now, dx, dy, dist) {
+  play.bumping = true;
+  play.bumpUntil = now + BUMP_FREEZE_MS;
+  // zero velocities so nothing drifts during the freeze
+  play.cat.vx = play.cat.vy = 0;
+  play.dog.vx = play.dog.vy = 0;
+  // Add bumping class to both
+  document.getElementById('actor-cat-inner').classList.add('bumping');
+  document.getElementById('actor-dog-inner').classList.add('bumping');
+  // Position dust puff between them
+  const midX = (play.cat.x + play.dog.x) / 2;
+  const midY = (play.cat.y + play.dog.y) / 2;
+  const puffSize = Math.max(play.cat.frame, play.dog.frame) * 0.9;
+  const puff = document.getElementById('dust-puff');
+  puff.style.width  = `${puffSize}px`;
+  puff.style.height = `${puffSize}px`;
+  puff.style.setProperty('--puff-pos', `translate(${midX - puffSize/2}px, ${midY - puffSize/2}px)`);
+  // Restart the animation cleanly
+  puff.classList.remove('active');
+  void puff.offsetWidth; // reflow
+  puff.classList.add('active');
+}
+
+function endBump() {
+  play.bumping = false;
+  play.bumpCooldownUntil = performance.now() + BUMP_COOLDOWN_MS;
+  document.getElementById('actor-cat-inner').classList.remove('bumping');
+  document.getElementById('actor-dog-inner').classList.remove('bumping');
+  // Push the two animals apart along the line between their centers.
+  let dx = play.cat.x - play.dog.x;
+  let dy = play.cat.y - play.dog.y;
+  let dist = Math.hypot(dx, dy);
+  if (dist < 0.001) { dx = 1; dy = 0; dist = 1; } // perfectly overlapping; pick an axis
+  const nx = dx / dist, ny = dy / dist;
+  const need = (play.cat.radius + play.dog.radius + PUSH_APART_PX) - dist;
+  if (need > 0) {
+    play.cat.x += nx * need * 0.5;
+    play.cat.y += ny * need * 0.5;
+    play.dog.x -= nx * need * 0.5;
+    play.dog.y -= ny * need * 0.5;
+    play.cat.x = clamp(play.cat.x, play.cat.radius, play.areaW - play.cat.radius);
+    play.cat.y = clamp(play.cat.y, play.cat.radius, play.areaH - play.cat.radius);
+    play.dog.x = clamp(play.dog.x, play.dog.radius, play.areaW - play.dog.radius);
+    play.dog.y = clamp(play.dog.y, play.dog.radius, play.areaH - play.dog.radius);
+  }
+}
+
+function showHint() {
+  const hint = document.getElementById('play-hint');
+  if (!hint) return;
+  hint.classList.add('show');
+  clearTimeout(play.hintTimer);
+  play.hintTimer = setTimeout(() => hint.classList.remove('show'), 3200);
+}
+
+// ---- INPUT HANDLERS ----
+const KEY_MAP = {
+  ArrowLeft: 'left',  a: 'left',  A: 'left',
+  ArrowRight:'right', d: 'right', D: 'right',
+  ArrowUp:   'up',    w: 'up',    W: 'up',
+  ArrowDown: 'down',  s: 'down',  S: 'down',
+};
+window.addEventListener('keydown', e => {
+  if (!play.running) return;
+  const k = KEY_MAP[e.key];
+  if (k) { play.keys[k] = true; e.preventDefault(); }
+});
+window.addEventListener('keyup', e => {
+  if (!play.running) return;
+  const k = KEY_MAP[e.key];
+  if (k) { play.keys[k] = false; e.preventDefault(); }
+});
+
+// Touch/mouse drag-to-steer on the play area.
+function bindPointer() {
+  const area = document.getElementById('play-area');
+  if (!area) return;
+  function pt(ev) {
+    const rect = area.getBoundingClientRect();
+    const src = (ev.touches && ev.touches[0]) || ev;
+    return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+  }
+  function onStart(ev) {
+    if (!play.running) return;
+    ev.preventDefault();
+    const p = pt(ev);
+    play.touch.active = true;
+    play.touch.x = p.x; play.touch.y = p.y;
+  }
+  function onMove(ev) {
+    if (!play.running || !play.touch.active) return;
+    ev.preventDefault();
+    const p = pt(ev);
+    play.touch.x = p.x; play.touch.y = p.y;
+  }
+  function onEnd(ev) {
+    if (!play.running) return;
+    play.touch.active = false;
+  }
+  area.addEventListener('touchstart', onStart, { passive: false });
+  area.addEventListener('touchmove',  onMove,  { passive: false });
+  area.addEventListener('touchend',   onEnd);
+  area.addEventListener('touchcancel',onEnd);
+  area.addEventListener('mousedown',  onStart);
+  area.addEventListener('mousemove',  onMove);
+  area.addEventListener('mouseup',    onEnd);
+  area.addEventListener('mouseleave', onEnd);
+}
+bindPointer();
+
+// Resize handling — re-init positions/sizes if the play screen is open
+window.addEventListener('resize', () => {
+  if (!play.running) return;
+  const area = document.getElementById('play-area');
+  const rect = area.getBoundingClientRect();
+  // Re-scale frame sizes
+  const baseFrame = Math.min(rect.height, rect.width) * 0.22;
+  const catFrame = baseFrame * (SIZE_SCALE[state.cat.size] || 1);
+  const dogFrame = baseFrame * (SIZE_SCALE[state.dog.size] || 1);
+  document.getElementById('actor-cat').style.width  = `${catFrame}px`;
+  document.getElementById('actor-cat').style.height = `${catFrame}px`;
+  document.getElementById('actor-dog').style.width  = `${dogFrame}px`;
+  document.getElementById('actor-dog').style.height = `${dogFrame}px`;
+  // Rescale positions proportionally
+  if (play.areaW && play.areaH) {
+    const sx = rect.width / play.areaW, sy = rect.height / play.areaH;
+    play.cat.x *= sx; play.cat.y *= sy;
+    play.dog.x *= sx; play.dog.y *= sy;
+  }
+  play.areaW = rect.width;
+  play.areaH = rect.height;
+  play.cat.frame = catFrame;
+  play.dog.frame = dogFrame;
+  play.cat.radius = catFrame * 0.30;
+  play.dog.radius = dogFrame * 0.30;
+});
+
+/* ============================================================
+   NAV BAR HANDLERS
+   Menu goes to: pick-player if we're playing, else intro.
    ============================================================ */
 document.getElementById('nav-menu').addEventListener('click', () => {
-  goto('intro');
+  const onPlay = document.getElementById('screen-play').classList.contains('active');
+  goto(onPlay ? 'pick-player' : 'intro');
 });
 document.getElementById('nav-arcade').addEventListener('click', goHome);
 
@@ -2054,19 +2445,27 @@ document.getElementById('dog-confirm').addEventListener('click', () => {
   goto('team');
 });
 document.getElementById('team-save').addEventListener('click', saveTeam);
-document.getElementById('team-edit').addEventListener('click', editTeam);
 document.getElementById('team-restart').addEventListener('click', startOver);
 
+document.getElementById('pick-cat').addEventListener('click', () => {
+  play.playerKind = 'cat';
+  goto('play');
+});
+document.getElementById('pick-dog').addEventListener('click', () => {
+  play.playerKind = 'dog';
+  goto('play');
+});
+document.getElementById('pick-edit').addEventListener('click', editTeam);
+
 function boot() {
-  // If both saved, skip to team
+  // If both saved, skip past the build flow straight to "Who do you want to be?"
   const sCat = localStorage.getItem(CAT_KEY);
   const sDog = localStorage.getItem(DOG_KEY);
   if (sCat && sDog) {
     try {
       state.cat = { ...DEFAULT_CAT, ...JSON.parse(sCat) };
       state.dog = { ...DEFAULT_DOG, ...JSON.parse(sDog) };
-      paintTeam(true);
-      goto('team');
+      goto('pick-player');
       return;
     } catch (_) { /* fall through to intro */ }
   }
