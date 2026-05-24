@@ -40,10 +40,10 @@
     position: absolute;
     top: env(safe-area-inset-top, 12px);
     left: 12px;
-    right: 12px;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: flex-start;
+    gap: 8px;
     pointer-events: none;
     z-index: 10;
     padding-top: 12px;
@@ -259,6 +259,98 @@
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
   }
+
+  /* ============ NAV BAR ============ */
+  .nav-bar {
+    position: absolute;
+    top: env(safe-area-inset-top, 12px);
+    right: 12px;
+    display: flex;
+    gap: 12px;
+    z-index: 11;
+    padding-top: 12px;
+  }
+  .nav-bar.hidden { display: none; }
+  .nav-btn {
+    width: 64px;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.92);
+    border: none;
+    border-radius: 50%;
+    font-size: 28px;
+    color: #2d2438;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(40, 40, 60, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.12s ease;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-btn:active { transform: scale(0.9); }
+
+  /* ============ CONFIRM DIALOG ============ */
+  .confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(45, 36, 56, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .confirm-backdrop.show { display: flex; }
+  .confirm-card {
+    background: white;
+    border-radius: 28px;
+    padding: 28px 24px;
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .confirm-card h2 {
+    font-size: 26px;
+    margin: 0 0 8px;
+    color: #2d2438;
+  }
+  .confirm-card p {
+    color: #5a4a6e;
+    font-weight: 600;
+    margin: 0 0 22px;
+    font-size: 16px;
+  }
+  .confirm-card .big-btn,
+  .confirm-card .btn-secondary {
+    display: block;
+    width: 100%;
+    margin: 0 0 12px;
+  }
+  .confirm-card .btn-secondary:last-child { margin-bottom: 0; }
+
+  /* ============ SECONDARY BUTTON (muted) ============ */
+  .btn-secondary {
+    background: #e6e1ea;
+    color: #2d2438;
+    border: none;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 14px 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-secondary:active {
+    transform: scale(0.95);
+    background: #d8d2dd;
+  }
+  .back-to-arcade { margin-top: 14px; }
 </style>
 </head>
 <body>
@@ -277,6 +369,11 @@
 </div>
 
 <div class="quest" id="quest">Free the puppies! <span id="rescued">0</span>/<span id="total">5</span></div>
+
+<div class="nav-bar hidden" id="nav-bar">
+  <button class="nav-btn" id="nav-menu" aria-label="Back to game menu">↩</button>
+  <button class="nav-btn" id="nav-arcade" aria-label="Back to arcade">🏠</button>
+</div>
 
 <div class="upgrades">
   <button class="upgrade-btn" id="up-range">
@@ -323,6 +420,7 @@
   <div class="sub">Aliens stole the puppies! Free them all.</div>
   <button class="big-btn" id="start-btn">Let's Go!</button>
   <div class="hint">👉 Touch and drag anywhere to move.<br>Your dog fights aliens nearby.<br>Walk up to cages to free puppies.</div>
+  <button class="btn-secondary back-to-arcade" id="start-back">← Back to Arcade</button>
 </div>
 
 <div class="overlay" id="win-screen">
@@ -331,10 +429,20 @@
     <h2>You saved them all!</h2>
     <p>You're a hero. The puppies will never forget you.</p>
     <button class="big-btn" id="play-again">Play Again</button>
+    <button class="btn-secondary back-to-arcade" id="win-back">← Back to Arcade</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="confirm-backdrop" id="confirm-backdrop">
+  <div class="confirm-card">
+    <h2>Leave game?</h2>
+    <p>Your score won't be saved.</p>
+    <button class="big-btn" id="confirm-stay">Keep Playing</button>
+    <button class="btn-secondary" id="confirm-leave">Yes, Leave</button>
+  </div>
+</div>
 
 <script>
 'use strict';
@@ -1305,6 +1413,7 @@ function showToast(text) {
 /* ====================== WIN / RESTART ====================== */
 function triggerWin() {
   gameWon = true;
+  hideNavBar();
   sfx.win();
   // Burst of hearts
   for (let i = 0; i < 20; i++) {
@@ -1321,6 +1430,7 @@ function triggerWin() {
 document.getElementById('play-again').addEventListener('click', () => {
   document.getElementById('win-screen').classList.remove('show');
   setupWorld();
+  showNavBar();
 });
 
 /* ====================== MAIN LOOP ====================== */
@@ -1372,7 +1482,61 @@ document.getElementById('start-btn').addEventListener('click', () => {
     document.getElementById('start-screen').style.display = 'none';
   }, 400);
   gameStarted = true;
+  showNavBar();
 });
+
+/* ====================== NAV BAR ====================== */
+const navBar = document.getElementById('nav-bar');
+const confirmBackdrop = document.getElementById('confirm-backdrop');
+
+let pendingLeaveAction = null;
+
+function showNavBar() { navBar.classList.remove('hidden'); }
+function hideNavBar() { navBar.classList.add('hidden'); }
+
+function isActivePlay() {
+  return gameStarted && !gameWon;
+}
+
+function showConfirm(action) {
+  pendingLeaveAction = action;
+  confirmBackdrop.classList.add('show');
+}
+function hideConfirm() {
+  confirmBackdrop.classList.remove('show');
+  pendingLeaveAction = null;
+}
+
+function returnToMenu() {
+  // Reverse of start-btn handler: reset state and re-show the start screen
+  gameStarted = false;
+  hideNavBar();
+  setupWorld();
+  const startScreen = document.getElementById('start-screen');
+  startScreen.classList.add('hidden');   // ensure starting opacity is 0
+  startScreen.style.display = 'flex';
+  void startScreen.offsetHeight;         // force reflow so the fade-in runs
+  startScreen.classList.remove('hidden');
+}
+
+function goToArcade() {
+  window.location.href = '/';
+}
+
+document.getElementById('nav-menu').addEventListener('click', () => {
+  if (isActivePlay()) showConfirm(returnToMenu); else returnToMenu();
+});
+document.getElementById('nav-arcade').addEventListener('click', () => {
+  if (isActivePlay()) showConfirm(goToArcade); else goToArcade();
+});
+document.getElementById('confirm-stay').addEventListener('click', hideConfirm);
+document.getElementById('confirm-leave').addEventListener('click', () => {
+  const action = pendingLeaveAction;
+  hideConfirm();
+  if (action) action();
+});
+document.getElementById('start-back').addEventListener('click', goToArcade);
+document.getElementById('win-back').addEventListener('click', goToArcade);
 
 setupWorld();
 requestAnimationFrame(loop);

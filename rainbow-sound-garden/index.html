@@ -369,6 +369,48 @@
   .icon-btn:active { transform: scale(0.95); }
   .icon-btn svg { width: 22px; height: 22px; }
 
+  /* ---- Nav bar (Menu + Arcade) ---- */
+  .nav-bar {
+    display: flex;
+    gap: 12px;
+    margin-left: auto;
+  }
+  .nav-bar.hidden { display: none; }
+  .nav-btn {
+    width: 64px;
+    height: 64px;
+    background: white;
+    border: 2px solid rgba(122, 111, 208, 0.15);
+    border-radius: 50%;
+    font-size: 26px;
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-btn:active { transform: scale(0.9); }
+
+  /* ---- Back-to-arcade on start screen ---- */
+  .start-secondary {
+    background: rgba(255, 255, 255, 0.7);
+    border: 2px solid rgba(122, 111, 208, 0.2);
+    color: var(--ink);
+    font-size: 17px;
+    font-weight: 600;
+    padding: 12px 22px;
+    border-radius: 999px;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .start-secondary:active { transform: scale(0.96); }
+
   /* ---- Confirm dialog (gentle) ---- */
   .modal {
     position: fixed;
@@ -491,6 +533,7 @@
   <h1>Rainbow Sound Garden</h1>
   <p>Tap colors to make music!</p>
   <button id="start-btn">Let's Play</button>
+  <button class="start-secondary" id="start-back">← Back to Arcade</button>
 </div>
 
 <!-- ============ MAIN APP ============ -->
@@ -526,7 +569,10 @@
       </svg>
     </div>
     <div class="speech" id="speech">Hi! Tap any color to make music!</div>
-    <div class="title">🌈 Rainbow Sound Garden</div>
+    <div class="nav-bar hidden" id="nav-bar">
+      <button class="nav-btn" id="nav-menu" aria-label="Back to game menu">↩</button>
+      <button class="nav-btn" id="nav-arcade" aria-label="Back to arcade">🏠</button>
+    </div>
   </header>
 
   <div class="grid-wrap">
@@ -564,6 +610,19 @@
     <div class="modal-btns">
       <button class="cancel" id="modal-cancel">Keep my song</button>
       <button class="confirm" id="modal-confirm">Fresh start</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ LEAVE-GAME CONFIRM MODAL ============ -->
+<div class="modal" id="nav-modal">
+  <div class="modal-card">
+    <div style="font-size: 48px;">👋</div>
+    <h2>Leave game?</h2>
+    <p>Your song won't be saved.</p>
+    <div class="modal-btns">
+      <button class="cancel" id="nav-modal-cancel">Keep playing</button>
+      <button class="confirm" id="nav-modal-confirm">Yes, leave</button>
     </div>
   </div>
 </div>
@@ -929,7 +988,65 @@ document.getElementById('start-btn').addEventListener('click', () => {
   setTimeout(() => {
     document.getElementById('start-screen').style.display = 'none';
   }, 500);
+  showNavBar();
 });
+
+/* ============================================================
+   NAV BAR + LEAVE CONFIRM
+   ============================================================ */
+const navBar = document.getElementById('nav-bar');
+const navModal = document.getElementById('nav-modal');
+let pendingLeaveAction = null;
+
+function showNavBar() { navBar.classList.remove('hidden'); }
+function hideNavBar() { navBar.classList.add('hidden'); }
+
+function hasUnsavedSong() {
+  return state.some(row => row.some(v => v));
+}
+
+function showLeaveConfirm(action) {
+  pendingLeaveAction = action;
+  navModal.classList.add('show');
+}
+function hideLeaveConfirm() {
+  navModal.classList.remove('show');
+  pendingLeaveAction = null;
+}
+
+function returnToStartScreen() {
+  // Stop playback if it's running
+  if (playing) stopPlay();
+  // Clear the song so a fresh "Let's Play" starts clean
+  for (let r = 0; r < ROWS; r++) for (let s = 0; s < STEPS; s++) state[r][s] = false;
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('on'));
+  hideNavBar();
+  const startScreen = document.getElementById('start-screen');
+  startScreen.classList.add('hidden');   // ensure starting opacity is 0
+  startScreen.style.display = 'flex';
+  void startScreen.offsetHeight;         // force reflow so the fade-in runs
+  startScreen.classList.remove('hidden');
+}
+
+function goToArcade() {
+  window.location.href = '/';
+}
+
+document.getElementById('nav-menu').addEventListener('click', () => {
+  if (hasUnsavedSong()) showLeaveConfirm(returnToStartScreen);
+  else returnToStartScreen();
+});
+document.getElementById('nav-arcade').addEventListener('click', () => {
+  if (hasUnsavedSong()) showLeaveConfirm(goToArcade);
+  else goToArcade();
+});
+document.getElementById('nav-modal-cancel').addEventListener('click', hideLeaveConfirm);
+document.getElementById('nav-modal-confirm').addEventListener('click', () => {
+  const action = pendingLeaveAction;
+  hideLeaveConfirm();
+  if (action) action();
+});
+document.getElementById('start-back').addEventListener('click', goToArcade);
 
 // Prevent double-tap zoom on iOS
 document.addEventListener('touchstart', (e) => {
