@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Zombie Chomp</title>
+<style>
+  /* ============================================================
+     RESET + BASE — keep iOS from doing things we don't want.
+     ============================================================ */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  body {
+    /* System font stack from STANDARDS.md §9 — no external fonts. */
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    background: linear-gradient(160deg, #1a0b2e 0%, #2d1b4e 50%, #3d2666 100%);
+    color: #fff;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  /* ============================================================
+     SCREEN SYSTEM — copied from the nav-pattern reference
+     (quantum-quest). The whole game is a stack of <section
+     class="screen">; only the one with .active is visible.
+     ============================================================ */
+  #game { position: fixed; inset: 0; }
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    text-align: center;
+    overflow-y: auto;
+  }
+  .screen.active { display: flex; }
+  #screen-game.active { justify-content: flex-start; padding-top: 8px; }
+
+  h1 { font-size: 48px; margin-bottom: 14px; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+  h2 { font-size: 32px; margin-bottom: 20px; }
+  p  { font-size: 22px; margin-bottom: 16px; max-width: 600px; }
+  .small { font-size: 16px; opacity: 0.85; }
+
+  /* ============================================================
+     BUTTONS — big, chunky, satisfying press. Min 80px tall.
+     ============================================================ */
+  .btn {
+    font-family: inherit;
+    font-size: 26px;
+    font-weight: 700;
+    padding: 20px 40px;
+    min-width: 200px;
+    min-height: 80px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    background: linear-gradient(180deg, #8ee06b 0%, #4cc66e 100%);
+    color: #1a3d28;
+    box-shadow: 0 6px 0 #2a7c45, 0 8px 20px rgba(0,0,0,0.4);
+    transition: transform 0.08s, box-shadow 0.08s;
+    margin: 10px;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #2a7c45, 0 4px 10px rgba(0,0,0,0.4); }
+  .btn.green  { background: linear-gradient(180deg, #8ee06b 0%, #4cc66e 100%); color: #1a3d28; box-shadow: 0 6px 0 #2a7c45, 0 8px 20px rgba(0,0,0,0.4); }
+  .btn.green:active  { box-shadow: 0 2px 0 #2a7c45, 0 4px 10px rgba(0,0,0,0.4); }
+  .btn.purple { background: linear-gradient(180deg, #c490ff 0%, #9b59ff 100%); color: #fff; box-shadow: 0 6px 0 #5e2cb5, 0 8px 20px rgba(0,0,0,0.4); }
+  .btn.purple:active { box-shadow: 0 2px 0 #5e2cb5, 0 4px 10px rgba(0,0,0,0.4); }
+
+  /* "Back to Arcade" CTA on menu and win screens — softer than .btn
+     so it sits under the primary button without competing. */
+  .btn-secondary {
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 16px 32px;
+    min-height: 64px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    cursor: pointer;
+    margin-top: 18px;
+    transition: transform 0.1s ease, background 0.15s ease;
+  }
+  .btn-secondary:active { transform: scale(0.96); background: rgba(255, 255, 255, 0.22); }
+
+  /* ============================================================
+     MENU CHARACTER
+     ============================================================ */
+  .zombie-emoji {
+    font-size: 110px;
+    display: inline-block;
+    animation: bobble 2s ease-in-out infinite;
+    margin-bottom: 4px;
+  }
+  @keyframes bobble {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-12px); }
+  }
+
+  /* ============================================================
+     HUD on the game screen — score, best, gummies left, mute.
+     ============================================================ */
+  .hud {
+    /* Centered and capped so it doesn't collide with the
+       fixed top-right nav bar on smaller screens. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto 8px;
+    padding: 6px 12px;
+    font-size: 20px;
+    font-weight: 700;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .hud .pill {
+    background: rgba(0, 0, 0, 0.35);
+    padding: 8px 16px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hud .pill .small { font-size: 15px; opacity: 0.85; margin-left: 8px; }
+  #mute-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    border: none;
+    font-size: 26px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-family: inherit;
+  }
+  #mute-btn:active { transform: scale(0.9); }
+
+  canvas {
+    display: block;
+    background: #1a0b2e;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    touch-action: none;
+  }
+
+  /* ============================================================
+     ON-SCREEN D-PAD — shown only on touch devices. 88px buttons
+     (well above the 80px the brief asked for). Pressed by Michael.
+     ============================================================ */
+  .dpad {
+    display: none;
+    grid-template-columns: 88px 88px 88px;
+    grid-template-rows: 88px 88px;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  body.touch .dpad { display: grid; }
+  .dpad button {
+    background: rgba(255, 255, 255, 0.92);
+    border: none;
+    border-radius: 18px;
+    font-size: 36px;
+    color: #2d1b4e;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+    font-family: inherit;
+    font-weight: 700;
+    padding: 0;
+  }
+  .dpad button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3); }
+  .dpad .dpad-up    { grid-column: 2; grid-row: 1; }
+  .dpad .dpad-left  { grid-column: 1; grid-row: 2; }
+  .dpad .dpad-down  { grid-column: 2; grid-row: 2; }
+  .dpad .dpad-right { grid-column: 3; grid-row: 2; }
+
+  /* ============================================================
+     NAV BAR — top-right per STANDARDS §8. Hidden on menu/win,
+     visible only during active gameplay (goto() toggles .visible).
+     ============================================================ */
+  .nav-bar {
+    position: fixed;
+    top: env(safe-area-inset-top, 12px);
+    right: 12px;
+    display: none;
+    gap: 12px;
+    z-index: 50;
+    padding-top: 12px;
+  }
+  .nav-bar.visible { display: flex; }
+  .nav-btn {
+    width: 64px;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    border-radius: 50%;
+    font-size: 28px;
+    color: #2d1b4e;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-family: inherit;
+  }
+  .nav-btn:active { transform: scale(0.9); }
+
+  /* ============================================================
+     CONFIRM DIALOG — soft-confirm before leaving mid-game so a
+     stray finger doesn't kill a run.
+     ============================================================ */
+  .confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(15, 10, 40, 0.72);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .confirm-backdrop.show { display: flex; }
+  .confirm-card {
+    background: #fff;
+    color: #2d1b4e;
+    border-radius: 28px;
+    padding: 28px 24px;
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: pop 0.28s ease-out;
+  }
+  .confirm-card h2 { font-size: 28px; margin: 0 0 10px; color: #2d1b4e; text-shadow: none; }
+  .confirm-card p  { color: #5a4a6e; font-weight: 600; font-size: 18px; margin: 0 0 22px; }
+  .confirm-card .btn { display: block; width: 100%; margin: 0 0 12px; min-width: 0; }
+  .confirm-card .btn:last-child { margin-bottom: 0; }
+  @keyframes pop { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+  /* CONFETTI for the win screen. */
+  .confetti {
+    position: fixed;
+    pointer-events: none;
+    width: 12px;
+    height: 12px;
+    top: -20px;
+    z-index: 100;
+    border-radius: 2px;
+  }
+  @keyframes fall {
+    0%   { transform: translateY(-20px) rotate(0); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  .fade-in { animation: fadeIn 0.5s ease-out; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<main id="game">
+
+  <!-- ============================================================
+       MENU
+       ============================================================ -->
+  <section class="screen active" id="screen-menu">
+    <div class="zombie-emoji">🧟</div>
+    <h1>Zombie Chomp</h1>
+    <p>Hi <span id="menu-name">friend</span>!<br>
+       Chomp every brain gummy. Watch out for dragons!</p>
+    <p class="small">Your best: <strong id="menu-best">0</strong></p>
+    <button class="btn green" type="button" onclick="startGame()">PLAY 🎮</button>
+    <button class="btn-secondary" type="button" onclick="goHome()">← Back to Arcade</button>
+  </section>
+
+  <!-- ============================================================
+       GAME
+       ============================================================ -->
+  <section class="screen" id="screen-game">
+    <div class="hud">
+      <button id="mute-btn" type="button" aria-label="Mute">🔊</button>
+      <div class="pill">Score <span id="hud-score">0</span>
+        <span class="small">Best <span id="hud-best">0</span></span>
+      </div>
+      <div class="pill">🧠 <span id="hud-left">0</span></div>
+    </div>
+    <canvas id="canvas"></canvas>
+    <div class="dpad">
+      <button class="dpad-up"    type="button" data-dir="up"    aria-label="Up">▲</button>
+      <button class="dpad-left"  type="button" data-dir="left"  aria-label="Left">◀</button>
+      <button class="dpad-down"  type="button" data-dir="down"  aria-label="Down">▼</button>
+      <button class="dpad-right" type="button" data-dir="right" aria-label="Right">▶</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       WIN
+       ============================================================ -->
+  <section class="screen" id="screen-win">
+    <div style="font-size:120px;">🧟🎉</div>
+    <h1>You did it!</h1>
+    <p>Score: <strong id="win-score">0</strong></p>
+    <p>Time: <strong id="win-time">0</strong>s</p>
+    <p class="small">
+      Best time: <span id="win-best-time">—</span>s
+      &nbsp;·&nbsp; Runs cleared: <span id="win-runs">0</span>
+    </p>
+    <button class="btn green" type="button" onclick="startGame()">PLAY AGAIN 🎮</button>
+    <button class="btn-secondary" type="button" onclick="goHome()">← Back to Arcade</button>
+  </section>
+
+</main>
+
+<!-- Top-right nav bar (per STANDARDS §8). goto() toggles .visible. -->
+<div class="nav-bar" id="nav-bar">
+  <button class="nav-btn" id="nav-menu"   type="button" aria-label="Back to start screen">↩</button>
+  <button class="nav-btn" id="nav-arcade" type="button" aria-label="Back to arcade">🏠</button>
+</div>
+
+<!-- Mid-play confirm. Shown when the kid taps a nav button during play. -->
+<div class="confirm-backdrop" id="confirm-backdrop">
+  <div class="confirm-card">
+    <h2>Leave game?</h2>
+    <p>Your score won't be saved.</p>
+    <button class="btn green"  id="confirm-stay"  type="button">Keep Playing</button>
+    <button class="btn purple" id="confirm-leave" type="button">Yes, Leave</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   PLAYER CHECK (STANDARDS §5)
+   ============================================================ */
+const player = localStorage.getItem('arcade-current-player');
+if (!player) window.location.href = '/';
+
+/* ============================================================
+   TOUCH DETECTION
+   Adds .touch so CSS reveals the d-pad. Also: touch devices
+   default to muted until the first tap (iOS needs a user
+   gesture before audio will play).
+   ============================================================ */
+const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+if (isTouch) document.body.classList.add('touch');
+
+/* ============================================================
+   MAZE LAYOUT — 15 cols × 13 rows, symmetrical left/right.
+   '#' wall   '.' gummy   'o' big sparkly power-up
+   'P' player start (empty cell)   'D' dragon den (empty cell)
+   Row 6 is the tunnel row — cols 0 and 14 are open, and walking
+   off one side wraps to the other (handled in isWall + wrapCol).
+   ============================================================ */
+const MAZE = [
+  '###############',
+  '#o...........o#',
+  '#.##.#####.##.#',
+  '#.............#',
+  '#.##.##.##.##.#',
+  '#....#...#....#',
+  '..##.#.D.#.##..',
+  '#....#...#....#',
+  '#.##.##.##.##.#',
+  '#......P......#',
+  '#.##.#####.##.#',
+  '#o...........o#',
+  '###############'
+];
+const ROWS = MAZE.length;
+const COLS = MAZE[0].length;
+const TUNNEL_ROW = 6;
+
+/* ============================================================
+   CANVAS + RESPONSIVE SIZING
+   Pick a CELL size that fits the viewport with room for the HUD
+   and (on touch) the d-pad. Re-runs on resize / rotation so iPad
+   landscape vs portrait just works.
+   ============================================================ */
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let CELL = 36;
+
+function resizeCanvas() {
+  const reservedV = isTouch ? 340 : 130;
+  const reservedH = 32;
+  const byW = Math.floor((window.innerWidth  - reservedH) / COLS);
+  const byH = Math.floor((window.innerHeight - reservedV) / ROWS);
+  CELL = Math.max(20, Math.min(54, Math.min(byW, byH)));
+  canvas.width  = COLS * CELL;
+  canvas.height = ROWS * CELL;
+}
+
+/* ============================================================
+   MAZE STATE — parsed once from MAZE on each new run.
+   ============================================================ */
+const walls = [];
+let gummies, powerUps;
+let playerStart, dragonDen;
+let totalGummies = 0;
+
+function parseMaze() {
+  gummies = new Set();
+  powerUps = new Set();
+  totalGummies = 0;
+  for (let r = 0; r < ROWS; r++) {
+    walls[r] = [];
+    for (let c = 0; c < COLS; c++) {
+      const ch = MAZE[r][c];
+      walls[r][c] = (ch === '#');
+      if (ch === '.') { gummies.add(r + ',' + c); totalGummies++; }
+      if (ch === 'o') { gummies.add(r + ',' + c); powerUps.add(r + ',' + c); totalGummies++; }
+      if (ch === 'P') playerStart = { row: r, col: c };
+      if (ch === 'D') dragonDen   = { row: r, col: c };
+    }
+  }
+}
+
+// Tunnel row: out-of-bounds cols are "not walls" so actors wrap.
+function isWall(row, col) {
+  if (row < 0 || row >= ROWS) return true;
+  if (col < 0 || col >= COLS) return row !== TUNNEL_ROW;
+  return walls[row][col];
+}
+function wrapCol(c) {
+  if (c < 0) return COLS - 1;
+  if (c >= COLS) return 0;
+  return c;
+}
+
+/* ============================================================
+   ACTORS — zombie + dragons share a shape:
+     row, col      = the cell the actor is currently in
+     dx, dy        = direction (one of -1, 0, 1 per axis)
+     progress      = 0..1, how far toward (row+dy, col+dx)
+     wdx, wdy      = "wanted" direction queued by input/AI
+   ============================================================ */
+const PLAYER_SPEED  = 5.5;                       // cells per second
+const DRAGON_SPEED  = PLAYER_SPEED * 0.75;       // 75% of zombie
+const SCARED_SPEED  = PLAYER_SPEED * 0.55;       // slower when scared
+const POWER_SECS    = 8;                         // power-up duration
+const HIT_SPIN_SECS = 1.0;                       // startled pause
+
+let zombie;
+let dragons;
+let score, gummiesLeft;
+let scaredTimer = 0;
+let hitTimer    = 0;
+let spinAngle   = 0;
+let runStartTime = 0;
+
+function newActor(row, col, color) {
+  return {
+    row, col,
+    dx: 0, dy: 0,
+    wdx: 0, wdy: 0,
+    progress: 0,
+    color,
+    homeRow: row, homeCol: col,
+    cooldown: 0     // when > 0, dragon is parked at its den
+  };
+}
+
+/* ============================================================
+   GAME LIFECYCLE
+   ============================================================ */
+function startGame() {
+  parseMaze();
+  zombie = newActor(playerStart.row, playerStart.col, '#7fe896');
+  // Two dragons — one at the den, one to its right. Nudged in
+  // opposite directions so they don't both go the same way.
+  dragons = [
+    newActor(dragonDen.row, dragonDen.col,     '#ff8aa3'),
+    newActor(dragonDen.row, dragonDen.col + 1, '#8ec5ff')
+  ];
+  dragons[0].dx = -1;
+  dragons[1].dx =  1;
+  score = 0;
+  gummiesLeft = totalGummies;
+  scaredTimer = 0;
+  hitTimer = 0;
+  spinAngle = 0;
+  runStartTime = performance.now();
+  updateHud();
+  goto('screen-game');
+  resizeCanvas();
+  lastFrame = performance.now();
+  if (!loopRunning) { loopRunning = true; requestAnimationFrame(loop); }
+}
+
+function resetZombieToStart() {
+  zombie.row = playerStart.row;
+  zombie.col = playerStart.col;
+  zombie.dx = 0; zombie.dy = 0;
+  zombie.wdx = 0; zombie.wdy = 0;
+  zombie.progress = 0;
+}
+
+function sendDragonHome(d) {
+  d.row = d.homeRow;
+  d.col = d.homeCol;
+  d.dx = 0; d.dy = 0;
+  d.wdx = 0; d.wdy = 0;
+  d.progress = 0;
+  d.cooldown = 2.0;   // dragon sits in the den for 2 seconds
+}
+
+/* ============================================================
+   GAME LOOP — requestAnimationFrame ticks at ~60fps. We compute
+   delta-time so movement speed is independent of frame rate.
+   The cap on dt prevents tunneling through walls if the tab is
+   backgrounded and the next frame arrives much later.
+   ============================================================ */
+let lastFrame = 0;
+let loopRunning = false;
+
+function loop(t) {
+  if (!loopRunning) return;
+  const dt = Math.min(0.05, (t - lastFrame) / 1000);
+  lastFrame = t;
+  if (currentScreen === 'screen-game') {
+    update(dt);
+    draw();
+  }
+  requestAnimationFrame(loop);
+}
+
+function update(dt) {
+  if (scaredTimer > 0) {
+    scaredTimer = Math.max(0, scaredTimer - dt);
+  }
+
+  if (hitTimer > 0) {
+    // Zombie is spinning in place after being startled.
+    hitTimer -= dt;
+    spinAngle += dt * 12;
+    if (hitTimer <= 0) {
+      hitTimer = 0;
+      spinAngle = 0;
+      resetZombieToStart();
+    }
+  } else {
+    moveActor(zombie, PLAYER_SPEED, dt, true);
+    eatAt(zombie.row, zombie.col);
+  }
+
+  // Dragons keep moving even while zombie is spinning.
+  for (const d of dragons) {
+    if (d.cooldown > 0) { d.cooldown = Math.max(0, d.cooldown - dt); continue; }
+    const speed = scaredTimer > 0 ? SCARED_SPEED : DRAGON_SPEED;
+    moveActor(d, speed, dt, false);
+  }
+
+  // Collision: cell-equality OR close in pixels (handles the
+  // case where zombie and dragon swap cells in the same frame).
+  if (hitTimer <= 0) {
+    const pz = actorPixel(zombie);
+    for (const d of dragons) {
+      if (d.cooldown > 0) continue;
+      const pd = actorPixel(d);
+      const sameCell = d.row === zombie.row && d.col === zombie.col;
+      const close = Math.hypot(pz.cx - pd.cx, pz.cy - pd.cy) < CELL * 0.7;
+      if (sameCell || close) {
+        if (scaredTimer > 0) {
+          score += 200;
+          sendDragonHome(d);
+          playChompDragon();
+          updateHud();
+        } else {
+          hitTimer = HIT_SPIN_SECS;
+          playStartle();
+          break;
+        }
+      }
+    }
+  }
+
+  if (gummiesLeft === 0) handleWin();
+}
+
+function eatAt(row, col) {
+  const key = row + ',' + col;
+  if (!gummies.has(key)) return;
+  if (powerUps.has(key)) {
+    powerUps.delete(key);
+    gummies.delete(key);
+    score += 50;
+    gummiesLeft--;
+    scaredTimer = POWER_SECS;
+    playPowerUp();
+  } else {
+    gummies.delete(key);
+    score += 10;
+    gummiesLeft--;
+    playChomp();
+  }
+  updateHud();
+}
+
+/* ============================================================
+   ACTOR MOVEMENT
+   At cell boundaries (progress === 0) we try to apply the queued
+   "wanted" direction. Reversing is allowed at any time — the
+   actor swaps direction and we flip progress so they smoothly
+   walk back the way they came.
+   ============================================================ */
+function moveActor(a, speed, dt, isPlayer) {
+  // Instant reverse — swap direction, flip the progress fraction.
+  if ((a.wdx !== 0 || a.wdy !== 0)
+      && a.wdx === -a.dx && a.wdy === -a.dy
+      && (a.dx !== 0 || a.dy !== 0)) {
+    a.row += a.dy;
+    a.col = wrapCol(a.col + a.dx);
+    a.dx = -a.dx; a.dy = -a.dy;
+    a.progress = 1 - a.progress;
+    a.wdx = 0; a.wdy = 0;
+  }
+
+  if (a.progress === 0) {
+    tryApplyWanted(a);
+    if (!isPlayer) {
+      // Dragons pick a fresh direction at every cell they enter.
+      const choice = chooseDragonDir(a);
+      a.dx = choice.dx; a.dy = choice.dy;
+    }
+  }
+
+  if (a.dx === 0 && a.dy === 0) return;
+
+  a.progress += speed * dt;
+  if (a.progress >= 1) {
+    a.row += a.dy;
+    a.col = wrapCol(a.col + a.dx);
+    a.progress = 0;
+    tryApplyWanted(a);
+    if (isWall(a.row + a.dy, wrapCol(a.col + a.dx))) {
+      a.dx = 0; a.dy = 0;
+    }
+  }
+}
+
+function tryApplyWanted(a) {
+  if (a.wdx === 0 && a.wdy === 0) return;
+  if (!isWall(a.row + a.wdy, wrapCol(a.col + a.wdx))) {
+    a.dx = a.wdx; a.dy = a.wdy;
+    a.wdx = 0; a.wdy = 0;
+  }
+}
+
+/* ============================================================
+   DRAGON AI
+   At each cell, list valid exits (not a wall, not the reverse of
+   our current direction unless we're forced). Most of the time
+   pick at random — that's what makes the dragons feel like they
+   are wandering. ~35% of the time, bias toward the zombie (or
+   away from it, when scared) so the chase still has some pull
+   without being a relentless hunt.
+   ============================================================ */
+function chooseDragonDir(d) {
+  const dirs = [
+    { dx:  1, dy:  0 }, { dx: -1, dy:  0 },
+    { dx:  0, dy:  1 }, { dx:  0, dy: -1 }
+  ];
+  const valid = [];
+  for (const dir of dirs) {
+    if (isWall(d.row + dir.dy, wrapCol(d.col + dir.dx))) continue;
+    if (dir.dx === -d.dx && dir.dy === -d.dy && (d.dx !== 0 || d.dy !== 0)) continue;
+    valid.push(dir);
+  }
+  if (valid.length === 0) return { dx: -d.dx, dy: -d.dy };
+  if (Math.random() < 0.35) {
+    const sign = scaredTimer > 0 ? -1 : 1;
+    valid.sort((a, b) => {
+      const da = Math.hypot(zombie.row - (d.row + a.dy), zombie.col - (d.col + a.dx));
+      const db = Math.hypot(zombie.row - (d.row + b.dy), zombie.col - (d.col + b.dx));
+      return sign * (da - db);
+    });
+    return valid[0];
+  }
+  return valid[Math.floor(Math.random() * valid.length)];
+}
+
+/* ============================================================
+   RENDERING — full redraw every frame. Actor pixel position
+   interpolates between the current and next cell using
+   `progress`, which is what makes movement look smooth on top
+   of a logically grid-based simulation.
+   ============================================================ */
+const COLOR_BG      = '#1a0b2e';
+const COLOR_WALL    = '#5a36b8';
+const COLOR_WALL_HI = '#7a52d8';
+const COLOR_GUMMY   = '#ff8aa3';
+const COLOR_POWER   = '#ffd86b';
+
+function actorPixel(a) {
+  // Interpolates between (col, row) and (col+dx, row+dy).
+  const cx = (a.col + 0.5 + a.dx * a.progress) * CELL;
+  const cy = (a.row + 0.5 + a.dy * a.progress) * CELL;
+  return { cx, cy };
+}
+
+function draw() {
+  ctx.fillStyle = COLOR_BG;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawMaze();
+  drawGummies();
+  drawDragons();
+  drawZombie();
+}
+
+function drawMaze() {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (!walls[r][c]) continue;
+      const x = c * CELL;
+      const y = r * CELL;
+      ctx.fillStyle = COLOR_WALL;
+      ctx.fillRect(x, y, CELL, CELL);
+      // Lighter strip on the top edge of any wall whose top is
+      // exposed — gives the walls a subtle "lid" / 3D feel.
+      if (r === 0 || !walls[r - 1][c]) {
+        ctx.fillStyle = COLOR_WALL_HI;
+        ctx.fillRect(x, y, CELL, Math.max(2, Math.floor(CELL * 0.12)));
+      }
+    }
+  }
+}
+
+function drawGummies() {
+  const now = performance.now();
+  for (const key of gummies) {
+    const [r, c] = key.split(',').map(Number);
+    const x = c * CELL + CELL / 2;
+    const y = r * CELL + CELL / 2;
+    if (powerUps.has(key)) {
+      // Sparkly power-up: a glowing pulse + a bright core.
+      const pulse = 0.7 + 0.3 * Math.sin(now / 200);
+      ctx.save();
+      ctx.globalAlpha = 0.45 * pulse;
+      ctx.fillStyle = COLOR_POWER;
+      ctx.beginPath();
+      ctx.arc(x, y, CELL * 0.42, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      ctx.fillStyle = COLOR_POWER;
+      ctx.beginPath();
+      ctx.arc(x, y, CELL * 0.26, 0, Math.PI * 2);
+      ctx.fill();
+      // Brain squiggle on top
+      ctx.strokeStyle = '#b97a1f';
+      ctx.lineWidth = Math.max(1.5, CELL * 0.05);
+      ctx.beginPath();
+      ctx.arc(x - CELL * 0.09, y - CELL * 0.02, CELL * 0.09, Math.PI, 0);
+      ctx.arc(x + CELL * 0.09, y - CELL * 0.02, CELL * 0.09, Math.PI, 0);
+      ctx.stroke();
+    } else {
+      // Regular gummy: pink lump with a brain squiggle.
+      ctx.fillStyle = COLOR_GUMMY;
+      ctx.beginPath();
+      ctx.arc(x, y, CELL * 0.18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#c75070';
+      ctx.lineWidth = Math.max(1, CELL * 0.04);
+      ctx.beginPath();
+      ctx.moveTo(x - CELL * 0.09, y);
+      ctx.bezierCurveTo(
+        x - CELL * 0.04, y - CELL * 0.09,
+        x + CELL * 0.04, y - CELL * 0.09,
+        x + CELL * 0.09, y
+      );
+      ctx.stroke();
+    }
+  }
+}
+
+function drawZombie() {
+  const { cx, cy } = actorPixel(zombie);
+  const r = CELL * 0.38;
+  ctx.save();
+  ctx.translate(cx, cy);
+  if (hitTimer > 0) ctx.rotate(spinAngle);
+  // Head
+  ctx.fillStyle = '#7fe896';
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fill();
+  // Cheek dots
+  ctx.fillStyle = '#5fc476';
+  ctx.beginPath();
+  ctx.arc(-r * 0.55, r * 0.22, r * 0.16, 0, Math.PI * 2);
+  ctx.arc( r * 0.55, r * 0.22, r * 0.16, 0, Math.PI * 2);
+  ctx.fill();
+  // Big eyes
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(-r * 0.35, -r * 0.2, r * 0.26, 0, Math.PI * 2);
+  ctx.arc( r * 0.35, -r * 0.2, r * 0.26, 0, Math.PI * 2);
+  ctx.fill();
+  // Pupils look toward the direction of travel
+  const lookX = zombie.dx * r * 0.1;
+  const lookY = zombie.dy * r * 0.1;
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(-r * 0.35 + lookX, -r * 0.2 + lookY, r * 0.11, 0, Math.PI * 2);
+  ctx.arc( r * 0.35 + lookX, -r * 0.2 + lookY, r * 0.11, 0, Math.PI * 2);
+  ctx.fill();
+  // Dopey smile
+  ctx.strokeStyle = '#1a3d28';
+  ctx.lineWidth = Math.max(2, r * 0.1);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(0, r * 0.05, r * 0.42, 0.15 * Math.PI, 0.85 * Math.PI);
+  ctx.stroke();
+  // Tongue
+  ctx.fillStyle = '#ff6b9d';
+  ctx.beginPath();
+  ctx.ellipse(0, r * 0.5, r * 0.18, r * 0.13, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawDragons() {
+  for (const d of dragons) {
+    const { cx, cy } = actorPixel(d);
+    const r = CELL * 0.38;
+    const scared   = scaredTimer > 0;
+    const flashing = scared && scaredTimer < 2 && Math.floor(scaredTimer * 6) % 2 === 0;
+    const body = scared ? (flashing ? '#dfe9ff' : '#6f8dff') : d.color;
+    const wing = scared ? (flashing ? '#9fb8ff' : '#3f5ddd') : shadeColor(d.color, -25);
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (d.cooldown > 0) ctx.globalAlpha = 0.45;
+
+    // Wings behind the body
+    ctx.fillStyle = wing;
+    ctx.beginPath();
+    ctx.ellipse(-r * 0.7, -r * 0.05, r * 0.45, r * 0.32, -0.3, 0, Math.PI * 2);
+    ctx.ellipse( r * 0.7, -r * 0.05, r * 0.45, r * 0.32,  0.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Belly highlight
+    ctx.fillStyle = shadeColor(body, 18);
+    ctx.beginPath();
+    ctx.arc(0, r * 0.3, r * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Little horns
+    ctx.fillStyle = '#fff5d4';
+    ctx.beginPath();
+    ctx.moveTo(-r * 0.55, -r * 0.7);
+    ctx.lineTo(-r * 0.35, -r * 1.0);
+    ctx.lineTo(-r * 0.2,  -r * 0.6);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo( r * 0.55, -r * 0.7);
+    ctx.lineTo( r * 0.35, -r * 1.0);
+    ctx.lineTo( r * 0.2,  -r * 0.6);
+    ctx.fill();
+
+    // Eyes
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(-r * 0.3, -r * 0.25, r * 0.22, 0, Math.PI * 2);
+    ctx.arc( r * 0.3, -r * 0.25, r * 0.22, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = scared ? '#3a3d6e' : '#1a3d28';
+    ctx.beginPath();
+    ctx.arc(-r * 0.3, -r * 0.25, r * 0.1, 0, Math.PI * 2);
+    ctx.arc( r * 0.3, -r * 0.25, r * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Mouth: friendly smile, or a wobbly "oh no" when scared
+    ctx.strokeStyle = scared ? '#3a3d6e' : '#1a3d28';
+    ctx.lineWidth = Math.max(2, r * 0.09);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    if (scared) {
+      for (let i = 0; i < 4; i++) {
+        const wx = -r * 0.4 + i * r * 0.27;
+        ctx.moveTo(wx, r * 0.25);
+        ctx.quadraticCurveTo(wx + r * 0.135, r * 0.45, wx + r * 0.27, r * 0.25);
+      }
+    } else {
+      ctx.arc(0, r * 0.1, r * 0.3, 0.15 * Math.PI, 0.85 * Math.PI);
+    }
+    ctx.stroke();
+
+    ctx.restore();
+  }
+}
+
+function shadeColor(hex, percent) {
+  // Lighten (+) or darken (-) a hex color by `percent`%.
+  const num = parseInt(hex.slice(1), 16);
+  const adj = Math.round(255 * percent / 100);
+  const clamp = v => Math.max(0, Math.min(255, v));
+  const r = clamp((num >> 16) + adj);
+  const g = clamp(((num >> 8) & 0xff) + adj);
+  const b = clamp((num & 0xff) + adj);
+  return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+}
+
+/* ============================================================
+   HUD + SAVE DATA
+   localStorage keys follow STANDARDS §6:
+     zombie-chomp:<player>:highScore
+     zombie-chomp:<player>:bestClearTime
+     zombie-chomp:<player>:runsCompleted
+   ============================================================ */
+const elScore = document.getElementById('hud-score');
+const elBest  = document.getElementById('hud-best');
+const elLeft  = document.getElementById('hud-left');
+
+function updateHud() {
+  elScore.textContent = score.toLocaleString();
+  // Show the larger of current score / stored best, so the "best"
+  // number ticks up as the player exceeds their record mid-run.
+  elBest.textContent  = Math.max(score, storedHighScore()).toLocaleString();
+  elLeft.textContent  = gummiesLeft;
+}
+
+function storedHighScore() {
+  return Number(localStorage.getItem(`zombie-chomp:${player}:highScore`)) || 0;
+}
+function saveHighScore(s) {
+  if (s > storedHighScore()) {
+    localStorage.setItem(`zombie-chomp:${player}:highScore`, String(s));
+  }
+}
+function storedBestClearTime() {
+  const v = localStorage.getItem(`zombie-chomp:${player}:bestClearTime`);
+  return v === null ? null : Number(v);
+}
+function saveBestClearTime(seconds) {
+  const prev = storedBestClearTime();
+  if (prev === null || seconds < prev) {
+    localStorage.setItem(`zombie-chomp:${player}:bestClearTime`, seconds.toFixed(1));
+  }
+}
+function storedRunsCompleted() {
+  return Number(localStorage.getItem(`zombie-chomp:${player}:runsCompleted`)) || 0;
+}
+function bumpRunsCompleted() {
+  localStorage.setItem(`zombie-chomp:${player}:runsCompleted`, String(storedRunsCompleted() + 1));
+}
+
+/* ============================================================
+   WIN
+   ============================================================ */
+function handleWin() {
+  const elapsed = (performance.now() - runStartTime) / 1000;
+  saveHighScore(score);
+  saveBestClearTime(elapsed);
+  bumpRunsCompleted();
+  document.getElementById('win-score').textContent     = score.toLocaleString();
+  document.getElementById('win-time').textContent      = elapsed.toFixed(1);
+  const bt = storedBestClearTime();
+  document.getElementById('win-best-time').textContent = bt !== null ? bt.toFixed(1) : '—';
+  document.getElementById('win-runs').textContent      = storedRunsCompleted();
+  playWin();
+  goto('screen-win');
+  launchConfetti();
+}
+
+function launchConfetti() {
+  const colors = ['#ffd86b', '#ff8aa3', '#7fe896', '#8ec5ff', '#c490ff'];
+  for (let i = 0; i < 80; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    const duration = 2 + Math.random() * 2;
+    const delay = Math.random() * 1.5;
+    c.style.animation = `fall ${duration}s ${delay}s linear forwards`;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), (duration + delay) * 1000 + 200);
+  }
+}
+
+/* ============================================================
+   AUDIO — Web Audio API only (no files). One shared AudioContext
+   is created on demand (iOS requires a user gesture before audio
+   will start). Each sound is a short oscillator with an
+   exponential gain decay, which is what gives the "blip" shape.
+   ============================================================ */
+let audioCtx = null;
+let muted = isTouch;   // touch devices: muted until first tap (iOS rule)
+
+function ensureAudio() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    audioCtx = new AC();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function tone(freq, dur, type, vol) {
+  if (muted) return;
+  ensureAudio();
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const g   = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  g.gain.setValueAtTime(vol, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  osc.connect(g); g.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + dur);
+}
+
+function playChomp()       { tone(420, 0.08, 'square',   0.18); }
+function playPowerUp()     {
+  tone(440, 0.12, 'triangle', 0.22);
+  setTimeout(() => tone(660, 0.12, 'triangle', 0.22),  80);
+  setTimeout(() => tone(880, 0.18, 'triangle', 0.22), 160);
+}
+function playStartle()     {
+  tone(300, 0.12, 'sawtooth', 0.18);
+  setTimeout(() => tone(180, 0.18, 'sawtooth', 0.18), 100);
+}
+function playChompDragon() {
+  tone(880, 0.10, 'square',   0.22);
+  setTimeout(() => tone(550, 0.15, 'square', 0.22), 80);
+}
+function playWin() {
+  [523, 659, 784, 1047].forEach((f, i) =>
+    setTimeout(() => tone(f, 0.22, 'triangle', 0.25), i * 130)
+  );
+}
+
+const muteBtn = document.getElementById('mute-btn');
+muteBtn.textContent = muted ? '🔇' : '🔊';
+muteBtn.addEventListener('click', () => {
+  muted = !muted;
+  if (!muted) ensureAudio();
+  muteBtn.textContent = muted ? '🔇' : '🔊';
+});
+
+/* ============================================================
+   INPUT — keyboard, on-screen d-pad, and swipe on canvas.
+   All paths just call setWanted(dx, dy) which queues the
+   direction for the movement system to apply at the next cell.
+   ============================================================ */
+function setWanted(dx, dy) {
+  if (!zombie) return;
+  zombie.wdx = dx;
+  zombie.wdy = dy;
+  // If standing still, start moving now (so a single tap from a
+  // dead stop gets immediate feedback).
+  if (zombie.dx === 0 && zombie.dy === 0) tryApplyWanted(zombie);
+}
+
+window.addEventListener('keydown', (e) => {
+  if (currentScreen !== 'screen-game') return;
+  if (document.getElementById('confirm-backdrop').classList.contains('show')) return;
+  switch (e.key) {
+    case 'ArrowUp':    case 'w': case 'W': setWanted( 0, -1); e.preventDefault(); break;
+    case 'ArrowDown':  case 's': case 'S': setWanted( 0,  1); e.preventDefault(); break;
+    case 'ArrowLeft':  case 'a': case 'A': setWanted(-1,  0); e.preventDefault(); break;
+    case 'ArrowRight': case 'd': case 'D': setWanted( 1,  0); e.preventDefault(); break;
+  }
+});
+
+document.querySelectorAll('.dpad button').forEach(btn => {
+  const dir = btn.dataset.dir;
+  btn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (!muted) ensureAudio();         // first tap unlocks iOS audio
+    if (dir === 'up')    setWanted( 0, -1);
+    if (dir === 'down')  setWanted( 0,  1);
+    if (dir === 'left')  setWanted(-1,  0);
+    if (dir === 'right') setWanted( 1,  0);
+  });
+});
+
+// Swipe on the canvas (touch only).
+let swipeStart = null;
+canvas.addEventListener('pointerdown', (e) => {
+  if (!isTouch) return;
+  swipeStart = { x: e.clientX, y: e.clientY };
+});
+canvas.addEventListener('pointerup', (e) => {
+  if (!swipeStart) return;
+  const dx = e.clientX - swipeStart.x;
+  const dy = e.clientY - swipeStart.y;
+  swipeStart = null;
+  if (Math.abs(dx) < 16 && Math.abs(dy) < 16) return;
+  if (Math.abs(dx) > Math.abs(dy)) setWanted(dx > 0 ? 1 : -1, 0);
+  else                              setWanted(0, dy > 0 ? 1 : -1);
+});
+
+/* ============================================================
+   SCREEN MANAGER + NAV BAR (STANDARDS §8)
+   ============================================================ */
+let currentScreen = 'screen-menu';
+
+function goto(screenId) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.classList.remove('fade-in');
+  });
+  const target = document.getElementById(screenId);
+  target.classList.add('active');
+  requestAnimationFrame(() => target.classList.add('fade-in'));
+  currentScreen = screenId;
+  document.getElementById('nav-bar').classList.toggle('visible', screenId === 'screen-game');
+}
+
+function goHome() { window.location.href = '/'; }
+function isActivePlay() { return currentScreen === 'screen-game'; }
+
+let pendingLeaveAction = null;
+function showConfirm(action) {
+  pendingLeaveAction = action;
+  document.getElementById('confirm-backdrop').classList.add('show');
+}
+function hideConfirm() {
+  document.getElementById('confirm-backdrop').classList.remove('show');
+  pendingLeaveAction = null;
+}
+function leaveToMenu()   { goto('screen-menu'); }
+function leaveToArcade() { window.location.href = '/'; }
+
+document.getElementById('nav-menu').addEventListener('click', () => {
+  if (isActivePlay()) showConfirm(leaveToMenu); else leaveToMenu();
+});
+document.getElementById('nav-arcade').addEventListener('click', () => {
+  if (isActivePlay()) showConfirm(leaveToArcade); else leaveToArcade();
+});
+document.getElementById('confirm-stay').addEventListener('click', hideConfirm);
+document.getElementById('confirm-leave').addEventListener('click', () => {
+  const action = pendingLeaveAction;
+  hideConfirm();
+  if (action) action();
+});
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+document.getElementById('menu-name').textContent = player || 'friend';
+document.getElementById('menu-best').textContent = storedHighScore().toLocaleString();
+parseMaze();
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
+</script>
+
+</body>
+</html>
