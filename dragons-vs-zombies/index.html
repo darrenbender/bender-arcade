@@ -80,7 +80,7 @@
     <!-- Wood plank floor -->
     <div class="castle-floor"></div>
 
-    <!-- Door back to the dragon picker -->
+    <!-- Door back to the dragon picker (left wall) -->
     <button class="castle-door" id="castleDoorBtn" aria-label="Back to the dragon picker">
       <div class="door-arch">
         <div class="door-wood">
@@ -93,6 +93,21 @@
         </div>
       </div>
       <div class="door-sign">← Back</div>
+    </button>
+
+    <!-- Door to the hallway (right wall) -->
+    <button class="castle-door door-right" id="castleHallDoorBtn" aria-label="Go to the hallway">
+      <div class="door-arch">
+        <div class="door-wood">
+          <div class="door-plank"></div>
+          <div class="door-plank"></div>
+          <div class="door-plank"></div>
+          <div class="door-hinge top right"></div>
+          <div class="door-hinge bot right"></div>
+          <div class="door-handle left"></div>
+        </div>
+      </div>
+      <div class="door-sign">Hallway →</div>
     </button>
 
     <!-- Rug, then bed (with bedside table + chest) -->
@@ -130,12 +145,254 @@
     </div>
 
     <!-- The dragon, big at Elder size, resting -->
-    <div class="castle-dragon" id="castleDragon"></div>
+    <div class="castle-dragon" id="castleDragon"><div class="dragon-facing"></div></div>
   </div>
-
-  <!-- Fade overlay used on entry/exit -->
-  <div class="castle-fade" id="castleFade"></div>
 </div>
+
+<!-- Hallway — a stone corridor connecting bedroom to weight room (and future rooms) -->
+<div class="overlay castle-overlay castle-room-overlay hidden" id="castleHallScreen">
+  <div class="castle-room castle-room-hall">
+    <div class="castle-wall castle-wall-hall">
+      <div class="castle-stones"></div>
+
+      <!-- Same window as bedroom for continuity -->
+      <div class="castle-window hall-window">
+        <div class="window-frame">
+          <div class="window-sky">
+            <div class="cloud cloud-1"></div>
+            <div class="cloud cloud-2"></div>
+            <div class="cloud cloud-3"></div>
+          </div>
+          <div class="window-rooftops">
+            <div class="rooftop r1"></div>
+            <div class="rooftop r2"></div>
+            <div class="rooftop r3"></div>
+            <div class="rooftop r4"></div>
+            <div class="rooftop r5"></div>
+          </div>
+          <div class="window-mullion-h"></div>
+          <div class="window-mullion-v"></div>
+        </div>
+        <div class="window-sill"></div>
+      </div>
+
+      <!-- Wall torches with gentle glow -->
+      <div class="wall-torch torch-left">
+        <div class="torch-bracket"></div>
+        <div class="torch-stick"></div>
+        <div class="torch-flame"></div>
+        <div class="torch-glow"></div>
+      </div>
+      <div class="wall-torch torch-right">
+        <div class="torch-bracket"></div>
+        <div class="torch-stick"></div>
+        <div class="torch-flame"></div>
+        <div class="torch-glow"></div>
+      </div>
+    </div>
+
+    <!-- Stone floor with rug down the middle -->
+    <div class="castle-floor castle-floor-stone"></div>
+    <div class="hall-rug"></div>
+
+    <!-- Left door: back to bedroom -->
+    <button class="castle-door" id="hallBedroomDoorBtn" aria-label="Back to bedroom">
+      <div class="door-arch">
+        <div class="door-wood">
+          <div class="door-plank"></div>
+          <div class="door-plank"></div>
+          <div class="door-plank"></div>
+          <div class="door-hinge top"></div>
+          <div class="door-hinge bot"></div>
+          <div class="door-handle"></div>
+        </div>
+      </div>
+      <div class="door-sign">← Bedroom</div>
+    </button>
+
+    <!-- Center placeholder door: Coming Soon (visual only) -->
+    <div class="castle-door door-center door-locked" aria-hidden="true">
+      <div class="door-arch">
+        <div class="door-wood">
+          <div class="door-plank"></div>
+          <div class="door-plank"></div>
+          <div class="door-plank"></div>
+          <div class="door-hinge top"></div>
+          <div class="door-hinge bot"></div>
+          <div class="door-handle"></div>
+          <div class="door-lock">🔒</div>
+        </div>
+      </div>
+      <div class="door-sign sign-locked">Coming Soon</div>
+    </div>
+
+    <!-- Right door: to weight room -->
+    <button class="castle-door door-right" id="hallWeightDoorBtn" aria-label="Go to the weight room">
+      <div class="door-arch">
+        <div class="door-wood">
+          <div class="door-plank"></div>
+          <div class="door-plank"></div>
+          <div class="door-plank"></div>
+          <div class="door-hinge top right"></div>
+          <div class="door-hinge bot right"></div>
+          <div class="door-handle left"></div>
+        </div>
+      </div>
+      <div class="door-sign">Weight Room →</div>
+    </button>
+
+    <!-- The dragon in the hallway -->
+    <div class="castle-dragon hall-dragon" id="hallDragon"><div class="dragon-facing"></div></div>
+  </div>
+</div>
+
+<!-- Weight Room — stone chamber for the rhythm-tap lifting mini-game -->
+<div class="overlay castle-overlay castle-room-overlay hidden" id="castleGymScreen">
+  <div class="castle-room castle-room-gym">
+    <div class="castle-wall castle-wall-gym">
+      <div class="castle-stones"></div>
+
+      <!-- Motivational sign -->
+      <div class="gym-sign">DRAGON STRONG 💪</div>
+
+      <!-- Weight rack against the back wall -->
+      <div class="weight-rack">
+        <div class="rack-post left"></div>
+        <div class="rack-post right"></div>
+        <div class="rack-rail top"></div>
+        <div class="rack-rail bot"></div>
+        <div class="rack-barbell b1"></div>
+        <div class="rack-barbell b2"></div>
+        <div class="rack-barbell b3"></div>
+      </div>
+
+      <!-- Wall torch for warm light -->
+      <div class="wall-torch torch-gym">
+        <div class="torch-bracket"></div>
+        <div class="torch-stick"></div>
+        <div class="torch-flame"></div>
+        <div class="torch-glow"></div>
+      </div>
+    </div>
+
+    <!-- Stone floor -->
+    <div class="castle-floor castle-floor-stone"></div>
+
+    <!-- Left door: back to hallway -->
+    <button class="castle-door" id="gymHallDoorBtn" aria-label="Back to the hallway">
+      <div class="door-arch">
+        <div class="door-wood">
+          <div class="door-plank"></div>
+          <div class="door-plank"></div>
+          <div class="door-plank"></div>
+          <div class="door-hinge top"></div>
+          <div class="door-hinge bot"></div>
+          <div class="door-handle"></div>
+        </div>
+      </div>
+      <div class="door-sign">← Hallway</div>
+    </button>
+
+    <!-- Full-length wall mirror (right side) -->
+    <div class="gym-mirror">
+      <div class="mirror-frame">
+        <div class="mirror-glass">
+          <div class="mirror-shimmer"></div>
+          <!-- A flipped copy of the dragon SVG is injected here when nearby -->
+          <div class="mirror-dragon" id="mirrorDragon"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Strength plaque next to the mirror -->
+    <div class="strength-plaque" id="strengthPlaque">
+      <div class="plaque-name" id="plaqueName">Ember</div>
+      <div class="plaque-reps">💪 Reps: <span id="plaqueReps">0</span></div>
+      <div class="plaque-tier" id="plaqueTier">Tier 0</div>
+    </div>
+
+    <!-- Water bowl on the floor -->
+    <div class="water-bowl">
+      <div class="bowl-body"></div>
+      <div class="bowl-water"></div>
+    </div>
+
+    <!-- Central barbell — interactive, starts the rhythm game -->
+    <button class="central-barbell" id="liftBtn" aria-label="Tap to lift">
+      <div class="barbell-bar"></div>
+      <div class="barbell-plate left"></div>
+      <div class="barbell-plate right"></div>
+      <div class="barbell-collar left"></div>
+      <div class="barbell-collar right"></div>
+      <div class="lift-prompt">TAP TO LIFT</div>
+    </button>
+
+    <!-- The dragon in the weight room -->
+    <div class="castle-dragon gym-dragon" id="gymDragon"><div class="dragon-facing"></div></div>
+  </div>
+</div>
+
+<!-- Rhythm-tap mini-game (full-screen takeover) -->
+<div class="overlay rhythm-overlay hidden" id="rhythmScreen">
+  <div class="rhythm-room">
+    <!-- Same stone backdrop continues -->
+    <div class="castle-wall castle-wall-gym">
+      <div class="castle-stones"></div>
+    </div>
+    <div class="castle-floor castle-floor-stone"></div>
+
+    <!-- HUD: timer, reps -->
+    <div class="rhythm-hud">
+      <div class="rhythm-time">⏱ <span id="rhythmTime">30</span>s</div>
+      <div class="rhythm-reps">💪 <span id="rhythmReps">0</span></div>
+    </div>
+
+    <!-- Rhythm track in the middle of the screen -->
+    <div class="rhythm-track" id="rhythmTrack">
+      <div class="rhythm-zone" id="rhythmZone">
+        <div class="rhythm-zone-inner"></div>
+        <div class="rhythm-zone-label">TAP!</div>
+      </div>
+      <!-- Targets get appended here -->
+    </div>
+
+    <!-- Floating feedback texts (PERFECT!/GOOD!/MISS) -->
+    <div class="rhythm-feedback" id="rhythmFeedback"></div>
+
+    <!-- The dragon performing lifts at the bottom -->
+    <div class="rhythm-dragon-area">
+      <div class="rhythm-dragon" id="rhythmDragon">
+        <div class="rhythm-dragon-svg"></div>
+        <div class="rhythm-barbell">
+          <div class="barbell-bar"></div>
+          <div class="barbell-plate left"></div>
+          <div class="barbell-plate right"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tap-anywhere overlay for input on iPad -->
+    <button class="rhythm-tap-shield" id="rhythmTapShield" aria-label="Tap to lift"></button>
+  </div>
+</div>
+
+<!-- Rhythm results screen -->
+<div class="overlay hidden" id="rhythmResultsScreen">
+  <div class="nap-card rhythm-results">
+    <div style="font-size: 56px;">🏋️</div>
+    <h2>Great workout!</h2>
+    <div class="score">+<span id="resultsReps">0</span> reps this session</div>
+    <div class="best">Lifetime reps: <span id="resultsLifetime">0</span></div>
+    <div id="resultsTierBanner"></div>
+    <div class="btn-row">
+      <button class="big-btn" id="resultsLiftAgain">Lift Again</button>
+      <button class="secondary-btn" id="resultsDone">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shared fade overlay for all castle transitions -->
+<div class="castle-fade" id="castleFade"></div>
 
 <div class="overlay hidden" id="controlPickerScreen">
   <div class="player-banner">Playing as <span id="cpPlayerName">—</span> · <span id="cpDragonName">—</span></div>

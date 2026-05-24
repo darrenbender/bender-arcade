@@ -1098,14 +1098,778 @@ canvas {
   transform: translate(20px, -28px) scale(1);
 }
 
-/* ----- Entry/exit fade ----- */
+/* ----- Entry/exit fade (shared across all castle rooms) ----- */
 .castle-fade {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: #ffffff;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.45s ease;
-  z-index: 50;
+  transition: opacity 0.30s ease;
+  z-index: 90;
 }
 .castle-fade.show { opacity: 1; }
+
+/* ============================================================
+   CASTLE — MULTIPLE ROOMS (Round 3a)
+   The bedroom now connects to a hallway, which leads to the
+   weight room. Each room is its own overlay with a shared dragon
+   container styled via .castle-dragon and an inner .dragon-facing
+   wrapper that flips the dragon when walking left.
+   ============================================================ */
+
+/* Each .castle-dragon has an inner facing wrapper so we can flip
+   horizontally without disturbing position. */
+.castle-dragon .dragon-facing {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease;
+}
+.castle-dragon .dragon-facing.face-left {
+  transform: scaleX(-1);
+}
+
+/* Smooth left/right slide for room walking. */
+.castle-dragon.sliding {
+  transition: left 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+/* Gentle vertical bob while walking. */
+.castle-dragon.walking .dragon-facing {
+  animation: dragonWalkBob 0.36s ease-in-out infinite;
+}
+.castle-dragon.walking.face-left .dragon-facing,
+.castle-dragon.walking .dragon-facing.face-left {
+  animation: dragonWalkBobLeft 0.36s ease-in-out infinite;
+}
+@keyframes dragonWalkBob {
+  0%, 100% { transform: translateY(0)    scaleX(1); }
+  50%      { transform: translateY(-6px) scaleX(1); }
+}
+@keyframes dragonWalkBobLeft {
+  0%, 100% { transform: translateY(0)    scaleX(-1); }
+  50%      { transform: translateY(-6px) scaleX(-1); }
+}
+
+/* ----- Right-wall door variant (for bedroom + hallway) ----- */
+.castle-door.door-right {
+  left: auto;
+  right: 3%;
+}
+/* Hinges flipped to the right side for right-wall doors */
+.door-hinge.right { left: auto; right: 6px; }
+.door-handle.left { right: auto; left: 14px; }
+
+/* Center-wall (placeholder) door for the hallway */
+.castle-door.door-center {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  cursor: default;
+  opacity: 0.78;
+}
+.castle-door.door-center .door-wood {
+  background: linear-gradient(180deg, #6a4a2e 0%, #4a2e1a 100%);
+}
+.door-locked .door-sign.sign-locked {
+  background: #efeaf2;
+  border-color: #6a5a78;
+  color: #6a5a78;
+}
+.door-lock {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -12px;
+  margin-top: -12px;
+  font-size: 24px;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+}
+
+/* ============================================================
+   HALLWAY
+   ============================================================ */
+.castle-room-hall {
+  background: #f7f2e7;
+}
+.castle-wall-hall {
+  inset: 0 0 38% 0;
+  background: linear-gradient(180deg, #f4ece0 0%, #ffffff 28%, #faf4e8 100%);
+}
+.hall-window {
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22%;
+  min-width: 180px;
+}
+.hall-rug {
+  position: absolute;
+  bottom: 0;
+  left: 14%;
+  right: 14%;
+  height: 38%;
+  background:
+    repeating-linear-gradient(90deg,
+      #b94d4d 0,
+      #b94d4d 24px,
+      #d65b5b 24px,
+      #d65b5b 48px),
+    #c25555;
+  border-top: 6px solid #7c1d16;
+  border-bottom: 6px solid #7c1d16;
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.18);
+  z-index: 1;
+}
+
+/* Wall torches */
+.wall-torch {
+  position: absolute;
+  width: 36px;
+  height: 80px;
+}
+.torch-left  { top: 28%; left: 12%; }
+.torch-right { top: 28%; right: 12%; }
+.torch-gym   { top: 22%; right: 22%; }
+.torch-bracket {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 22px;
+  height: 8px;
+  margin-left: -11px;
+  background: #4a3a22;
+  border-radius: 2px;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.3);
+}
+.torch-stick {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 8px;
+  height: 36px;
+  margin-left: -4px;
+  background: linear-gradient(180deg, #6a4a30 0%, #4a3018 100%);
+  border-radius: 3px;
+}
+.torch-flame {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  width: 18px;
+  height: 28px;
+  margin-left: -9px;
+  background: radial-gradient(ellipse at 50% 70%, #fff5d0 0%, #ffd76b 40%, #f29849 80%, transparent 95%);
+  border-radius: 50% 50% 50% 50% / 70% 70% 50% 50%;
+  transform-origin: 50% 100%;
+  animation: torchFlicker 0.32s ease-in-out infinite;
+  box-shadow: 0 0 16px rgba(255, 180, 80, 0.55);
+}
+.torch-glow {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  width: 110px;
+  height: 110px;
+  margin-left: -55px;
+  background: radial-gradient(circle, rgba(255, 200, 100, 0.32) 0%, transparent 65%);
+  pointer-events: none;
+  animation: torchGlow 1.6s ease-in-out infinite;
+}
+@keyframes torchFlicker {
+  0%, 100% { transform: scale(1, 1)       translateX(0); }
+  25%      { transform: scale(1.1, 0.95)  translateX(0.6px); }
+  50%      { transform: scale(0.92, 1.06) translateX(-0.6px); }
+  75%      { transform: scale(1.06, 0.96) translateX(0.4px); }
+}
+@keyframes torchGlow {
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 1; }
+}
+
+.hall-dragon {
+  bottom: 8%;
+}
+
+/* ============================================================
+   WEIGHT ROOM
+   ============================================================ */
+.castle-room-gym {
+  background: #f0eadf;
+}
+.castle-wall-gym {
+  inset: 0 0 38% 0;
+  background: linear-gradient(180deg, #ece4d4 0%, #f8f1e2 30%, #f0e8d4 100%);
+}
+.castle-wall-gym .castle-stones {
+  opacity: 0.75; /* slightly more visible stones */
+}
+.castle-floor-stone {
+  background:
+    radial-gradient(ellipse 80% 100% at 50% 0%, rgba(255, 220, 130, 0.16), transparent 70%),
+    repeating-linear-gradient(180deg,
+      #b8a890 0,
+      #b8a890 60px,
+      #9a8a72 60px,
+      #9a8a72 62px,
+      #b8a890 62px,
+      #b8a890 120px,
+      #9a8a72 120px,
+      #9a8a72 122px),
+    #b8a890;
+  box-shadow: inset 0 4px 12px rgba(60, 40, 20, 0.18);
+}
+.castle-floor-stone::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(90deg,
+      transparent 0,
+      transparent 120px,
+      rgba(60, 40, 20, 0.18) 120px,
+      rgba(60, 40, 20, 0.18) 122px,
+      transparent 122px,
+      transparent 240px,
+      rgba(60, 40, 20, 0.18) 240px,
+      rgba(60, 40, 20, 0.18) 242px);
+  background-position: 0 30px;
+  background-size: 240px 120px;
+}
+
+/* Motivational sign on the wall */
+.gym-sign {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff8e8;
+  border: 4px solid #8b6f4a;
+  border-radius: 12px;
+  padding: 10px 22px;
+  font-size: 22px;
+  font-weight: 900;
+  color: #6a4a2a;
+  letter-spacing: 1px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+}
+
+/* Weight rack against the back wall */
+.weight-rack {
+  position: absolute;
+  top: 22%;
+  left: 6%;
+  width: 220px;
+  height: 130px;
+}
+.rack-post {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  background: linear-gradient(180deg, #4a4a4a 0%, #2a2a2a 100%);
+  border-radius: 3px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.25);
+}
+.rack-post.left  { left: 0; }
+.rack-post.right { right: 0; }
+.rack-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: #3a3a3a;
+}
+.rack-rail.top { top: 30%; }
+.rack-rail.bot { top: 70%; }
+.rack-barbell {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  height: 8px;
+  background: linear-gradient(180deg, #aaaaaa 0%, #6a6a6a 100%);
+  border-radius: 4px;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.3);
+}
+.rack-barbell::before, .rack-barbell::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 22px;
+  margin-top: -11px;
+  background: linear-gradient(180deg, #3a3a3a 0%, #1a1a1a 100%);
+  border-radius: 4px;
+}
+.rack-barbell::before { left: -4px; }
+.rack-barbell::after  { right: -4px; }
+.rack-barbell.b1 { top: 18%; }
+.rack-barbell.b2 { top: 50%; }
+.rack-barbell.b3 { top: 82%; transform: scaleX(0.7); transform-origin: 50% 50%; }
+
+/* Wall mirror */
+.gym-mirror {
+  position: absolute;
+  bottom: 8%;
+  right: 4%;
+  width: 110px;
+  height: 240px;
+  z-index: 2;
+}
+.mirror-frame {
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  background: linear-gradient(180deg, #a06a3a 0%, #5a3a22 100%);
+  border-radius: 50% / 14%;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.22),
+              inset 0 2px 0 rgba(255,255,255,0.25);
+}
+.mirror-glass {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(180deg, #d8e6f0 0%, #b8d0e0 70%, #c8d8e8 100%);
+  border-radius: 50% / 14%;
+  overflow: hidden;
+}
+.mirror-shimmer {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: -20%;
+  width: 30%;
+  background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%);
+  animation: mirrorShimmer 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes mirrorShimmer {
+  0%   { left: -30%; }
+  60%  { left: 100%; }
+  100% { left: 100%; }
+}
+.mirror-dragon {
+  position: absolute;
+  inset: 4%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scaleX(-1);
+  opacity: 0.92;
+}
+.mirror-dragon svg { width: 100%; height: 100%; overflow: visible; }
+
+/* Strength plaque */
+.strength-plaque {
+  position: absolute;
+  bottom: 9%;
+  right: 17%;
+  background: #fff8e8;
+  border: 3px solid #8b6f4a;
+  border-radius: 10px;
+  padding: 10px 14px;
+  min-width: 130px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.18);
+  z-index: 2;
+}
+.plaque-name { font-size: 18px; font-weight: 900; color: #2d2438; }
+.plaque-reps { font-size: 16px; font-weight: 700; color: #5a4a6e; margin-top: 4px; }
+.plaque-tier { font-size: 14px; font-weight: 800; color: #b07b50; margin-top: 2px; }
+
+/* Water bowl */
+.water-bowl {
+  position: absolute;
+  bottom: 4%;
+  left: 22%;
+  width: 70px;
+  height: 32px;
+  z-index: 2;
+}
+.bowl-body {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #6a6a6a 0%, #3a3a3a 100%);
+  border-radius: 50%;
+  box-shadow: inset 0 3px 0 rgba(255,255,255,0.2);
+}
+.bowl-water {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  right: 8px;
+  height: 12px;
+  background: linear-gradient(180deg, #7fc9d9 0%, #4a96b8 100%);
+  border-radius: 50%;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.45);
+}
+
+/* Central barbell (interactive — starts rhythm game) */
+.central-barbell {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 56px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  z-index: 3;
+  font-family: inherit;
+}
+.central-barbell:active { transform: translateX(-50%) scale(0.97); }
+.central-barbell:hover .lift-prompt {
+  transform: translateX(-50%) translateY(-4px);
+  background: #ffd76b;
+}
+.barbell-bar {
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  height: 10px;
+  margin-top: -5px;
+  background: linear-gradient(180deg, #cfcfcf 0%, #7a7a7a 100%);
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.barbell-plate {
+  position: absolute;
+  top: 50%;
+  width: 28px;
+  height: 56px;
+  margin-top: -28px;
+  background: linear-gradient(180deg, #3a3a3a 0%, #1a1a1a 100%);
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.35);
+}
+.barbell-plate.left  { left: 0; }
+.barbell-plate.right { right: 0; }
+.barbell-collar {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 22px;
+  margin-top: -11px;
+  background: #888;
+  border-radius: 3px;
+}
+.barbell-collar.left  { left: 32px; }
+.barbell-collar.right { right: 32px; }
+
+.lift-prompt {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-bottom: 12px;
+  transform: translateX(-50%);
+  background: #ffd76b;
+  color: #2d2438;
+  font-size: 16px;
+  font-weight: 900;
+  padding: 8px 14px;
+  border-radius: 999px;
+  box-shadow: 0 4px 10px rgba(200, 140, 40, 0.4);
+  white-space: nowrap;
+  animation: liftPromptPulse 1.5s ease-in-out infinite;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+@keyframes liftPromptPulse {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50%      { transform: translateX(-50%) scale(1.07); }
+}
+
+.gym-dragon {
+  bottom: 6%;
+  left: 26%;
+  transform: translateX(-50%);
+  width: 220px;
+  max-width: 38%;
+  z-index: 2;
+}
+
+/* ============================================================
+   RHYTHM MINI-GAME
+   ============================================================ */
+.rhythm-overlay {
+  background: #ece4d4;
+  padding: 0;
+  display: block;
+  overflow: hidden;
+}
+.rhythm-room {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.rhythm-hud {
+  position: absolute;
+  top: env(safe-area-inset-top, 12px);
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* extra right padding so the reps pill clears the mute button (52 + 12 = 64 + breathing room) */
+  padding: 12px 88px 12px 24px;
+  z-index: 5;
+  pointer-events: none;
+}
+.rhythm-time, .rhythm-reps {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-weight: 900;
+  font-size: 22px;
+  color: #2d2438;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.rhythm-track {
+  position: absolute;
+  top: 36%;
+  left: 0;
+  right: 0;
+  height: 140px;
+  background: linear-gradient(180deg, rgba(255,248,232,0.85) 0%, rgba(253,226,182,0.85) 100%);
+  border-top: 4px solid #cb965b;
+  border-bottom: 4px solid #cb965b;
+  overflow: hidden;
+  z-index: 3;
+}
+.rhythm-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 6%;
+  width: 110px;
+  background: rgba(118, 191, 118, 0.30);
+  border-left: 4px solid #2f8a4a;
+  border-right: 4px solid #2f8a4a;
+  z-index: 2;
+  pointer-events: none;
+}
+.rhythm-zone-inner {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.4), transparent);
+  animation: zonePulse 1.1s ease-in-out infinite;
+}
+@keyframes zonePulse {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
+.rhythm-zone-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 22px;
+  font-weight: 900;
+  color: #2f6a3a;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 0 rgba(255,255,255,0.6);
+}
+
+/* Tap targets — large circles with the dragon color, big enough for Michael */
+.rhythm-target {
+  position: absolute;
+  top: 50%;
+  width: 92px;
+  height: 92px;
+  margin-top: -46px;
+  border-radius: 50%;
+  background: var(--target-color, #f4d250);
+  box-shadow:
+    0 6px 14px rgba(0,0,0,0.25),
+    inset 0 3px 0 rgba(255,255,255,0.6),
+    inset 0 -6px 0 rgba(0,0,0,0.18);
+  border: 4px solid rgba(255,255,255,0.75);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  pointer-events: none;
+}
+.rhythm-target.hit {
+  animation: targetHit 0.4s ease-out forwards;
+}
+.rhythm-target.missed {
+  animation: targetMiss 0.6s ease-out forwards;
+}
+@keyframes targetHit {
+  0%   { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@keyframes targetMiss {
+  0%   { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.7); opacity: 0; filter: grayscale(0.8); }
+}
+
+.rhythm-feedback {
+  position: absolute;
+  top: 28%;
+  left: 6%;
+  width: 200px;
+  height: 60px;
+  z-index: 5;
+  pointer-events: none;
+}
+.rhythm-fb-text {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 32px;
+  font-weight: 900;
+  color: #2d2438;
+  text-shadow: 0 2px 0 rgba(255,255,255,0.7), 0 4px 12px rgba(0,0,0,0.25);
+  animation: fbFloat 0.9s ease-out forwards;
+}
+.rhythm-fb-text.perfect { color: #d8a020; }
+.rhythm-fb-text.good    { color: #2f8a4a; }
+.rhythm-fb-text.miss    { color: #888888; font-size: 24px; }
+@keyframes fbFloat {
+  0%   { opacity: 0; transform: translateY(8px) scale(0.7); }
+  20%  { opacity: 1; transform: translateY(-4px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-46px) scale(1); }
+}
+
+.rhythm-dragon-area {
+  position: absolute;
+  inset: 60% 0 0 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4%;
+  z-index: 2;
+}
+.rhythm-dragon {
+  position: relative;
+  width: 280px;
+  height: 240px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.rhythm-dragon-svg {
+  width: 100%;
+  height: 100%;
+}
+.rhythm-dragon-svg svg { width: 100%; height: 100%; overflow: visible; }
+.rhythm-barbell {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  width: 220px;
+  height: 32px;
+  margin-left: -110px;
+  z-index: 3;
+  opacity: 0;
+  transition: top 0.18s ease, opacity 0.18s ease;
+}
+.rhythm-barbell .barbell-bar {
+  top: 50%;
+  left: 12%;
+  right: 12%;
+  height: 7px;
+  margin-top: -3.5px;
+}
+.rhythm-barbell .barbell-plate {
+  width: 20px;
+  height: 40px;
+  margin-top: -20px;
+}
+.rhythm-dragon.lifting .rhythm-barbell {
+  opacity: 1;
+}
+.rhythm-dragon.lifting .rhythm-dragon-svg {
+  animation: dragonLift 0.4s ease-out;
+}
+@keyframes dragonLift {
+  0%   { transform: translateY(0)    scale(1); }
+  40%  { transform: translateY(-4px) scale(1.03); }
+  100% { transform: translateY(0)    scale(1); }
+}
+
+.rhythm-tap-shield {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Results screen */
+.rhythm-results .score {
+  font-size: 28px;
+  font-weight: 800;
+  color: #2d2438;
+  margin: 12px 0 4px;
+}
+.tier-banner {
+  display: inline-block;
+  background: linear-gradient(135deg, #ffd76b, #f29849);
+  color: white;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 20px;
+  margin: 14px 0 8px;
+  animation: sparkle 1.4s ease-in-out infinite;
+  box-shadow: 0 6px 16px rgba(200, 140, 40, 0.4);
+}
+
+/* ============================================================
+   PICKER MUSCLE BADGE
+   Small overlay on each dragon card; only visible at tier ≥ 1.
+   ============================================================ */
+.muscle-badge {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  background: #fff8e8;
+  border: 2px solid #d8a020;
+  color: #6a4a10;
+  font-size: 13px;
+  font-weight: 900;
+  padding: 3px 9px;
+  border-radius: 999px;
+  box-shadow: 0 3px 6px rgba(200, 140, 40, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+}
+
+/* ============================================================
+   DRAGON MUSCLE OVERLAYS (used inside the SVG)
+   Visibility is controlled by .muscle-t1, .muscle-t2, .muscle-t3
+   classes on the parent <svg>. We show the appropriate group only
+   at or above its tier so tiers stack naturally.
+   ============================================================ */
+.muscle-t1-only, .muscle-t2-only, .muscle-t3-only { display: none; }
+.muscle-t1 .muscle-t1-only { display: inline; }
+.muscle-t2 .muscle-t2-only { display: inline; }
+.muscle-t3 .muscle-t3-only { display: inline; }
+/* Tier 3 has its own gentle "flex" pulse to suggest comically buff energy */
+.muscle-t3 .muscle-flex {
+  transform-origin: center;
+  animation: muscleFlex 4s ease-in-out infinite;
+}
+@keyframes muscleFlex {
+  0%, 88%, 100% { transform: scale(1); }
+  92%           { transform: scale(1.06); }
+  96%           { transform: scale(0.98); }
+}

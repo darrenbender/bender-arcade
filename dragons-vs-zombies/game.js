@@ -103,6 +103,26 @@ const CONFIG = {
     river: 0.9,
     castle: 1.15,
   },
+
+  /* ---- Castle bedroom / hallway / weight room (Round 3a) ---- */
+  castle: {
+    // Rhythm mini-game
+    rhythmTempoSec: 1.2,           // seconds between tap targets
+    rhythmSessionSec: 30,          // total mini-game duration
+    rhythmTargetTravelSec: 3.4,    // how long each target takes to cross the track
+    rhythmPerfectWindowMs: 150,    // ms window for PERFECT timing
+    rhythmGoodWindowMs: 400,       // ms window for GOOD timing
+    perfectReps: 2,                // reps awarded per PERFECT hit
+    goodReps: 1,                   // reps awarded per GOOD hit
+    // Muscle tiers (lifetime reps for that dragon)
+    muscleTier1: 30,
+    muscleTier2: 80,
+    muscleTier3: 200,
+    tierNames: ['', 'Strong', 'Mighty', 'LEGENDARY'],
+    // Room transitions
+    transitionWalkSec: 0.55,       // dragon walk-to-door animation
+    transitionFadeSec: 0.25,       // fade between rooms
+  },
 };
 
 /* ============================================================
@@ -126,6 +146,8 @@ const KEYS = {
   muted:          () => `dragons-vs-zombies:${player}:muted`,
   prismSeen:      () => `dragons-vs-zombies:${player}:prismSeen`,
   prismUnlocked:  () => `dragons-vs-zombies:prismUnlocked`,
+  // Castle weight room — per-dragon lifetime reps for this player
+  dragonReps:     (id) => `dragons-vs-zombies:${player}:reps:${id}`,
 };
 function readNum(k, def = 0) { const v = localStorage.getItem(k); return v == null ? def : (Number(v) || 0); }
 function readStr(k, def = '') { const v = localStorage.getItem(k); return v == null ? def : v; }
@@ -2554,11 +2576,45 @@ const ui = {
   visitCastleBtn:      document.getElementById('visitCastleBtn'),
   castleScreen:        document.getElementById('castleScreen'),
   castleDoorBtn:       document.getElementById('castleDoorBtn'),
+  castleHallDoorBtn:   document.getElementById('castleHallDoorBtn'),
   castleDragon:        document.getElementById('castleDragon'),
   castleBlanket:       document.getElementById('castleBlanket'),
   castleRug:           document.getElementById('castleRug'),
   castlePictureDragon: document.getElementById('castlePictureDragon'),
   castleFade:          document.getElementById('castleFade'),
+
+  // Hallway
+  castleHallScreen:    document.getElementById('castleHallScreen'),
+  hallBedroomDoorBtn:  document.getElementById('hallBedroomDoorBtn'),
+  hallWeightDoorBtn:   document.getElementById('hallWeightDoorBtn'),
+  hallDragon:          document.getElementById('hallDragon'),
+
+  // Weight room
+  castleGymScreen:     document.getElementById('castleGymScreen'),
+  gymHallDoorBtn:      document.getElementById('gymHallDoorBtn'),
+  gymDragon:           document.getElementById('gymDragon'),
+  mirrorDragon:        document.getElementById('mirrorDragon'),
+  liftBtn:             document.getElementById('liftBtn'),
+  strengthPlaque:      document.getElementById('strengthPlaque'),
+  plaqueName:          document.getElementById('plaqueName'),
+  plaqueReps:          document.getElementById('plaqueReps'),
+  plaqueTier:          document.getElementById('plaqueTier'),
+
+  // Rhythm game
+  rhythmScreen:        document.getElementById('rhythmScreen'),
+  rhythmTrack:         document.getElementById('rhythmTrack'),
+  rhythmZone:          document.getElementById('rhythmZone'),
+  rhythmTime:          document.getElementById('rhythmTime'),
+  rhythmReps:          document.getElementById('rhythmReps'),
+  rhythmFeedback:      document.getElementById('rhythmFeedback'),
+  rhythmDragon:        document.getElementById('rhythmDragon'),
+  rhythmTapShield:     document.getElementById('rhythmTapShield'),
+  rhythmResultsScreen: document.getElementById('rhythmResultsScreen'),
+  resultsReps:         document.getElementById('resultsReps'),
+  resultsLifetime:     document.getElementById('resultsLifetime'),
+  resultsTierBanner:   document.getElementById('resultsTierBanner'),
+  resultsLiftAgain:    document.getElementById('resultsLiftAgain'),
+  resultsDone:         document.getElementById('resultsDone'),
 };
 
 function updateScoreUI() { ui.score.textContent = game.score; }
@@ -2595,11 +2651,19 @@ function showDistrictBanner(d) {
    ============================================================ */
 function showScreen(name) {
   screen = name;
-  ui.dragonPicker.classList.toggle('hidden',  name !== 'dragonPicker');
-  ui.controlPicker.classList.toggle('hidden', name !== 'controlPicker');
-  ui.napScreen.classList.toggle('hidden',     name !== 'nap');
-  ui.castleScreen.classList.toggle('hidden',  name !== 'castle');
-  ui.hud.classList.toggle('hidden',           name !== 'playing');
+  ui.dragonPicker.classList.toggle('hidden',      name !== 'dragonPicker');
+  ui.controlPicker.classList.toggle('hidden',     name !== 'controlPicker');
+  ui.napScreen.classList.toggle('hidden',         name !== 'nap');
+  ui.castleScreen.classList.toggle('hidden',      name !== 'castle');
+  ui.castleHallScreen.classList.toggle('hidden',  name !== 'castleHall');
+  ui.castleGymScreen.classList.toggle('hidden',   name !== 'castleGym');
+  ui.rhythmScreen.classList.toggle('hidden',      name !== 'rhythm');
+  ui.rhythmResultsScreen.classList.toggle('hidden', name !== 'rhythmResults');
+  ui.hud.classList.toggle('hidden',               name !== 'playing');
+}
+function inCastle() {
+  return screen === 'castle' || screen === 'castleHall' ||
+         screen === 'castleGym' || screen === 'rhythm' || screen === 'rhythmResults';
 }
 
 function renderDragonPicker() {
@@ -2615,8 +2679,9 @@ function renderDragonPicker() {
     if (id === favorite) card.classList.add('favorite');
     const locked = (id === 'prism' && !prismUnlocked);
     if (locked) card.classList.add('locked');
+    const tier = locked ? 0 : muscleTierFor(id);
     card.innerHTML = `
-      ${dragonPickerSVG(cfg, id)}
+      ${dragonPickerSVG(cfg, id, tier)}
       <div class="name">${locked ? '???' : cfg.name}</div>
       <div class="tag">${locked ? 'Locked' : cfg.tag}</div>
     `;
@@ -2631,6 +2696,13 @@ function renderDragonPicker() {
       nb.textContent = '✨ NEW!';
       card.appendChild(nb);
     }
+    // Muscle badge (only at tier ≥ 1) — small "💪 ×N" pill in corner
+    if (!locked && tier >= 1) {
+      const mb = document.createElement('div');
+      mb.className = 'muscle-badge';
+      mb.textContent = '💪 ×' + tier;
+      card.appendChild(mb);
+    }
     card.addEventListener('click', () => {
       if (locked) return;
       onAnyTap();
@@ -2643,8 +2715,9 @@ function renderDragonPicker() {
   }
 }
 
-function dragonPickerSVG(cfg, id) {
+function dragonPickerSVG(cfg, id, tier = 0) {
   // Mirror of in-canvas dragon, suitable for picker preview.
+  // `tier` adds optional muscle overlays (visible only in social contexts).
   const isRainbow = !!cfg.rainbow;
   const bodyFill = isRainbow ? `url(#g_${id})` : cfg.color;
   const bellyFill = isRainbow ? '#fff8e8' : cfg.belly;
@@ -2663,7 +2736,8 @@ function dragonPickerSVG(cfg, id) {
       </linearGradient>
     </defs>
   ` : '';
-  return `<svg viewBox="-70 -40 140 80" xmlns="http://www.w3.org/2000/svg">
+  const tierClass = tier >= 3 ? 'muscle-t3' : tier === 2 ? 'muscle-t2' : tier === 1 ? 'muscle-t1' : '';
+  return `<svg class="${tierClass}" viewBox="-70 -40 140 80" xmlns="http://www.w3.org/2000/svg">
     ${gradient}
     <ellipse cx="0" cy="32" rx="36" ry="5" fill="rgba(0,0,0,0.12)"/>
     <!-- Back wing -->
@@ -2674,6 +2748,26 @@ function dragonPickerSVG(cfg, id) {
     <!-- Body -->
     <ellipse cx="0" cy="0" rx="22" ry="12" fill="${bodyFill}"/>
     <ellipse cx="2" cy="6" rx="17" ry="6" fill="${bellyFill}"/>
+    <!-- Muscle overlays (smaller scale to match this viewBox) -->
+    <g class="muscle-t1-only">
+      <ellipse cx="-15" cy="-6" rx="4" ry="5" fill="${bodyFill}"/>
+      <ellipse cx="15"  cy="-5" rx="4" ry="5" fill="${bodyFill}"/>
+      <path d="M -5 1 Q 0 4 5 1" stroke="rgba(0,0,0,0.12)" stroke-width="1" fill="none" stroke-linecap="round"/>
+    </g>
+    <g class="muscle-t2-only">
+      <ellipse cx="-18" cy="0" rx="6" ry="9" fill="${bodyFill}"/>
+      <ellipse cx="18"  cy="1" rx="6" ry="9" fill="${bodyFill}"/>
+      <ellipse cx="-7"  cy="2" rx="6" ry="5" fill="${bodyFill}"/>
+      <ellipse cx="7"   cy="2" rx="6" ry="5" fill="${bodyFill}"/>
+      <path d="M 0 0 L 0 8" stroke="rgba(0,0,0,0.15)" stroke-width="1.2" stroke-linecap="round"/>
+    </g>
+    <g class="muscle-t3-only muscle-flex">
+      <ellipse cx="-20" cy="1" rx="8" ry="11" fill="${bodyFill}"/>
+      <ellipse cx="20"  cy="2" rx="8" ry="11" fill="${bodyFill}"/>
+      <ellipse cx="-8"  cy="2" rx="7" ry="6" fill="${bodyFill}"/>
+      <ellipse cx="8"   cy="2" rx="7" ry="6" fill="${bodyFill}"/>
+      <path d="M 0 -1 L 0 9" stroke="rgba(0,0,0,0.2)" stroke-width="1.4" stroke-linecap="round"/>
+    </g>
     <!-- Back spines -->
     <path d="M -12.5 -10 L -10 -17 L -7.5 -10 Z M -6.5 -10 L -4 -18 L -1.5 -10 Z M -0.5 -10 L 2 -19 L 4.5 -10 Z M 5.5 -10 L 8 -18 L 10.5 -10 Z" fill="${wingFill}"/>
     <!-- Legs -->
@@ -2712,9 +2806,10 @@ function showControlPicker() {
    Pure CSS animations + a static SVG dragon with class-based
    blink and yawn hooks. No game loop runs while we're in here.
    ============================================================ */
-function dragonRestingSVG(cfg, id) {
+function dragonRestingSVG(cfg, id, tier = 0) {
   // The dragon sits peacefully facing right. Body group carries the
   // breathing animation; eye and mouth subgroups carry blink/yawn.
+  // `tier` is the muscle tier (0..3); higher tiers add overlay shapes.
   const isRainbow = !!cfg.rainbow;
   const bodyFill  = isRainbow ? `url(#gr_${id})` : cfg.color;
   const bellyFill = isRainbow ? '#fff8e8' : cfg.belly;
@@ -2734,7 +2829,8 @@ function dragonRestingSVG(cfg, id) {
       </linearGradient>
     </defs>
   ` : '';
-  return `<svg viewBox="-90 -90 180 180" xmlns="http://www.w3.org/2000/svg">
+  const tierClass = tier >= 3 ? 'muscle-t3' : tier === 2 ? 'muscle-t2' : tier === 1 ? 'muscle-t1' : '';
+  return `<svg class="${tierClass}" viewBox="-90 -90 180 180" xmlns="http://www.w3.org/2000/svg">
     ${gradient}
     <!-- ground shadow -->
     <ellipse cx="0" cy="60" rx="62" ry="7" fill="rgba(0,0,0,0.18)"/>
@@ -2767,6 +2863,43 @@ function dragonRestingSVG(cfg, id) {
       <ellipse cx="-14" cy="4" rx="3.5" ry="2" fill="rgba(0,0,0,0.07)"/>
       <ellipse cx="0"   cy="0" rx="3.5" ry="2" fill="rgba(0,0,0,0.07)"/>
       <ellipse cx="14"  cy="4" rx="3.5" ry="2" fill="rgba(0,0,0,0.07)"/>
+
+      <!-- ======== MUSCLE OVERLAYS (visibility controlled by .muscle-tN class on <svg>) ======== -->
+      <!-- Tier 1 — subtle shoulder bumps + faint chest line -->
+      <g class="muscle-t1-only">
+        <ellipse cx="-28" cy="-4" rx="7" ry="9" fill="${bodyFill}"/>
+        <ellipse cx="28"  cy="-2" rx="7" ry="9" fill="${bodyFill}"/>
+        <path d="M -10 6 Q 0 12 10 6" stroke="rgba(0,0,0,0.12)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      </g>
+      <!-- Tier 2 — bigger arms, chest plates, thicker neck -->
+      <g class="muscle-t2-only">
+        <!-- Upper arm bulges -->
+        <ellipse cx="-34" cy="6" rx="11" ry="16" fill="${bodyFill}"/>
+        <ellipse cx="34"  cy="8" rx="11" ry="16" fill="${bodyFill}"/>
+        <!-- Pec plates -->
+        <ellipse cx="-12" cy="10" rx="11" ry="9" fill="${bodyFill}"/>
+        <ellipse cx="12"  cy="10" rx="11" ry="9" fill="${bodyFill}"/>
+        <!-- Pec line -->
+        <path d="M 0 4 L 0 20" stroke="rgba(0,0,0,0.16)" stroke-width="2" stroke-linecap="round"/>
+        <!-- Thicker neck base -->
+        <ellipse cx="32" cy="-14" rx="10" ry="8" fill="${bodyFill}"/>
+      </g>
+      <!-- Tier 3 — comically buff (wrapped in muscle-flex for occasional pulse) -->
+      <g class="muscle-t3-only muscle-flex">
+        <!-- Huge bicep bulges -->
+        <ellipse cx="-38" cy="8" rx="16" ry="21" fill="${bodyFill}"/>
+        <ellipse cx="38"  cy="10" rx="16" ry="21" fill="${bodyFill}"/>
+        <!-- Big pec shapes -->
+        <ellipse cx="-14" cy="8" rx="14" ry="12" fill="${bodyFill}"/>
+        <ellipse cx="14"  cy="8" rx="14" ry="12" fill="${bodyFill}"/>
+        <!-- Deep pec line -->
+        <path d="M 0 -2 L 0 22" stroke="rgba(0,0,0,0.22)" stroke-width="2.4" stroke-linecap="round"/>
+        <!-- Thicker neck still -->
+        <ellipse cx="34" cy="-16" rx="13" ry="10" fill="${bodyFill}"/>
+        <!-- Bicep peak highlights -->
+        <path d="M -42 4 Q -38 8 -42 14" stroke="rgba(255,255,255,0.25)" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M 42 6 Q 38 10 42 16"   stroke="rgba(255,255,255,0.25)" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </g>
 
       <!-- front paws -->
       <ellipse cx="-22" cy="40" rx="9"  ry="7" fill="${bodyFill}"/>
@@ -2829,40 +2962,108 @@ const CASTLE_TINTS = {
   prism:  { blanket: 'rainbow', trim: '#5a4998', rug: 'rainbow', rugTrim: '#5a4998' },
 };
 
+/* ----- Muscle tier helpers ----- */
+function getDragonReps(id) { return readNum(KEYS.dragonReps(id), 0); }
+function addDragonReps(id, n) {
+  const v = getDragonReps(id) + n;
+  writeStr(KEYS.dragonReps(id), v);
+  return v;
+}
+function muscleTierFor(id) {
+  const reps = getDragonReps(id);
+  if (reps >= CONFIG.castle.muscleTier3) return 3;
+  if (reps >= CONFIG.castle.muscleTier2) return 2;
+  if (reps >= CONFIG.castle.muscleTier1) return 1;
+  return 0;
+}
+
+/* ----- Helpers for rendering the dragon in each room ----- */
+function currentRoomDragonEl() {
+  if (screen === 'castle')     return ui.castleDragon;
+  if (screen === 'castleHall') return ui.hallDragon;
+  if (screen === 'castleGym')  return ui.gymDragon;
+  return null;
+}
+function injectDragonInto(containerEl, svg) {
+  const facing = containerEl.querySelector('.dragon-facing');
+  if (facing) facing.innerHTML = svg;
+}
+function activeDragonCfg() {
+  const id = CONFIG.dragons[selectedDragonId] ? selectedDragonId : 'ember';
+  return { id, cfg: CONFIG.dragons[id] };
+}
+
+/* ----- Ambient timers (cleared on castle exit) ----- */
 let castleBlinkTimer = null;
 let castleYawnTimer  = null;
 
+function scheduleCastleBlink() {
+  const delay = 4000 + Math.random() * 3000;
+  castleBlinkTimer = setTimeout(() => {
+    if (!inCastle()) return;
+    const dragonEl = currentRoomDragonEl();
+    if (!dragonEl) { scheduleCastleBlink(); return; }
+    const eye = dragonEl.querySelector('.dragon-eye');
+    if (eye) {
+      eye.classList.add('blink');
+      setTimeout(() => {
+        eye.classList.remove('blink');
+        scheduleCastleBlink();
+      }, 160);
+    } else {
+      scheduleCastleBlink();
+    }
+  }, delay);
+}
+function scheduleCastleYawn() {
+  const delay = 15000 + Math.random() * 10000;
+  castleYawnTimer = setTimeout(() => {
+    if (screen !== 'castle') { scheduleCastleYawn(); return; } // yawns only in the bedroom
+    const dragonEl = ui.castleDragon;
+    const mouth = dragonEl.querySelector('.dragon-mouth');
+    const zzz   = dragonEl.querySelector('.dragon-zzz');
+    if (mouth) {
+      mouth.classList.add('yawn');
+      if (zzz) zzz.classList.add('show');
+      setTimeout(() => mouth.classList.remove('yawn'), 900);
+      setTimeout(() => {
+        if (zzz) zzz.classList.remove('show');
+        scheduleCastleYawn();
+      }, 1700);
+    } else {
+      scheduleCastleYawn();
+    }
+  }, delay);
+}
+function clearAmbientTimers() {
+  if (castleBlinkTimer) { clearTimeout(castleBlinkTimer); castleBlinkTimer = null; }
+  if (castleYawnTimer)  { clearTimeout(castleYawnTimer);  castleYawnTimer  = null; }
+}
+
+/* ----- Entry into the castle (from picker) ----- */
 function openCastle() {
-  // Determine which dragon to show. selectedDragonId is already 'ember'
-  // by default, but be defensive in case the saved id is unknown.
-  const id = (CONFIG.dragons[selectedDragonId] ? selectedDragonId : 'ember');
-  const cfg = CONFIG.dragons[id];
+  const { id, cfg } = activeDragonCfg();
   const tints = CASTLE_TINTS[id] || CASTLE_TINTS.ember;
+  const tier = muscleTierFor(id);
 
-  // Inject the dragons (room + framed picture)
-  ui.castleDragon.innerHTML = dragonRestingSVG(cfg, 'big');
-  ui.castlePictureDragon.innerHTML = dragonPickerSVG(cfg, 'pic');
+  // Inject bedroom dragons (room + framed picture)
+  injectDragonInto(ui.castleDragon, dragonRestingSVG(cfg, 'big', tier));
+  // The picture-frame dragon is a smaller inline SVG (uses picker style)
+  ui.castlePictureDragon.innerHTML = dragonPickerSVG(cfg, 'pic', tier);
 
-  // Tint the blanket and rug. Rainbow uses a CSS gradient.
   applyCastleTint(tints);
-
-  // Soft warm chord on entry (respects mute via the tone() helper)
   warmChord();
 
-  // Fade in
   ui.castleFade.classList.add('show');
   showScreen('castle');
-  // Pause briefly so the fade is visible, then clear it
   setTimeout(() => ui.castleFade.classList.remove('show'), 30);
 
-  // Start ambient timers
   scheduleCastleBlink();
   scheduleCastleYawn();
 }
 
 function applyCastleTint(t) {
   const rainbowGradient = 'linear-gradient(90deg, #ff4d4d 0%, #ff8c30 16%, #ffd200 33%, #3ed03e 50%, #3aa7f0 66%, #6c5cd9 83%, #a23ec6 100%)';
-  // Blanket
   if (t.blanket === 'rainbow') {
     ui.castleBlanket.style.background = rainbowGradient;
     ui.castleBlanket.style.setProperty('--blanket-color', '#7a6fd0');
@@ -2870,7 +3071,6 @@ function applyCastleTint(t) {
     ui.castleBlanket.style.background = '';
     ui.castleBlanket.style.setProperty('--blanket-color', t.blanket);
   }
-  // Rug
   if (t.rug === 'rainbow') {
     ui.castleRug.style.background = rainbowGradient;
     ui.castleRug.style.setProperty('--rug-color', '#7a6fd0');
@@ -2881,12 +3081,9 @@ function applyCastleTint(t) {
   ui.castleRug.style.setProperty('--rug-trim', t.rugTrim);
 }
 
+/* ----- Exit the castle entirely (called by bedroom "← Back" door) ----- */
 function closeCastle() {
-  // Stop ambient timers
-  if (castleBlinkTimer) { clearTimeout(castleBlinkTimer); castleBlinkTimer = null; }
-  if (castleYawnTimer)  { clearTimeout(castleYawnTimer);  castleYawnTimer  = null; }
-
-  // Fade out, then switch screens
+  clearAmbientTimers();
   ui.castleFade.classList.add('show');
   setTimeout(() => {
     showScreen('dragonPicker');
@@ -2895,43 +3092,331 @@ function closeCastle() {
   }, 200);
 }
 
-function scheduleCastleBlink() {
-  const delay = 4000 + Math.random() * 3000;
-  castleBlinkTimer = setTimeout(() => {
-    if (screen !== 'castle') return;
-    const eye = ui.castleDragon.querySelector('.dragon-eye');
-    if (eye) {
-      eye.classList.add('blink');
-      setTimeout(() => {
-        eye.classList.remove('blink');
-        scheduleCastleBlink();
-      }, 160);
-    }
-  }, delay);
+/* ============================================================
+   ROOM TRANSITIONS — walk to door, fade, walk in from other side
+   ============================================================ */
+// Each room knows where its dragon "rests" by default.
+const ROOM_DEFAULT_LEFT = {
+  castle:     '50%',
+  castleHall: '30%',  // leave the center placeholder door visible
+  castleGym:  '26%',  // stand to the left of the central barbell
+};
+
+function transitionRoom(fromScreen, toScreen, exitDoor /* 'left'|'right' */, enterDoor /* 'left'|'right' */) {
+  const fromDragon = currentRoomDragonEl();
+  if (!fromDragon) return;
+  const fromFacing = fromDragon.querySelector('.dragon-facing');
+
+  // 1. Walk current dragon toward exit door
+  fromFacing.classList.toggle('face-left', exitDoor === 'left');
+  fromDragon.classList.add('sliding', 'walking');
+  fromDragon.style.left = exitDoor === 'left' ? '8%' : '92%';
+
+  setTimeout(() => {
+    // 2. Fade
+    ui.castleFade.classList.add('show');
+
+    setTimeout(() => {
+      // 3. Switch screen + reset old dragon's inline styles for next visit
+      fromDragon.classList.remove('walking', 'sliding');
+      fromDragon.style.left = '';
+      fromFacing.classList.remove('face-left');
+
+      enterRoom(toScreen, enterDoor);
+
+      // 4. Hide fade
+      setTimeout(() => ui.castleFade.classList.remove('show'), 30);
+    }, CONFIG.castle.transitionFadeSec * 1000);
+  }, CONFIG.castle.transitionWalkSec * 1000);
 }
 
-function scheduleCastleYawn() {
-  const delay = 15000 + Math.random() * 10000;
-  castleYawnTimer = setTimeout(() => {
-    if (screen !== 'castle') return;
-    const mouth = ui.castleDragon.querySelector('.dragon-mouth');
-    const zzz   = ui.castleDragon.querySelector('.dragon-zzz');
-    if (mouth) {
-      mouth.classList.add('yawn');
-      if (zzz) zzz.classList.add('show');
-      setTimeout(() => {
-        mouth.classList.remove('yawn');
-      }, 900);
-      setTimeout(() => {
-        if (zzz) zzz.classList.remove('show');
-        scheduleCastleYawn();
-      }, 1700);
-    }
-  }, delay);
+// Place the dragon at the entry door of the target room and walk it to its default spot.
+function enterRoom(toScreen, enterDoor) {
+  const { id, cfg } = activeDragonCfg();
+  const tier = muscleTierFor(id);
+
+  showScreen(toScreen);
+
+  // Inject the appropriate dragon SVG into the destination room
+  if (toScreen === 'castle') {
+    injectDragonInto(ui.castleDragon, dragonRestingSVG(cfg, 'big', tier));
+    ui.castlePictureDragon.innerHTML = dragonPickerSVG(cfg, 'pic', tier);
+    applyCastleTint(CASTLE_TINTS[id] || CASTLE_TINTS.ember);
+  } else if (toScreen === 'castleHall') {
+    injectDragonInto(ui.hallDragon, dragonRestingSVG(cfg, 'hall', tier));
+  } else if (toScreen === 'castleGym') {
+    injectDragonInto(ui.gymDragon, dragonRestingSVG(cfg, 'gym', tier));
+    ui.mirrorDragon.innerHTML = dragonRestingSVG(cfg, 'mir', tier);
+    updateStrengthPlaque(id);
+  }
+
+  const dragonEl = currentRoomDragonEl();
+  if (!dragonEl) return;
+  const facingEl = dragonEl.querySelector('.dragon-facing');
+
+  // Position at entry door (no transition during placement)
+  dragonEl.classList.remove('sliding');
+  dragonEl.style.left = enterDoor === 'left' ? '8%' : '92%';
+  // Face the direction we'll walk: from left door → walk right (face right)
+  facingEl.classList.toggle('face-left', enterDoor === 'right');
+  // Force layout so the new position commits before transition is re-enabled
+  void dragonEl.offsetWidth;
+  // Walk to default position
+  dragonEl.classList.add('sliding', 'walking');
+  dragonEl.style.left = ROOM_DEFAULT_LEFT[toScreen] || '50%';
+
+  setTimeout(() => {
+    dragonEl.classList.remove('walking');
+    facingEl.classList.remove('face-left');
+    // Make sure mirror reflection always faces left (toward camera)
+  }, CONFIG.castle.transitionWalkSec * 1000);
 }
 
+function updateStrengthPlaque(id) {
+  const cfg = CONFIG.dragons[id];
+  const reps = getDragonReps(id);
+  const tier = muscleTierFor(id);
+  ui.plaqueName.textContent = cfg.name;
+  ui.plaqueReps.textContent = reps;
+  ui.plaqueTier.textContent = tier === 0 ? 'Tier 0' :
+    `Tier ${tier}: ${CONFIG.castle.tierNames[tier]}`;
+}
+
+/* ============================================================
+   RHYTHM MINI-GAME
+   Tap targets scroll right-to-left into a tap zone on the left.
+   Press space / tap anywhere when a target reaches the zone.
+   Lasts CONFIG.castle.rhythmSessionSec; awards reps; persists.
+   ============================================================ */
+const rhythm = {
+  active: false,
+  startMs: 0,
+  endMs: 0,
+  nextSpawnMs: 0,
+  targets: [],          // { id, el, spawnMs, expectedHitMs, hit, missed }
+  nextId: 1,
+  sessionReps: 0,
+  sessionStartReps: 0,
+  sessionStartTier: 0,
+  rafId: 0,
+  tickHandle: 0,
+  trackWidth: 0,
+  zoneCenterX: 0,
+  spawnX: 0,
+};
+
+function rhythmZoneCenterPx() {
+  // Calculated from CSS: zone left 6%, width 110px → center = 6% + 55px
+  return ui.rhythmTrack.clientWidth * 0.06 + 55;
+}
+function rhythmSpawnX() {
+  return ui.rhythmTrack.clientWidth + 60; // start a bit past the right edge
+}
+
+function startRhythm() {
+  // Stop ambient timers so they don't fire mid-game
+  clearAmbientTimers();
+  const { id, cfg } = activeDragonCfg();
+
+  // Inject the dragon performing lifts
+  const tier = muscleTierFor(id);
+  const dragonSvgHost = ui.rhythmDragon.querySelector('.rhythm-dragon-svg');
+  if (dragonSvgHost) dragonSvgHost.innerHTML = dragonRestingSVG(cfg, 'rhy', tier);
+
+  // Color targets to match the dragon (rainbow → use gold for visibility)
+  const targetColor = cfg.rainbow ? '#ffd76b' : cfg.color;
+  ui.rhythmScreen.style.setProperty('--target-color', targetColor);
+
+  // Reset state
+  rhythm.active = true;
+  rhythm.startMs = performance.now();
+  rhythm.endMs = rhythm.startMs + CONFIG.castle.rhythmSessionSec * 1000;
+  rhythm.nextSpawnMs = rhythm.startMs + 500;          // first target after a short lead
+  rhythm.targets = [];
+  rhythm.nextId = 1;
+  rhythm.sessionReps = 0;
+  rhythm.sessionStartReps = getDragonReps(id);
+  rhythm.sessionStartTier = muscleTierFor(id);
+  rhythm.trackWidth = ui.rhythmTrack.clientWidth;
+  rhythm.zoneCenterX = rhythmZoneCenterPx();
+  rhythm.spawnX = rhythmSpawnX();
+
+  ui.rhythmTime.textContent = CONFIG.castle.rhythmSessionSec;
+  ui.rhythmReps.textContent = 0;
+
+  // Clear any previous targets in the track DOM
+  ui.rhythmTrack.querySelectorAll('.rhythm-target').forEach(n => n.remove());
+  ui.rhythmFeedback.innerHTML = '';
+
+  showScreen('rhythm');
+
+  rhythm.rafId = requestAnimationFrame(rhythmTick);
+}
+
+function rhythmTick(now) {
+  if (!rhythm.active) return;
+  const elapsed = now - rhythm.startMs;
+  const remaining = Math.max(0, rhythm.endMs - now);
+  ui.rhythmTime.textContent = Math.ceil(remaining / 1000);
+
+  // Spawn new targets at the configured tempo, but don't spawn in the
+  // last second (so the run finishes cleanly).
+  if (now >= rhythm.nextSpawnMs && now < rhythm.endMs - 1000) {
+    spawnRhythmTarget(now);
+    rhythm.nextSpawnMs = now + CONFIG.castle.rhythmTempoSec * 1000;
+  }
+
+  // Update target positions and check for misses
+  const trackW = rhythm.trackWidth;
+  const zoneX = rhythm.zoneCenterX;
+  const spawnX = rhythm.spawnX;
+  const travelMs = CONFIG.castle.rhythmTargetTravelSec * 1000;
+  for (let i = rhythm.targets.length - 1; i >= 0; i--) {
+    const t = rhythm.targets[i];
+    if (t.hit || t.missed) {
+      // After fade-out animation has played, remove from DOM
+      if (now - t.removedAtMs > 600) {
+        t.el.remove();
+        rhythm.targets.splice(i, 1);
+      }
+      continue;
+    }
+    const age = now - t.spawnMs;
+    const progress = age / travelMs; // 0..1
+    const x = spawnX - (spawnX - zoneX) * progress;
+    t.el.style.left = (x - 46) + 'px'; // 46 = half of 92px target
+
+    // Miss: target left the good window
+    if (now > t.expectedHitMs + CONFIG.castle.rhythmGoodWindowMs) {
+      t.missed = true;
+      t.removedAtMs = now;
+      t.el.classList.add('missed');
+      showRhythmFeedback('miss');
+    }
+  }
+
+  // End the session
+  if (now >= rhythm.endMs) {
+    finishRhythm();
+    return;
+  }
+
+  rhythm.rafId = requestAnimationFrame(rhythmTick);
+}
+
+function spawnRhythmTarget(now) {
+  const id = rhythm.nextId++;
+  const el = document.createElement('div');
+  el.className = 'rhythm-target';
+  el.dataset.id = String(id);
+  // place at spawn point initially (off-screen right)
+  el.style.left = (rhythm.spawnX - 46) + 'px';
+  ui.rhythmTrack.appendChild(el);
+  const travelMs = CONFIG.castle.rhythmTargetTravelSec * 1000;
+  rhythm.targets.push({
+    id, el,
+    spawnMs: now,
+    expectedHitMs: now + travelMs,
+    hit: false,
+    missed: false,
+    removedAtMs: 0,
+  });
+}
+
+function onRhythmTap() {
+  if (!rhythm.active) return;
+  const now = performance.now();
+  // Find target closest to expectedHitMs
+  let best = null;
+  let bestDelta = Infinity;
+  for (const t of rhythm.targets) {
+    if (t.hit || t.missed) continue;
+    const d = Math.abs(now - t.expectedHitMs);
+    if (d < bestDelta) { best = t; bestDelta = d; }
+  }
+  if (!best) return; // no targets — silent tap
+
+  const perfectMs = CONFIG.castle.rhythmPerfectWindowMs;
+  const goodMs    = CONFIG.castle.rhythmGoodWindowMs;
+  if (bestDelta <= perfectMs) {
+    best.hit = true;
+    best.removedAtMs = now;
+    best.el.classList.add('hit');
+    best.el.textContent = '✨';
+    awardRhythm(CONFIG.castle.perfectReps, 'perfect');
+  } else if (bestDelta <= goodMs) {
+    best.hit = true;
+    best.removedAtMs = now;
+    best.el.classList.add('hit');
+    awardRhythm(CONFIG.castle.goodReps, 'good');
+  } else {
+    // Too far off — count nothing
+    showRhythmFeedback('miss');
+  }
+}
+
+function awardRhythm(reps, kind) {
+  rhythm.sessionReps += reps;
+  ui.rhythmReps.textContent = rhythm.sessionReps;
+  showRhythmFeedback(kind);
+  // Trigger lift animation on the dragon
+  ui.rhythmDragon.classList.remove('lifting');
+  void ui.rhythmDragon.offsetWidth; // restart animation
+  ui.rhythmDragon.classList.add('lifting');
+  setTimeout(() => ui.rhythmDragon.classList.remove('lifting'), 400);
+  // Sound
+  if (kind === 'perfect') liftClang(true);
+  else liftClang(false);
+}
+
+function showRhythmFeedback(kind) {
+  const el = document.createElement('div');
+  el.className = 'rhythm-fb-text ' + kind;
+  el.textContent = kind === 'perfect' ? 'PERFECT!' :
+                   kind === 'good'    ? 'GOOD!'    :
+                                        'miss';
+  ui.rhythmFeedback.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+
+function finishRhythm() {
+  rhythm.active = false;
+  if (rhythm.rafId) cancelAnimationFrame(rhythm.rafId);
+  rhythm.rafId = 0;
+
+  // Persist reps
+  const { id } = activeDragonCfg();
+  const lifetimeBefore = rhythm.sessionStartReps;
+  const lifetimeAfter = addDragonReps(id, rhythm.sessionReps);
+  const tierBefore = rhythm.sessionStartTier;
+  const tierAfter = muscleTierFor(id);
+
+  // Populate results screen
+  ui.resultsReps.textContent = rhythm.sessionReps;
+  ui.resultsLifetime.textContent = lifetimeAfter;
+  if (tierAfter > tierBefore) {
+    const cfg = CONFIG.dragons[id];
+    ui.resultsTierBanner.innerHTML = `<div class="tier-banner">🎉 ${cfg.name} reached Tier ${tierAfter}: ${CONFIG.castle.tierNames[tierAfter]}! 🎉</div>`;
+    tierUpChord();
+  } else {
+    ui.resultsTierBanner.innerHTML = '';
+  }
+
+  showScreen('rhythmResults');
+}
+
+function liftClang(perfect) {
+  if (muted || !actx) return;
+  // Short metallic clang for hit, slightly higher for perfect
+  const f = perfect ? 660 : 440;
+  tone(f, 0.10, 'square', 0.04, 0.005);
+  setTimeout(() => tone(f * 0.5, 0.14, 'sine', 0.05, 0.005), 30);
+}
+function tierUpChord() {
+  if (muted || !actx) return;
+  [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(() => tone(f, 0.30, 'triangle', 0.10, 0.01), i * 80));
+}
 function warmChord() {
-  // Three gentle sine notes — barely there, like a soft door-chime
   if (muted || !actx) return;
   [392, 494, 587].forEach((f, i) => setTimeout(() => tone(f, 0.55, 'sine', 0.04, 0.08), i * 60));
 }
@@ -2955,6 +3440,53 @@ ui.napPickDragon.addEventListener('click', () => { onAnyTap(); showScreen('drago
 // Castle bedroom — entry from dragon picker, exit via the door
 ui.visitCastleBtn.addEventListener('click', () => { onAnyTap(); openCastle(); });
 ui.castleDoorBtn .addEventListener('click', () => { onAnyTap(); closeCastle(); });
+
+// Bedroom → Hallway
+ui.castleHallDoorBtn.addEventListener('click', () => {
+  onAnyTap();
+  transitionRoom('castle', 'castleHall', 'right', 'left');
+});
+// Hallway → Bedroom
+ui.hallBedroomDoorBtn.addEventListener('click', () => {
+  onAnyTap();
+  transitionRoom('castleHall', 'castle', 'left', 'right');
+});
+// Hallway → Weight Room
+ui.hallWeightDoorBtn.addEventListener('click', () => {
+  onAnyTap();
+  transitionRoom('castleHall', 'castleGym', 'right', 'left');
+});
+// Weight Room → Hallway
+ui.gymHallDoorBtn.addEventListener('click', () => {
+  onAnyTap();
+  transitionRoom('castleGym', 'castleHall', 'left', 'right');
+});
+
+// Tap the central barbell to start the rhythm mini-game
+ui.liftBtn.addEventListener('click', () => { onAnyTap(); startRhythm(); });
+
+// Rhythm input: tap-shield catches all taps; spacebar also fires when active
+ui.rhythmTapShield.addEventListener('click', () => { onAnyTap(); onRhythmTap(); });
+window.addEventListener('keydown', (e) => {
+  if (screen === 'rhythm' && e.key === ' ') {
+    e.preventDefault();
+    onRhythmTap();
+  }
+});
+
+// Rhythm results buttons
+ui.resultsLiftAgain.addEventListener('click', () => { onAnyTap(); startRhythm(); });
+ui.resultsDone.addEventListener('click', () => {
+  onAnyTap();
+  // Return to weight room. Re-render strength plaque + mirror dragon to reflect new reps.
+  const { id, cfg } = activeDragonCfg();
+  const tier = muscleTierFor(id);
+  injectDragonInto(ui.gymDragon, dragonRestingSVG(cfg, 'gym', tier));
+  ui.mirrorDragon.innerHTML = dragonRestingSVG(cfg, 'mir', tier);
+  updateStrengthPlaque(id);
+  showScreen('castleGym');
+  scheduleCastleBlink();
+});
 
 ui.muteBtn.addEventListener('click', () => {
   onAnyTap();
@@ -3046,8 +3578,8 @@ function loop(now) {
   if (screen === 'playing' || screen === 'nap') {
     update(dt);
     render();
-  } else if (screen === 'castle') {
-    // Castle bedroom is a pure CSS/SVG scene — no canvas work needed
+  } else if (inCastle()) {
+    // All castle rooms are pure CSS/SVG — no canvas work needed
   } else {
     // Idle background so the canvas doesn't look blank on overlays
     drawBackground();
