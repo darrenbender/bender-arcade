@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cats vs Dogs">
+<title>Cats vs Dogs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<main id="game">
+
+  <!-- ============================================================
+       INTRO
+       ============================================================ -->
+  <section class="screen active" id="screen-intro">
+    <div class="intro-art" aria-hidden="true">
+      <div class="intro-cat"  id="intro-cat-slot"></div>
+      <div class="vs">VS</div>
+      <div class="intro-dog"  id="intro-dog-slot"></div>
+    </div>
+    <h1>Cats <span class="amp">vs</span> Dogs</h1>
+    <p class="lead">Hi <span id="intro-name">friend</span>! Let's build your team.<br>
+       First a cat, then a dog.</p>
+    <button class="btn-primary" type="button" id="intro-start">Build My Team →</button>
+    <button class="btn-secondary" type="button" onclick="goHome()">← Back to Arcade</button>
+  </section>
+
+  <!-- ============================================================
+       CHOOSE CAT
+       ============================================================ -->
+  <section class="screen" id="screen-cat-choose">
+    <h1>Choose Your Cat</h1>
+    <p class="lead">Tap the one you like best.</p>
+    <div class="choose-grid" id="cat-choose-grid"></div>
+  </section>
+
+  <!-- ============================================================
+       CUSTOMIZE CAT
+       ============================================================ -->
+  <section class="screen" id="screen-cat-customize">
+    <h1>Customize Your Cat</h1>
+    <div class="customize-layout">
+      <div class="preview-card">
+        <div class="preview-stage" id="cat-preview"></div>
+      </div>
+      <div class="controls">
+        <div class="control-group">
+          <div class="control-label">Size</div>
+          <div class="opts" id="cat-opts-size"></div>
+        </div>
+        <div class="control-group">
+          <div class="control-label">Build</div>
+          <div class="opts" id="cat-opts-build"></div>
+        </div>
+        <div class="control-group">
+          <div class="control-label">Eye color</div>
+          <div class="opts" id="cat-opts-eye"></div>
+        </div>
+        <div class="control-group">
+          <div class="control-label">Collar</div>
+          <div class="opts" id="cat-opts-collar"></div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" type="button" id="cat-confirm">Looks Good! →</button>
+  </section>
+
+  <!-- ============================================================
+       CHOOSE DOG
+       ============================================================ -->
+  <section class="screen" id="screen-dog-choose">
+    <h1>Choose Your Dog</h1>
+    <p class="lead">Tap the one you like best.</p>
+    <div class="choose-grid" id="dog-choose-grid"></div>
+  </section>
+
+  <!-- ============================================================
+       CUSTOMIZE DOG
+       ============================================================ -->
+  <section class="screen" id="screen-dog-customize">
+    <h1>Customize Your Dog</h1>
+    <div class="customize-layout">
+      <div class="preview-card">
+        <div class="preview-stage" id="dog-preview"></div>
+      </div>
+      <div class="controls">
+        <div class="control-group">
+          <div class="control-label">Size</div>
+          <div class="opts" id="dog-opts-size"></div>
+        </div>
+        <div class="control-group">
+          <div class="control-label">Build</div>
+          <div class="opts" id="dog-opts-build"></div>
+        </div>
+        <div class="control-group">
+          <div class="control-label">Eye color</div>
+          <div class="opts" id="dog-opts-eye"></div>
+        </div>
+        <div class="control-group">
+          <div class="control-label">Collar</div>
+          <div class="opts" id="dog-opts-collar"></div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" type="button" id="dog-confirm">Looks Good! →</button>
+  </section>
+
+  <!-- ============================================================
+       TEAM (final)
+       ============================================================ -->
+  <section class="screen" id="screen-team">
+    <h1>Here's Your Team!</h1>
+    <p class="lead" id="team-lead">Great picks, <span id="team-name">friend</span>!</p>
+    <div class="team-stage">
+      <div class="team-slot">
+        <div class="team-art" id="team-cat-slot"></div>
+        <div class="team-tag">Your Cat</div>
+      </div>
+      <div class="team-slot">
+        <div class="team-art" id="team-dog-slot"></div>
+        <div class="team-tag">Your Dog</div>
+      </div>
+    </div>
+    <div class="team-actions">
+      <button class="btn-primary" type="button" id="team-save">Save My Team</button>
+      <button class="btn-tertiary" type="button" id="team-edit">Edit Team</button>
+      <button class="btn-tertiary" type="button" id="team-restart">Start Over</button>
+    </div>
+    <button class="btn-secondary" type="button" onclick="goHome()">← Back to Arcade</button>
+  </section>
+
+</main>
+
+<!-- Top-right nav bar (per STANDARDS §8). Visible only during the
+     build flow (choose/customize screens) — not on intro or team. -->
+<div class="nav-bar" id="nav-bar">
+  <button class="nav-btn" id="nav-menu"   type="button" aria-label="Back to start">↩</button>
+  <button class="nav-btn" id="nav-arcade" type="button" aria-label="Back to arcade">🏠</button>
+</div>
+
+<!-- Saved-team toast -->
+<div class="toast" id="toast"></div>
+
+<script src="game.js"></script>
+</body>
+</html>
