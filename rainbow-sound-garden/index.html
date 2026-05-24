@@ -7,517 +7,27 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Rainbow Garden">
 <title>Rainbow Sound Garden</title>
-<style>
-  /* ============ FOUNDATION ============ */
-  * {
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-
-  :root {
-    --bg-top: #fdf4e3;
-    --bg-bot: #e8f3fb;
-    --ink: #3a3245;
-    --ink-soft: #6b5f7a;
-    --panel: rgba(255, 255, 255, 0.7);
-    --panel-border: rgba(255, 255, 255, 0.9);
-    --shadow-soft: 0 6px 18px rgba(120, 100, 140, 0.12);
-    --shadow-pop:  0 10px 28px rgba(120, 100, 140, 0.22);
-
-    --c-red:    #ef6b6b;
-    --c-orange: #f29849;
-    --c-yellow: #f3c948;
-    --c-green:  #6dc57d;
-    --c-blue:   #4ea8e3;
-    --c-indigo: #7a6fd0;
-    --c-violet: #b07dc9;
-  }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden;
-    overscroll-behavior: none;
-    touch-action: manipulation;
-    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", "Avenir", "Nunito", sans-serif;
-    color: var(--ink);
-    background:
-      radial-gradient(1200px 800px at 20% 0%, #ffeac1 0%, transparent 60%),
-      radial-gradient(1000px 700px at 100% 100%, #cfe6f7 0%, transparent 65%),
-      linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bot) 100%);
-  }
-
-  body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  }
-
-  /* ============ START OVERLAY (required for iOS audio) ============ */
-  #start-screen {
-    position: fixed;
-    inset: 0;
-    background: linear-gradient(180deg, #fff4d6 0%, #d6ecfa 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    transition: opacity 0.5s ease;
-    padding: 24px;
-  }
-  #start-screen.hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-  #start-screen h1 {
-    font-size: clamp(32px, 6vw, 56px);
-    font-weight: 800;
-    margin: 0 0 12px;
-    background: linear-gradient(90deg,
-      var(--c-red), var(--c-orange), var(--c-yellow),
-      var(--c-green), var(--c-blue), var(--c-indigo), var(--c-violet));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: -0.02em;
-    text-align: center;
-  }
-  #start-screen p {
-    font-size: clamp(16px, 2.2vw, 20px);
-    color: var(--ink-soft);
-    margin: 4px 0 28px;
-    text-align: center;
-  }
-  #start-btn {
-    background: white;
-    border: 4px solid transparent;
-    background-clip: padding-box;
-    color: var(--ink);
-    font-size: clamp(20px, 3vw, 26px);
-    font-weight: 700;
-    padding: 18px 40px;
-    border-radius: 999px;
-    cursor: pointer;
-    box-shadow: var(--shadow-pop);
-    position: relative;
-    transition: transform 0.15s ease;
-  }
-  #start-btn::before {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    border-radius: 999px;
-    padding: 4px;
-    background: linear-gradient(90deg,
-      var(--c-red), var(--c-orange), var(--c-yellow),
-      var(--c-green), var(--c-blue), var(--c-indigo), var(--c-violet));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-            mask-composite: exclude;
-    pointer-events: none;
-  }
-  #start-btn:active { transform: scale(0.96); }
-
-  .bear-big { width: clamp(140px, 22vw, 200px); height: auto; margin-bottom: 8px; }
-
-  /* ============ MAIN APP ============ */
-  #app {
-    width: 100%;
-    max-width: 1000px;
-    height: 100%;
-    max-height: 760px;
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    gap: 14px;
-    padding: 18px;
-  }
-
-  /* ---- Header / Bumble ---- */
-  header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: var(--panel);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--panel-border);
-    border-radius: 24px;
-    padding: 10px 18px 10px 10px;
-    box-shadow: var(--shadow-soft);
-  }
-  .bear { width: 64px; height: 64px; flex-shrink: 0; }
-  .bear-wrap {
-    position: relative;
-    animation: bob 4s ease-in-out infinite;
-  }
-  @keyframes bob {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-4px); }
-  }
-  .speech {
-    flex: 1;
-    position: relative;
-    background: white;
-    border-radius: 16px;
-    padding: 12px 16px;
-    box-shadow: 0 2px 6px rgba(120, 100, 140, 0.08);
-    font-size: clamp(15px, 2vw, 18px);
-    font-weight: 600;
-    color: var(--ink);
-    transition: opacity 0.3s ease;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-  }
-  .speech::before {
-    content: '';
-    position: absolute;
-    left: -8px;
-    top: 50%;
-    transform: translateY(-50%);
-    border: 8px solid transparent;
-    border-right-color: white;
-  }
-  .speech.fade { opacity: 0.3; }
-
-  .title {
-    font-size: clamp(14px, 1.8vw, 16px);
-    font-weight: 800;
-    color: var(--ink-soft);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    margin-left: auto;
-    padding: 6px 12px;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 999px;
-    white-space: nowrap;
-  }
-
-  /* ---- Grid ---- */
-  .grid-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--panel);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--panel-border);
-    border-radius: 28px;
-    padding: 14px;
-    box-shadow: var(--shadow-soft);
-    min-height: 0;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    grid-template-rows: repeat(7, 1fr);
-    gap: 8px;
-    width: 100%;
-    height: 100%;
-    max-width: 720px;
-    max-height: 520px;
-    aspect-ratio: 8 / 7;
-    position: relative;
-  }
-  .cell {
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.55);
-    border: 2px solid rgba(255, 255, 255, 0.9);
-    box-shadow:
-      inset 0 1px 2px rgba(255, 255, 255, 0.8),
-      0 1px 2px rgba(120, 100, 140, 0.06);
-    cursor: pointer;
-    transition:
-      transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
-      background 0.25s ease,
-      box-shadow 0.25s ease;
-    position: relative;
-  }
-  .cell:active { transform: scale(0.92); }
-  .cell.on {
-    background: var(--cell-color);
-    box-shadow:
-      inset 0 2px 6px rgba(255, 255, 255, 0.5),
-      inset 0 -3px 6px rgba(0, 0, 0, 0.08),
-      0 4px 10px var(--cell-glow);
-    border-color: rgba(255, 255, 255, 0.6);
-  }
-  .cell.flash {
-    transform: scale(1.12);
-    box-shadow:
-      inset 0 2px 6px rgba(255, 255, 255, 0.7),
-      0 0 0 4px rgba(255, 255, 255, 0.8),
-      0 6px 18px var(--cell-glow);
-  }
-  .cell.playhead-dim::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.25);
-    pointer-events: none;
-  }
-
-  /* Row colors */
-  .row-0 { --cell-color: var(--c-red);    --cell-glow: rgba(239, 107, 107, 0.5); }
-  .row-1 { --cell-color: var(--c-orange); --cell-glow: rgba(242, 152, 73, 0.5); }
-  .row-2 { --cell-color: var(--c-yellow); --cell-glow: rgba(243, 201, 72, 0.5); }
-  .row-3 { --cell-color: var(--c-green);  --cell-glow: rgba(109, 197, 125, 0.5); }
-  .row-4 { --cell-color: var(--c-blue);   --cell-glow: rgba(78, 168, 227, 0.5); }
-  .row-5 { --cell-color: var(--c-indigo); --cell-glow: rgba(122, 111, 208, 0.5); }
-  .row-6 { --cell-color: var(--c-violet); --cell-glow: rgba(176, 125, 201, 0.5); }
-
-  /* ---- Controls ---- */
-  .controls {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    gap: 14px;
-    background: var(--panel);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--panel-border);
-    border-radius: 24px;
-    padding: 12px 18px;
-    box-shadow: var(--shadow-soft);
-  }
-  .tempo {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-  .tempo-btn {
-    border: 2px solid rgba(122, 111, 208, 0.2);
-    background: white;
-    border-radius: 14px;
-    padding: 8px 12px;
-    font-size: 22px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    min-width: 50px;
-    min-height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .tempo-btn.active {
-    background: var(--c-indigo);
-    border-color: var(--c-indigo);
-    transform: scale(1.05);
-    box-shadow: 0 4px 10px rgba(122, 111, 208, 0.35);
-  }
-  .tempo-btn:active { transform: scale(0.95); }
-
-  .play-btn {
-    width: clamp(70px, 9vw, 84px);
-    height: clamp(70px, 9vw, 84px);
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    background: linear-gradient(135deg, #ffd76b 0%, #f29849 100%);
-    box-shadow:
-      0 6px 16px rgba(242, 152, 73, 0.5),
-      inset 0 2px 4px rgba(255, 255, 255, 0.5),
-      inset 0 -3px 6px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.15s ease, box-shadow 0.2s ease;
-    color: white;
-    margin: 0 auto;
-  }
-  .play-btn:active { transform: scale(0.94); }
-  .play-btn.playing {
-    background: linear-gradient(135deg, #93d3ed 0%, #4ea8e3 100%);
-    box-shadow:
-      0 6px 16px rgba(78, 168, 227, 0.5),
-      inset 0 2px 4px rgba(255, 255, 255, 0.5),
-      inset 0 -3px 6px rgba(0, 0, 0, 0.1);
-  }
-  .play-btn svg {
-    width: 40%;
-    height: 40%;
-    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
-  }
-
-  .right-group {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-  }
-  .icon-btn {
-    background: white;
-    border: 2px solid rgba(122, 111, 208, 0.15);
-    border-radius: 14px;
-    padding: 10px 14px;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--ink);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 50px;
-    transition: all 0.15s ease;
-  }
-  .icon-btn:active { transform: scale(0.95); }
-  .icon-btn svg { width: 22px; height: 22px; }
-
-  /* ---- Nav bar (Menu + Arcade) ---- */
-  .nav-bar {
-    display: flex;
-    gap: 12px;
-    margin-left: auto;
-  }
-  .nav-bar.hidden { display: none; }
-  .nav-btn {
-    width: 64px;
-    height: 64px;
-    background: white;
-    border: 2px solid rgba(122, 111, 208, 0.15);
-    border-radius: 50%;
-    font-size: 26px;
-    color: var(--ink);
-    cursor: pointer;
-    box-shadow: var(--shadow-soft);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.15s ease, box-shadow 0.2s ease;
-    padding: 0;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .nav-btn:active { transform: scale(0.9); }
-
-  /* ---- Back-to-arcade on start screen ---- */
-  .start-secondary {
-    background: rgba(255, 255, 255, 0.7);
-    border: 2px solid rgba(122, 111, 208, 0.2);
-    color: var(--ink);
-    font-size: 17px;
-    font-weight: 600;
-    padding: 12px 22px;
-    border-radius: 999px;
-    cursor: pointer;
-    margin-top: 16px;
-    transition: transform 0.15s ease;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .start-secondary:active { transform: scale(0.96); }
-
-  /* ---- Confirm dialog (gentle) ---- */
-  .modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(58, 50, 69, 0.35);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 50;
-    padding: 24px;
-  }
-  .modal.show { display: flex; }
-  .modal-card {
-    background: white;
-    border-radius: 24px;
-    padding: 28px;
-    max-width: 360px;
-    width: 100%;
-    box-shadow: var(--shadow-pop);
-    text-align: center;
-  }
-  .modal-card h2 {
-    margin: 8px 0 6px;
-    font-size: 22px;
-    color: var(--ink);
-  }
-  .modal-card p {
-    margin: 0 0 20px;
-    color: var(--ink-soft);
-    font-size: 16px;
-  }
-  .modal-btns {
-    display: flex;
-    gap: 10px;
-  }
-  .modal-btns button {
-    flex: 1;
-    border: none;
-    border-radius: 14px;
-    padding: 14px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    min-height: 52px;
-  }
-  .modal-btns .confirm {
-    background: linear-gradient(135deg, #93d3ed, #4ea8e3);
-    color: white;
-  }
-  .modal-btns .cancel {
-    background: #f3eef5;
-    color: var(--ink);
-  }
-  .modal-btns button:active { transform: scale(0.96); }
-
-  /* ---- Sparkle effect ---- */
-  .sparkle {
-    position: absolute;
-    pointer-events: none;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: white;
-    opacity: 0.9;
-    animation: sparkle-out 0.7s ease-out forwards;
-  }
-  @keyframes sparkle-out {
-    0%   { transform: scale(0) translate(0, 0); opacity: 1; }
-    100% { transform: scale(1) translate(var(--dx), var(--dy)); opacity: 0; }
-  }
-
-  /* Small screens fallback */
-  @media (max-height: 600px) {
-    #app { padding: 10px; gap: 10px; }
-    .bear { width: 52px; height: 52px; }
-  }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <!-- ============ START OVERLAY ============ -->
 <div id="start-screen">
-  <svg class="bear-big" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-    <!-- Outer ears -->
+  <svg class="bear-big" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <circle cx="55" cy="60" r="22" fill="#c08a5e"/>
     <circle cx="145" cy="60" r="22" fill="#c08a5e"/>
     <circle cx="55" cy="60" r="12" fill="#e8b88a"/>
     <circle cx="145" cy="60" r="12" fill="#e8b88a"/>
-    <!-- Head -->
     <ellipse cx="100" cy="110" rx="65" ry="58" fill="#d49d6e"/>
-    <!-- Snout -->
     <ellipse cx="100" cy="130" rx="32" ry="24" fill="#f1d4ad"/>
-    <!-- Eyes -->
     <ellipse cx="78" cy="105" rx="5" ry="7" fill="#3a3245"/>
     <ellipse cx="122" cy="105" rx="5" ry="7" fill="#3a3245"/>
     <circle cx="76" cy="103" r="1.6" fill="white"/>
     <circle cx="120" cy="103" r="1.6" fill="white"/>
-    <!-- Cheeks -->
     <circle cx="62" cy="125" r="6" fill="#f3a7a7" opacity="0.7"/>
     <circle cx="138" cy="125" r="6" fill="#f3a7a7" opacity="0.7"/>
-    <!-- Nose -->
     <ellipse cx="100" cy="124" rx="5" ry="4" fill="#3a3245"/>
-    <!-- Smile -->
     <path d="M 88 135 Q 100 144 112 135" stroke="#3a3245" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <!-- Rainbow scarf -->
     <path d="M 45 165 Q 100 180 155 165 L 158 175 Q 100 192 42 175 Z" fill="url(#scarf-grad)"/>
     <defs>
       <linearGradient id="scarf-grad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -531,7 +41,7 @@
     </defs>
   </svg>
   <h1>Rainbow Sound Garden</h1>
-  <p>Tap colors to make music!</p>
+  <p>Tap colors to make music, <span id="player-name">friend</span>!</p>
   <button id="start-btn">Let's Play</button>
   <button class="start-secondary" id="start-back">← Back to Arcade</button>
 </div>
@@ -540,7 +50,7 @@
 <div id="app">
   <header>
     <div class="bear-wrap">
-      <svg class="bear" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <svg class="bear" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <circle cx="55" cy="60" r="22" fill="#c08a5e"/>
         <circle cx="145" cy="60" r="22" fill="#c08a5e"/>
         <circle cx="55" cy="60" r="12" fill="#e8b88a"/>
@@ -575,22 +85,50 @@
     </div>
   </header>
 
+  <section class="pickers" aria-label="Sound settings">
+    <div class="picker-strip">
+      <span class="picker-label">Sound</span>
+      <div class="picker-row" id="instrument-picker" role="radiogroup" aria-label="Instrument">
+        <button class="picker-btn" data-instrument="bells"    aria-label="Bells">🔔</button>
+        <button class="picker-btn" data-instrument="musicbox" aria-label="Music box">🎹</button>
+        <button class="picker-btn" data-instrument="marimba"  aria-label="Marimba">🪘</button>
+        <button class="picker-btn" data-instrument="harp"     aria-label="Plucky harp">🎵</button>
+        <button class="picker-btn" data-instrument="pad"      aria-label="Dream pad">☁️</button>
+      </div>
+    </div>
+    <div class="picker-strip">
+      <span class="picker-label">Mood</span>
+      <div class="picker-row" id="mood-picker" role="radiogroup" aria-label="Mood">
+        <button class="picker-btn" data-mood="sunny"  aria-label="Sunny">☀️</button>
+        <button class="picker-btn" data-mood="dreamy" aria-label="Dreamy">🌙</button>
+      </div>
+      <span class="picker-label picker-label-spacer">Pitch</span>
+      <div class="picker-row" id="octave-picker" role="radiogroup" aria-label="Pitch">
+        <button class="picker-btn" data-octave="-1" aria-label="Low pitch">🐻</button>
+        <button class="picker-btn" data-octave="0"  aria-label="Mid pitch">🐱</button>
+        <button class="picker-btn" data-octave="1"  aria-label="High pitch">🐦</button>
+      </div>
+    </div>
+  </section>
+
   <div class="grid-wrap">
-    <div class="grid" id="grid" aria-label="Music grid"></div>
+    <div class="grid" id="grid" aria-label="Music grid">
+      <div class="drum-label" aria-hidden="true">🥁</div>
+    </div>
   </div>
 
   <div class="controls">
     <div class="tempo" id="tempo">
       <button class="tempo-btn" data-bpm="70"  aria-label="Slow">🐢</button>
-      <button class="tempo-btn active" data-bpm="110" aria-label="Medium">🚶</button>
+      <button class="tempo-btn" data-bpm="110" aria-label="Medium">🚶</button>
       <button class="tempo-btn" data-bpm="160" aria-label="Fast">🐰</button>
     </div>
     <button class="play-btn" id="play" aria-label="Play">
-      <svg viewBox="0 0 24 24" fill="white"><polygon points="6,4 20,12 6,20"/></svg>
+      <svg viewBox="0 0 24 24" fill="white" aria-hidden="true"><polygon points="6,4 20,12 6,20"/></svg>
     </button>
     <div class="right-group">
-      <button class="icon-btn" id="clear" aria-label="Clear">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <button class="icon-btn" id="clear" aria-label="Clear song">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <polyline points="3 6 5 6 21 6"></polyline>
           <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
           <path d="M10 11v6M14 11v6"></path>
@@ -601,464 +139,32 @@
   </div>
 </div>
 
-<!-- ============ CONFIRM MODAL ============ -->
+<!-- ============ FRESH START CONFIRM ============ -->
 <div class="modal" id="modal">
   <div class="modal-card">
-    <div style="font-size: 48px;">🌱</div>
+    <div class="modal-icon">🌱</div>
     <h2>Fresh start?</h2>
     <p>This will clear your song. That's okay — you can always make a new one!</p>
     <div class="modal-btns">
-      <button class="cancel" id="modal-cancel">Keep my song</button>
+      <button class="cancel"  id="modal-cancel">Keep my song</button>
       <button class="confirm" id="modal-confirm">Fresh start</button>
     </div>
   </div>
 </div>
 
-<!-- ============ LEAVE-GAME CONFIRM MODAL ============ -->
+<!-- ============ LEAVE-GAME CONFIRM ============ -->
 <div class="modal" id="nav-modal">
   <div class="modal-card">
-    <div style="font-size: 48px;">👋</div>
+    <div class="modal-icon">👋</div>
     <h2>Leave game?</h2>
     <p>Your song won't be saved.</p>
     <div class="modal-btns">
-      <button class="cancel" id="nav-modal-cancel">Keep playing</button>
+      <button class="cancel"  id="nav-modal-cancel">Keep playing</button>
       <button class="confirm" id="nav-modal-confirm">Yes, leave</button>
     </div>
   </div>
 </div>
 
-<script>
-'use strict';
-
-/* ============================================================
-   AUDIO ENGINE (self-contained, no external deps)
-   Soft warm synth using Web Audio API — sine + triangle blend,
-   gentle envelope, lowpass filter, lightweight reverb.
-   ============================================================ */
-let audioCtx = null;
-let masterGain = null;
-let reverbNode = null;
-let filterNode = null;
-
-function initAudio() {
-  if (audioCtx) return;
-  const Ctx = window.AudioContext || window.webkitAudioContext;
-  audioCtx = new Ctx();
-
-  // Master volume — intentionally moderate for sensory comfort
-  masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0.32;
-
-  // Lowpass filter for warmth (removes harsh high frequencies)
-  filterNode = audioCtx.createBiquadFilter();
-  filterNode.type = 'lowpass';
-  filterNode.frequency.value = 2400;
-  filterNode.Q.value = 0.6;
-
-  // Simple algorithmic reverb using a convolver with generated IR
-  reverbNode = audioCtx.createConvolver();
-  reverbNode.buffer = makeReverbIR(audioCtx, 2.2, 2.5);
-
-  const reverbGain = audioCtx.createGain();
-  reverbGain.gain.value = 0.28;
-
-  // Routing: source -> filter -> [dry + reverb] -> master -> destination
-  filterNode.connect(masterGain);
-  filterNode.connect(reverbNode);
-  reverbNode.connect(reverbGain);
-  reverbGain.connect(masterGain);
-  masterGain.connect(audioCtx.destination);
-}
-
-function makeReverbIR(ctx, duration, decay) {
-  const rate = ctx.sampleRate;
-  const length = rate * duration;
-  const ir = ctx.createBuffer(2, length, rate);
-  for (let ch = 0; ch < 2; ch++) {
-    const data = ir.getChannelData(ch);
-    for (let i = 0; i < length; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
-    }
-  }
-  return ir;
-}
-
-// Convert note name (e.g. "C5") to frequency
-const NOTE_FREQ = (() => {
-  const A4 = 440;
-  const semis = { C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 };
-  const cache = {};
-  return (name) => {
-    if (cache[name]) return cache[name];
-    const letter = name[0];
-    const octave = parseInt(name.slice(1), 10);
-    const semitone = semis[letter] + (octave - 4) * 12;
-    const f = A4 * Math.pow(2, semitone / 12);
-    cache[name] = f;
-    return f;
-  };
-})();
-
-function playNote(noteName, when = 0, dur = 0.6) {
-  if (!audioCtx) return;
-  const t0 = audioCtx.currentTime + when;
-  const freq = NOTE_FREQ(noteName);
-
-  // Two oscillators slightly detuned = warmer, fuller sound
-  const o1 = audioCtx.createOscillator();
-  const o2 = audioCtx.createOscillator();
-  o1.type = 'sine';
-  o2.type = 'triangle';
-  o1.frequency.value = freq;
-  o2.frequency.value = freq * 1.005; // tiny detune for chorus effect
-
-  const g = audioCtx.createGain();
-  // ADSR: gentle attack, soft sustain, slow release — no clicks
-  g.gain.setValueAtTime(0, t0);
-  g.gain.linearRampToValueAtTime(0.7, t0 + 0.02);  // attack
-  g.gain.exponentialRampToValueAtTime(0.4, t0 + 0.1); // decay
-  g.gain.setValueAtTime(0.4, t0 + dur * 0.3);          // sustain
-  g.gain.exponentialRampToValueAtTime(0.001, t0 + dur); // release
-
-  o1.connect(g);
-  o2.connect(g);
-  g.connect(filterNode);
-
-  o1.start(t0);
-  o2.start(t0);
-  o1.stop(t0 + dur + 0.05);
-  o2.stop(t0 + dur + 0.05);
-}
-
-/* ============================================================
-   GRID + SEQUENCER STATE
-   ============================================================ */
-const ROWS = 7;
-const STEPS = 8;
-
-// Pentatonic scale (C major pentatonic), high to low
-// Pentatonic = any combination sounds harmonious. No "wrong" notes.
-const NOTES = [
-  { name: 'Red',    note: 'C6' },  // row 0 — highest
-  { name: 'Orange', note: 'A5' },
-  { name: 'Yellow', note: 'G5' },
-  { name: 'Green',  note: 'E5' },
-  { name: 'Blue',   note: 'D5' },
-  { name: 'Indigo', note: 'C5' },
-  { name: 'Violet', note: 'A4' },  // row 6 — lowest
-];
-
-// state[row][step] = boolean
-const state = Array.from({ length: ROWS }, () => Array(STEPS).fill(false));
-
-let playing = false;
-let currentStep = 0;
-let stepTimer = null;
-let bpm = 110;
-
-/* ============================================================
-   GRID RENDERING
-   ============================================================ */
-const gridEl = document.getElementById('grid');
-
-function buildGrid() {
-  gridEl.innerHTML = '';
-  for (let r = 0; r < ROWS; r++) {
-    for (let s = 0; s < STEPS; s++) {
-      const cell = document.createElement('div');
-      cell.className = `cell row-${r}`;
-      cell.dataset.row = r;
-      cell.dataset.step = s;
-      cell.setAttribute('role', 'button');
-      cell.setAttribute('aria-label', `${NOTES[r].name}, beat ${s + 1}`);
-      cell.addEventListener('click', onCellTap);
-      gridEl.appendChild(cell);
-    }
-  }
-}
-
-function onCellTap(e) {
-  const cell = e.currentTarget;
-  const r = +cell.dataset.row;
-  const s = +cell.dataset.step;
-  const newOn = !state[r][s];
-  state[r][s] = newOn;
-  cell.classList.toggle('on', newOn);
-
-  if (newOn) {
-    // Preview the note immediately
-    playNote(NOTES[r].note, 0, 0.8);
-    flashCell(cell);
-    spawnSparkles(cell);
-    speech.queueEncouragement();
-  }
-}
-
-function flashCell(cell) {
-  cell.classList.add('flash');
-  setTimeout(() => cell.classList.remove('flash'), 200);
-}
-
-function spawnSparkles(cell) {
-  const rect = cell.getBoundingClientRect();
-  const gridRect = gridEl.getBoundingClientRect();
-  const cx = rect.left - gridRect.left + rect.width / 2;
-  const cy = rect.top - gridRect.top + rect.height / 2;
-  for (let i = 0; i < 5; i++) {
-    const sp = document.createElement('div');
-    sp.className = 'sparkle';
-    sp.style.left = (cx - 6) + 'px';
-    sp.style.top = (cy - 6) + 'px';
-    const angle = (i / 5) * Math.PI * 2 + Math.random() * 0.3;
-    const dist = 28 + Math.random() * 16;
-    sp.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
-    sp.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
-    gridEl.appendChild(sp);
-    setTimeout(() => sp.remove(), 700);
-  }
-}
-
-/* ============================================================
-   PLAYBACK
-   ============================================================ */
-const playBtn = document.getElementById('play');
-
-function stepInterval() {
-  // bpm beats per minute, 8 steps = 2 bars of 4 = 2 seconds per bar at 120bpm
-  // step = 60000 / bpm / 2 (eighth notes)
-  return 60000 / bpm / 2;
-}
-
-function startPlay() {
-  if (playing) return;
-  playing = true;
-  currentStep = 0;
-  playBtn.classList.add('playing');
-  playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="white"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
-  playBtn.setAttribute('aria-label', 'Pause');
-  tick();
-  stepTimer = setInterval(tick, stepInterval());
-  speech.show("Listen to your song! 🎵");
-}
-
-function stopPlay() {
-  if (!playing) return;
-  playing = false;
-  clearInterval(stepTimer);
-  stepTimer = null;
-  playBtn.classList.remove('playing');
-  playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="white"><polygon points="6,4 20,12 6,20"/></svg>';
-  playBtn.setAttribute('aria-label', 'Play');
-  // Clear playhead highlights
-  document.querySelectorAll('.cell.playhead-dim').forEach(c => c.classList.remove('playhead-dim'));
-}
-
-function tick() {
-  // Update playhead column highlight
-  document.querySelectorAll('.cell.playhead-dim').forEach(c => c.classList.remove('playhead-dim'));
-  for (let r = 0; r < ROWS; r++) {
-    for (let s = 0; s < STEPS; s++) {
-      if (s !== currentStep) {
-        const cell = gridEl.children[r * STEPS + s];
-        cell.classList.add('playhead-dim');
-      }
-    }
-  }
-
-  // Play notes in this column
-  for (let r = 0; r < ROWS; r++) {
-    if (state[r][currentStep]) {
-      playNote(NOTES[r].note, 0, 0.6);
-      const cell = gridEl.children[r * STEPS + currentStep];
-      flashCell(cell);
-    }
-  }
-
-  currentStep = (currentStep + 1) % STEPS;
-}
-
-playBtn.addEventListener('click', () => {
-  if (playing) stopPlay();
-  else startPlay();
-});
-
-/* ============================================================
-   TEMPO
-   ============================================================ */
-document.querySelectorAll('.tempo-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tempo-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    bpm = +btn.dataset.bpm;
-    if (playing) {
-      clearInterval(stepTimer);
-      stepTimer = setInterval(tick, stepInterval());
-    }
-  });
-});
-
-/* ============================================================
-   CLEAR (with gentle confirmation)
-   ============================================================ */
-const modal = document.getElementById('modal');
-document.getElementById('clear').addEventListener('click', () => {
-  // Don't bother confirming if nothing's there
-  const hasAny = state.some(row => row.some(v => v));
-  if (!hasAny) {
-    speech.show("Your garden is already empty! Plant some colors. 🌱");
-    return;
-  }
-  modal.classList.add('show');
-});
-document.getElementById('modal-cancel').addEventListener('click', () => {
-  modal.classList.remove('show');
-});
-document.getElementById('modal-confirm').addEventListener('click', () => {
-  modal.classList.remove('show');
-  // Clear state
-  for (let r = 0; r < ROWS; r++) for (let s = 0; s < STEPS; s++) state[r][s] = false;
-  document.querySelectorAll('.cell').forEach(c => c.classList.remove('on'));
-  speech.show("Fresh start! What will you make next? 🌈");
-});
-
-/* ============================================================
-   BUMBLE'S ENCOURAGEMENT
-   Drawn from "learning mindset" language — emphasizes effort,
-   creativity, and that there's no wrong way to play.
-   ============================================================ */
-const speechEl = document.getElementById('speech');
-
-const ENCOURAGEMENTS = [
-  "Beautiful colors! 🌈",
-  "You're a music maker!",
-  "I love what you're making!",
-  "Wow, that sounds great!",
-  "Try anything you want!",
-  "There's no wrong way to play!",
-  "Your brain is making music! 🧠",
-  "Keep going, this is fun!",
-  "Cool sound! ✨",
-  "You have such good ideas!",
-  "Music is for trying things!",
-  "Every color is a friend!",
-  "Make whatever you feel like!",
-  "I like your style! 🎶",
-];
-
-const speech = (() => {
-  let queueTimer = null;
-  let lastShownAt = 0;
-  let lastIndex = -1;
-
-  function show(text) {
-    speechEl.classList.add('fade');
-    setTimeout(() => {
-      speechEl.textContent = text;
-      speechEl.classList.remove('fade');
-      lastShownAt = Date.now();
-    }, 180);
-  }
-
-  function queueEncouragement() {
-    // Rate-limit: only swap message every ~6 seconds at most
-    if (Date.now() - lastShownAt < 6000) return;
-    clearTimeout(queueTimer);
-    queueTimer = setTimeout(() => {
-      let i;
-      do { i = Math.floor(Math.random() * ENCOURAGEMENTS.length); }
-      while (i === lastIndex && ENCOURAGEMENTS.length > 1);
-      lastIndex = i;
-      show(ENCOURAGEMENTS[i]);
-    }, 600);
-  }
-
-  return { show, queueEncouragement };
-})();
-
-/* ============================================================
-   STARTUP
-   ============================================================ */
-buildGrid();
-
-document.getElementById('start-btn').addEventListener('click', () => {
-  initAudio();
-  // iOS sometimes needs an explicit resume after the gesture
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  document.getElementById('start-screen').classList.add('hidden');
-  setTimeout(() => {
-    document.getElementById('start-screen').style.display = 'none';
-  }, 500);
-  showNavBar();
-});
-
-/* ============================================================
-   NAV BAR + LEAVE CONFIRM
-   ============================================================ */
-const navBar = document.getElementById('nav-bar');
-const navModal = document.getElementById('nav-modal');
-let pendingLeaveAction = null;
-
-function showNavBar() { navBar.classList.remove('hidden'); }
-function hideNavBar() { navBar.classList.add('hidden'); }
-
-function hasUnsavedSong() {
-  return state.some(row => row.some(v => v));
-}
-
-function showLeaveConfirm(action) {
-  pendingLeaveAction = action;
-  navModal.classList.add('show');
-}
-function hideLeaveConfirm() {
-  navModal.classList.remove('show');
-  pendingLeaveAction = null;
-}
-
-function returnToStartScreen() {
-  // Stop playback if it's running
-  if (playing) stopPlay();
-  // Clear the song so a fresh "Let's Play" starts clean
-  for (let r = 0; r < ROWS; r++) for (let s = 0; s < STEPS; s++) state[r][s] = false;
-  document.querySelectorAll('.cell').forEach(c => c.classList.remove('on'));
-  hideNavBar();
-  const startScreen = document.getElementById('start-screen');
-  startScreen.classList.add('hidden');   // ensure starting opacity is 0
-  startScreen.style.display = 'flex';
-  void startScreen.offsetHeight;         // force reflow so the fade-in runs
-  startScreen.classList.remove('hidden');
-}
-
-function goToArcade() {
-  window.location.href = '/';
-}
-
-document.getElementById('nav-menu').addEventListener('click', () => {
-  if (hasUnsavedSong()) showLeaveConfirm(returnToStartScreen);
-  else returnToStartScreen();
-});
-document.getElementById('nav-arcade').addEventListener('click', () => {
-  if (hasUnsavedSong()) showLeaveConfirm(goToArcade);
-  else goToArcade();
-});
-document.getElementById('nav-modal-cancel').addEventListener('click', hideLeaveConfirm);
-document.getElementById('nav-modal-confirm').addEventListener('click', () => {
-  const action = pendingLeaveAction;
-  hideLeaveConfirm();
-  if (action) action();
-});
-document.getElementById('start-back').addEventListener('click', goToArcade);
-
-// Prevent double-tap zoom on iOS
-document.addEventListener('touchstart', (e) => {
-  if (e.touches.length > 1) e.preventDefault();
-}, { passive: false });
-
-let lastTouchEnd = 0;
-document.addEventListener('touchend', (e) => {
-  const now = Date.now();
-  if (now - lastTouchEnd < 300) e.preventDefault();
-  lastTouchEnd = now;
-}, { passive: false });
-</script>
+<script src="game.js"></script>
 </body>
 </html>
