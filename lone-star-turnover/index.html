@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-title" content="Lone Star Turnover">
+<title>Lone Star Turnover</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* Standalone page only: keep content clear of the phone's top and bottom bars. */
+  html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+</style>
+</head>
+<body>
+
+<header class="hud" id="hud" hidden>
+  <div class="hud-inner">
+    <div class="hud-where">
+      <div class="k" id="hud-k">Docket</div>
+      <div class="v" id="hud-v">Bluebonnet v. Hill Country</div>
+    </div>
+    <nav class="nav" aria-label="Game navigation">
+      <button type="button" id="nav-menu" aria-label="Back to the docket sheet"><span class="i" aria-hidden="true">↩</span>Menu</button>
+      <button type="button" id="nav-arcade" aria-label="Back to the arcade"><span class="i" aria-hidden="true">🏠</span>Arcade</button>
+    </nav>
+    <div class="hud-stats">
+      <span>Score <b id="hud-score">0</b></span>
+      <span>Collected <b id="hud-money">$0.00</b></span>
+      <span class="ticks" id="hud-ticks" aria-hidden="true"></span>
+    </div>
+  </div>
+</header>
+
+<main id="view" class="wrap" aria-live="polite"></main>
+
+<div class="modal-back" id="modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h2 id="modal-title">Leave this chapter?</h2>
+    <p id="modal-body">Your answers so far in this chapter are saved. You can pick up where you left off.</p>
+    <div class="row">
+      <button type="button" class="btn" id="modal-stay">Keep Playing</button>
+      <button type="button" class="btn quiet" id="modal-go">Yes, Leave</button>
+    </div>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
