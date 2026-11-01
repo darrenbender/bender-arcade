@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Village Cities</title>
+<style>
+  :root {
+    --bg: #101a33;
+    --bg2: #1c2c55;
+    --card: #22345f;
+    --card-edge: #3d5797;
+    --text: #ffffff;
+    --soft: #d6e1ff;
+    --gold: #ffc94a;
+    --gold-dark: #c98a12;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--text);
+    background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg) 70%) fixed;
+    background-color: var(--bg);
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  img { max-width: 100%; height: auto; }
+
+  .hero { text-align: center; padding: 8px 0 24px; }
+  .hero .city { display: block; margin: 0 auto; border-radius: 18px; }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); margin: 12px 0 4px; color: var(--gold); }
+  .tagline { font-size: clamp(1.1rem, 3.4vw, 1.4rem); color: var(--soft); margin: 0 0 24px; }
+
+  .btn {
+    display: inline-block;
+    font: inherit;
+    font-size: clamp(1.3rem, 4vw, 1.7rem);
+    font-weight: 800;
+    padding: 22px 36px;
+    min-height: 72px;
+    border-radius: 22px;
+    text-decoration: none;
+    color: #2b1a00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 6px 0 #7a4f00, 0 12px 28px rgba(0,0,0,0.35);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #7a4f00, 0 6px 14px rgba(0,0,0,0.35); }
+  .btn.secondary { color: #fff; background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 6px 0 #4c1d95, 0 12px 28px rgba(0,0,0,0.35); }
+  .small-print { color: var(--soft); font-size: 0.95rem; margin-top: 14px; }
+
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 40px 0 16px; text-align: center; }
+
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    background: var(--card);
+    border: 2px solid var(--card-edge);
+    border-radius: 18px;
+    padding: 18px 18px 18px 76px;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 16px; top: 16px;
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.4rem;
+    background: var(--gold); color: #2b1a00;
+  }
+  .steps b { color: var(--gold); }
+
+  .features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (min-width: 700px) { .features { grid-template-columns: 1fr 1fr 1fr; } }
+  .feature {
+    background: var(--card); border: 2px solid var(--card-edge); border-radius: 16px;
+    padding: 14px; text-align: center;
+  }
+  .feature .big { font-size: 2.4rem; line-height: 1.1; }
+  .feature b { display: block; margin-top: 6px; font-size: 1.1rem; }
+  .feature span { color: var(--soft); font-size: 0.95rem; }
+
+  .styles { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 700px) { .styles { grid-template-columns: 1fr 1fr 1fr; } }
+  .style { background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 12px; text-align: center; }
+  .style img { border-radius: 10px; }
+  .style b { display: block; font-size: 1.2rem; margin-top: 6px; }
+  .more { text-align: center; color: var(--soft); margin-top: 14px; }
+
+  .charter {
+    display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+    background: var(--card); border: 2px solid var(--card-edge); border-radius: 20px; padding: 18px;
+  }
+  .charter > img { width: 96px; height: 96px; image-rendering: pixelated; background: rgba(255,255,255,0.06); border-radius: 14px; padding: 8px; }
+  .charter h3 { margin: 0 0 6px; font-size: 1.5rem; }
+  .charter p { margin: 0; color: var(--soft); }
+  .craft {
+    display: grid; grid-template-columns: repeat(3, 52px); gap: 4px;
+    background: #8b8b8b; padding: 6px; border-radius: 8px; border: 3px solid #555;
+    margin-top: 12px; width: max-content;
+  }
+  .slot {
+    width: 52px; height: 52px; border-radius: 4px;
+    background: #6f6f6f; box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #a0a0a0;
+    display: flex; align-items: center; justify-content: center; font-size: 30px;
+  }
+
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .tips li { background: rgba(255,255,255,0.06); border-radius: 14px; padding: 14px 18px; }
+  .tips li::before { content: "⭐ "; }
+  .warn { background: rgba(255, 120, 90, 0.16) !important; border: 2px solid rgba(255, 120, 90, 0.5); }
+  .warn::before { content: "⚠️ " !important; }
+  .back { text-align: center; margin-top: 44px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="city" src="img/city-plains.png" width="578" height="316" alt="A walled Minecraft city with houses, a town hall, a fountain, farms and a tower">
+    <h1>Village Cities</h1>
+    <p class="tagline">A Minecraft add-on: tap the City Charter and a whole city builds itself in seconds!</p>
+    <a class="btn" href="VillageCities.mcaddon" download>⬇️ Download for Minecraft</a>
+    <p class="small-print">For Minecraft Bedrock on iPad, iPhone, Android and Windows. Free, no ads.</p>
+  </header>
+
+  <section>
+    <h2>How to put it on the iPad</h2>
+    <ol class="steps">
+      <li>Tap <b>Download for Minecraft</b> above, then tap <b>Download</b> when Safari asks.</li>
+      <li>Open the <b>Files</b> app, go to <b>Downloads</b>, and tap <b>VillageCities.mcaddon</b>. Minecraft opens and says <b>Successfully imported</b>.<br>
+        If tapping the file doesn't open Minecraft, tap the <b>Share</b> button and choose <b>Minecraft</b>.</li>
+      <li>In Minecraft, tap <b>Create New World</b> (or the pencil next to an old world). Scroll to <b>Behavior Packs</b>, tap <b>Available</b>, tap <b>Village Cities</b>, then <b>Activate</b>. It works alongside Bender Forge and Mob Rider.</li>
+      <li>Tap <b>Create</b> or <b>Play</b>. You get a free <b>City Charter</b> the first time you join.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>How to build a city</h2>
+    <ol class="steps">
+      <li>Find some open land. Flat and dry is best.</li>
+      <li>Stand where you want the middle of the city, hold the <b>City Charter</b>, and tap <b>Build City!</b> Green sparkles show how big it will be.</li>
+      <li>Happy with the spot? Tap <b>Build City!</b> again and watch it build!</li>
+      <li>Changed your mind? <b>Sneak</b> and tap the Charter, then sneak and tap again. The city disappears and the land comes back.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Every city has</h2>
+    <div class="features">
+      <div class="feature"><div class="big">🏛️</div><b>Town hall</b><span>with a fountain and bell</span></div>
+      <div class="feature"><div class="big">🏠</div><b>Houses</b><span>with beds for villagers</span></div>
+      <div class="feature"><div class="big">🧑‍🌾</div><b>Villagers</b><span>who move in and get jobs</span></div>
+      <div class="feature"><div class="big">🛒</div><b>Market</b><span>stalls with striped roofs</span></div>
+      <div class="feature"><div class="big">📚</div><b>Library tower</b><span>climb up to the lookout</span></div>
+      <div class="feature"><div class="big">⚒️</div><b>Blacksmith</b><span>anvil and smithing table</span></div>
+      <div class="feature"><div class="big">🌾</div><b>Farms</b><span>full of ready crops</span></div>
+      <div class="feature"><div class="big">🌳</div><b>Park</b><span>trees, pond and benches</span></div>
+      <div class="feature"><div class="big">🏰</div><b>City wall</b><span>gates, lamps and guards</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Cities match the land</h2>
+    <div class="styles">
+      <div class="style"><img src="img/city-plains.png" width="578" height="316" alt="Meadow city with wooden houses"><b>Meadow</b></div>
+      <div class="style"><img src="img/city-cherry.png" width="578" height="316" alt="Cherry blossom city with pink roofs"><b>Cherry blossom</b></div>
+      <div class="style"><img src="img/city-desert.png" width="578" height="316" alt="Desert city made of sandstone"><b>Desert</b></div>
+    </div>
+    <p class="more">Also: snowy pine, birch forest, jungle, savanna and dark forest. Every city gets its own name!</p>
+  </section>
+
+  <section>
+    <h2>The City Charter</h2>
+    <div class="charter">
+      <img src="addon/VillageCities_RP/textures/items/city_charter.png" alt="City Charter">
+      <div>
+        <h3>City Charter</h3>
+        <p>Make another one in a crafting table: 1 gold ingot, 1 emerald and 3 paper.</p>
+        <div class="craft" aria-label="Recipe: gold ingot on top, paper, emerald, paper in the middle, paper at the bottom">
+          <div class="slot"></div><div class="slot" title="Gold Ingot">🟨</div><div class="slot"></div>
+          <div class="slot" title="Paper">📄</div><div class="slot" title="Emerald">💚</div><div class="slot" title="Paper">📄</div>
+          <div class="slot"></div><div class="slot" title="Paper">📄</div><div class="slot"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Good to know</h2>
+    <ul class="tips">
+      <li class="warn">Everything inside the sparkles gets replaced, so don't build a city on top of your house!</li>
+      <li>Undo works for your newest city only.</li>
+      <li>Cities are lit up with lanterns, so monsters can't spawn inside.</li>
+      <li>Cities can only be built in the Overworld.</li>
+      <li>Worlds with add-ons don't earn Xbox achievements.</li>
+    </ul>
+  </section>
+
+  <div class="back">
+    <a class="btn secondary" href="/">← Back to Arcade</a>
+  </div>
+
+</div>
+</body>
+</html>
