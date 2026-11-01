@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bender Forge</title>
+<style>
+  :root {
+    --bg: #17112b;
+    --bg2: #241a42;
+    --card: #2e2354;
+    --card-edge: #4a3a80;
+    --text: #ffffff;
+    --soft: #d9d2f5;
+    --gold: #ffc94a;
+    --gold-dark: #c98a12;
+    --green: #4ade80;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--text);
+    background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg) 70%) fixed;
+    background-color: var(--bg);
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  img.px { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+  .hero { text-align: center; padding: 8px 0 24px; }
+  .hero img { width: 128px; height: 128px; border-radius: 12px; box-shadow: 0 8px 30px rgba(255, 180, 60, 0.25); }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); margin: 16px 0 4px; color: var(--gold); letter-spacing: 0.5px; }
+  .tagline { font-size: clamp(1.1rem, 3.4vw, 1.4rem); color: var(--soft); margin: 0 0 24px; }
+
+  .btn {
+    display: inline-block;
+    font: inherit;
+    font-size: clamp(1.3rem, 4vw, 1.7rem);
+    font-weight: 800;
+    padding: 22px 36px;
+    min-height: 72px;
+    border-radius: 22px;
+    border: none;
+    text-decoration: none;
+    color: #2b1a00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 6px 0 #7a4f00, 0 12px 28px rgba(0,0,0,0.35);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #7a4f00, 0 6px 14px rgba(0,0,0,0.35); }
+  .btn.secondary { color: #fff; background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 6px 0 #4c1d95, 0 12px 28px rgba(0,0,0,0.35); }
+  .small-print { color: var(--soft); font-size: 0.95rem; margin-top: 14px; }
+
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 40px 0 16px; text-align: center; }
+
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    background: var(--card);
+    border: 2px solid var(--card-edge);
+    border-radius: 18px;
+    padding: 18px 18px 18px 76px;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 16px; top: 16px;
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.4rem;
+    background: var(--gold); color: #2b1a00;
+  }
+  .steps b { color: var(--gold); }
+  .note {
+    margin-top: 14px; padding: 14px 18px; border-radius: 14px;
+    background: rgba(74, 222, 128, 0.12); border: 2px solid rgba(74, 222, 128, 0.4);
+    color: #e6ffef; font-size: 1rem;
+  }
+
+  .filters { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  .filters button {
+    font: inherit; font-weight: 700; font-size: 1.15rem;
+    min-height: 64px; min-width: 120px; padding: 12px 22px;
+    border-radius: 999px; border: 3px solid var(--card-edge);
+    background: var(--card); color: var(--text);
+  }
+  .filters button[aria-pressed="true"] { background: var(--gold); color: #2b1a00; border-color: var(--gold); }
+
+  .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 700px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+  .item {
+    background: var(--card);
+    border: 2px solid var(--card-edge);
+    border-radius: 20px;
+    padding: 18px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .item-top { display: flex; gap: 16px; align-items: center; }
+  .item-top img { width: 96px; height: 96px; flex: none; background: rgba(255,255,255,0.06); border-radius: 14px; padding: 8px; }
+  .item h3 { margin: 0 0 4px; font-size: 1.5rem; }
+  .powers { margin: 0; padding: 0; list-style: none; }
+  .powers li { color: var(--soft); }
+  .powers li::before { content: "⭐ "; }
+
+  .recipe { display: flex; gap: 14px; align-items: center; }
+  .recipe .legend { flex: 1; min-width: 0; }
+  .craft {
+    display: grid; grid-template-columns: repeat(3, 52px); gap: 4px;
+    background: #8b8b8b; padding: 6px; border-radius: 8px;
+    border: 3px solid #555;
+  }
+  .slot {
+    width: 52px; height: 52px; border-radius: 4px;
+    background: #6f6f6f; box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #a0a0a0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px;
+  }
+  .legend { margin: 0; padding: 0; list-style: none; font-size: 1rem; color: var(--soft); }
+  .legend span { font-size: 1.3rem; }
+
+  .back { text-align: center; margin-top: 44px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="px" src="addon/BenderForge_BP/pack_icon.png" alt="Bender Forge icon: a fire sword and an ice sword crossed">
+    <h1>Bender Forge</h1>
+    <p class="tagline">A Minecraft add-on with 10 weapons and tools that have super powers</p>
+    <a class="btn" href="BenderForge.mcaddon" download>⬇️ Download for Minecraft</a>
+    <p class="small-print">For Minecraft Bedrock on iPad, iPhone, Android and Windows. Free, no ads.</p>
+  </header>
+
+  <section>
+    <h2>How to put it on the iPad</h2>
+    <ol class="steps">
+      <li>Tap <b>Download for Minecraft</b> above, then tap <b>Download</b> when Safari asks.</li>
+      <li>Open the <b>Files</b> app, go to <b>Downloads</b>, and tap <b>BenderForge.mcaddon</b>. Minecraft opens and says <b>Successfully imported</b>.<br>
+        If tapping the file doesn't open Minecraft, tap the <b>Share</b> button and choose <b>Minecraft</b>.</li>
+      <li>In Minecraft, tap <b>Create New World</b> (or tap the pencil next to an old world). Scroll down to <b>Behavior Packs</b>, tap <b>Available</b>, tap <b>Bender Forge</b>, then tap <b>Activate</b>. The textures turn on by themselves.</li>
+      <li>Tap <b>Create</b> or <b>Play</b>. Open the <b>Recipe Book</b> in a crafting table to find all 10 new items. In Creative mode they're in the inventory with the swords and tools.</li>
+    </ol>
+    <p class="note">Good to know: worlds with add-ons don't earn Xbox achievements. To play with a friend on Switch or Xbox, host the world from the iPad and they can join it.</p>
+  </section>
+
+  <section>
+    <h2>The Forge</h2>
+    <div class="filters" role="group" aria-label="Show items">
+      <button type="button" data-filter="all" aria-pressed="true">All</button>
+      <button type="button" data-filter="weapon" aria-pressed="false">⚔️ Weapons</button>
+      <button type="button" data-filter="tool" aria-pressed="false">⛏️ Tools</button>
+    </div>
+    <div class="grid" id="items"></div>
+  </section>
+
+  <div class="back">
+    <a class="btn secondary" href="/">← Back to Arcade</a>
+  </div>
+
+</div>
+
+<script>
+  // What each crafting ingredient looks like in the little recipe grids.
+  const MATERIALS = {
+    diamond:        { emoji: '💎', name: 'Diamond' },
+    stick:          { emoji: '🥢', name: 'Stick' },
+    blaze_powder:   { emoji: '🔥', name: 'Blaze Powder' },
+    blaze_rod:      { emoji: '🪄', name: 'Blaze Rod' },
+    packed_ice:     { emoji: '🧊', name: 'Packed Ice' },
+    snowball:       { emoji: '❄️', name: 'Snowball' },
+    copper_ingot:   { emoji: '🟧', name: 'Copper Ingot' },
+    lightning_rod:  { emoji: '⚡', name: 'Lightning Rod' },
+    ender_pearl:    { emoji: '🔮', name: 'Ender Pearl' },
+    feather:        { emoji: '🪶', name: 'Feather' },
+    amethyst_shard: { emoji: '💜', name: 'Amethyst Shard' },
+    iron_block:     { emoji: '⬜', name: 'Block of Iron' },
+    emerald:        { emoji: '💚', name: 'Emerald' },
+  };
+
+  const ITEMS = [
+    { id: 'blaze_sword', name: 'Blaze Sword', type: 'weapon',
+      powers: ['Sets mobs on fire'],
+      pattern: [' D ', 'PDP', ' R '], key: { D: 'diamond', P: 'blaze_powder', R: 'blaze_rod' } },
+    { id: 'frost_blade', name: 'Frost Blade', type: 'weapon',
+      powers: ['Freezes mobs so they move slowly'],
+      pattern: [' I ', 'SDS', ' T '], key: { I: 'packed_ice', S: 'snowball', D: 'diamond', T: 'stick' } },
+    { id: 'thunder_hammer', name: 'Thunder Hammer', type: 'weapon',
+      powers: ['Hit: knocks mobs far away', 'Use Item: calls lightning where you point'],
+      pattern: ['CLC', 'CDC', ' T '], key: { C: 'copper_ingot', L: 'lightning_rod', D: 'diamond', T: 'stick' } },
+    { id: 'ender_dagger', name: 'Ender Dagger', type: 'weapon',
+      powers: ['Use Item: teleports you forward'],
+      pattern: ['  E', ' D ', 'T  '], key: { E: 'ender_pearl', D: 'diamond', T: 'stick' } },
+    { id: 'sky_glaive', name: 'Sky Glaive', type: 'weapon',
+      powers: ['Hit: pops mobs up into the air', 'Use Item: a giant sky jump, then you float down'],
+      pattern: [' D ', 'FTF', ' T '], key: { D: 'diamond', F: 'feather', T: 'stick' } },
+    { id: 'amethyst_scythe', name: 'Amethyst Scythe', type: 'weapon',
+      powers: ['Hit: heals you a little', 'Use Item: spin attack that hits nearby monsters'],
+      pattern: ['AAA', ' DT', ' T '], key: { A: 'amethyst_shard', D: 'diamond', T: 'stick' } },
+    { id: 'quarry_hammer', name: 'Quarry Hammer', type: 'tool',
+      powers: ['Mines a 3×3 square of stone and ores', 'Sneak to mine just one block'],
+      pattern: ['BBB', ' T ', ' T '], key: { B: 'iron_block', T: 'stick' } },
+    { id: 'timber_axe', name: 'Timber Axe', type: 'tool',
+      powers: ['Chops down a whole tree at once', 'Sneak to chop just one log'],
+      pattern: ['BB ', 'BT ', ' T '], key: { B: 'iron_block', T: 'stick' } },
+    { id: 'ore_seeker', name: 'Ore Seeker', type: 'tool',
+      powers: ['Mines a whole vein of ore at once', 'Sneak to mine just one block'],
+      pattern: ['EEE', ' T ', ' T '], key: { E: 'emerald', T: 'stick' } },
+    { id: 'mega_shovel', name: 'Mega Shovel', type: 'tool',
+      powers: ['Digs a 3×3 square of dirt, sand or gravel', 'Sneak to dig just one block'],
+      pattern: [' B ', ' T ', ' T '], key: { B: 'iron_block', T: 'stick' } },
+  ];
+
+  function el(tag, cls, text) {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text) node.textContent = text;
+    return node;
+  }
+
+  function renderItem(item) {
+    const card = el('article', 'item');
+    card.dataset.type = item.type;
+
+    const top = el('div', 'item-top');
+    const img = el('img', 'px');
+    img.src = `addon/BenderForge_RP/textures/items/${item.id}.png`;
+    img.alt = item.name;
+    top.appendChild(img);
+    const info = el('div');
+    info.appendChild(el('h3', '', item.name));
+    const powers = el('ul', 'powers');
+    item.powers.forEach(p => powers.appendChild(el('li', '', p)));
+    info.appendChild(powers);
+    top.appendChild(info);
+    card.appendChild(top);
+
+    const recipe = el('div', 'recipe');
+    const craft = el('div', 'craft');
+    craft.setAttribute('aria-label', `Crafting recipe for ${item.name}`);
+    const counts = {};
+    item.pattern.join('').split('').forEach(ch => {
+      const slot = el('div', 'slot');
+      const mat = item.key[ch];
+      if (mat) {
+        slot.textContent = MATERIALS[mat].emoji;
+        slot.title = MATERIALS[mat].name;
+        counts[mat] = (counts[mat] || 0) + 1;
+      }
+      craft.appendChild(slot);
+    });
+    recipe.appendChild(craft);
+    const legend = el('ul', 'legend');
+    Object.entries(counts).forEach(([mat, n]) => {
+      const li = el('li');
+      const icon = el('span', '', MATERIALS[mat].emoji);
+      li.appendChild(icon);
+      li.appendChild(document.createTextNode(` ${MATERIALS[mat].name} × ${n}`));
+      legend.appendChild(li);
+    });
+    recipe.appendChild(legend);
+    card.appendChild(recipe);
+    return card;
+  }
+
+  const list = document.getElementById('items');
+  ITEMS.forEach(item => list.appendChild(renderItem(item)));
+
+  document.querySelectorAll('.filters button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.filter;
+      document.querySelectorAll('.filters button').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+      list.querySelectorAll('.item').forEach(card => {
+        card.classList.toggle('hidden', filter !== 'all' && card.dataset.type !== filter);
+      });
+    });
+  });
+</script>
+</body>
+</html>

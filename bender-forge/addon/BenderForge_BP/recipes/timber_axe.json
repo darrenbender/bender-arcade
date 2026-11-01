@@ -1,0 +1,32 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:timber_axe"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "BB ",
+      "BT ",
+      " T "
+    ],
+    "key": {
+      "B": {
+        "item": "minecraft:iron_block"
+      },
+      "T": {
+        "item": "minecraft:stick"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:timber_axe"
+    }
+  }
+}

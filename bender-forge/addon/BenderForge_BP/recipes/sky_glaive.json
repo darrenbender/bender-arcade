@@ -1,0 +1,35 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:sky_glaive"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      " D ",
+      "FTF",
+      " T "
+    ],
+    "key": {
+      "D": {
+        "item": "minecraft:diamond"
+      },
+      "F": {
+        "item": "minecraft:feather"
+      },
+      "T": {
+        "item": "minecraft:stick"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:sky_glaive"
+    }
+  }
+}

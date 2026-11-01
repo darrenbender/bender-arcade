@@ -1,0 +1,54 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Bender Forge",
+    "description": "10 new weapons and tools with special powers. Made for Michael and James.",
+    "uuid": "53b492b6-8c2b-448a-b0b3-0ee20dcf8909",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      110
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "21ec03d6-8c87-443a-87be-656d15c296f9",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "b1c17c0a-eb45-4148-823a-7b5db02052b1",
+      "entry": "scripts/main.js",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "49571271-daf4-49ac-91d3-f78053b6cd8d",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.2.0"
+    }
+  ]
+}

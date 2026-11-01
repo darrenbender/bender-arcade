@@ -1,0 +1,38 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:frost_blade"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      " I ",
+      "SDS",
+      " T "
+    ],
+    "key": {
+      "I": {
+        "item": "minecraft:packed_ice"
+      },
+      "S": {
+        "item": "minecraft:snowball"
+      },
+      "D": {
+        "item": "minecraft:diamond"
+      },
+      "T": {
+        "item": "minecraft:stick"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:frost_blade"
+    }
+  }
+}

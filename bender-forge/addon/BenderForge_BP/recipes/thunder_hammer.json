@@ -1,0 +1,38 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:thunder_hammer"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "CLC",
+      "CDC",
+      " T "
+    ],
+    "key": {
+      "C": {
+        "item": "minecraft:copper_ingot"
+      },
+      "L": {
+        "item": "minecraft:lightning_rod"
+      },
+      "D": {
+        "item": "minecraft:diamond"
+      },
+      "T": {
+        "item": "minecraft:stick"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:thunder_hammer"
+    }
+  }
+}

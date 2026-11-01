@@ -1,0 +1,53 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:sky_glaive",
+      "menu_category": {
+        "category": "equipment",
+        "group": "minecraft:itemGroup.name.sword"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_sky_glaive",
+      "minecraft:display_name": {
+        "value": "§fSky Glaive"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:hand_equipped": true,
+      "minecraft:damage": 6,
+      "minecraft:durability": {
+        "max_durability": 800
+      },
+      "minecraft:enchantable": {
+        "slot": "sword",
+        "value": 14
+      },
+      "minecraft:repairable": {
+        "repair_items": [
+          {
+            "items": [
+              "minecraft:feather"
+            ],
+            "repair_amount": 200
+          }
+        ]
+      },
+      "minecraft:can_destroy_in_creative": false,
+      "minecraft:tags": {
+        "tags": [
+          "minecraft:is_sword"
+        ]
+      },
+      "minecraft:interact_button": "Sky Jump!",
+      "minecraft:cooldown": {
+        "category": "bender_leap",
+        "duration": 3
+      },
+      "bender:gust_strike": {},
+      "bender:sky_leap": {
+        "cooldown": 3
+      }
+    }
+  }
+}

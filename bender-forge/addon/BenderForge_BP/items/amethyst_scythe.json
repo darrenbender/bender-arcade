@@ -1,0 +1,57 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:amethyst_scythe",
+      "menu_category": {
+        "category": "equipment",
+        "group": "minecraft:itemGroup.name.sword"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_amethyst_scythe",
+      "minecraft:display_name": {
+        "value": "§5Amethyst Scythe"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:hand_equipped": true,
+      "minecraft:damage": 7,
+      "minecraft:durability": {
+        "max_durability": 1000
+      },
+      "minecraft:enchantable": {
+        "slot": "sword",
+        "value": 14
+      },
+      "minecraft:repairable": {
+        "repair_items": [
+          {
+            "items": [
+              "minecraft:amethyst_shard"
+            ],
+            "repair_amount": 250
+          }
+        ]
+      },
+      "minecraft:can_destroy_in_creative": false,
+      "minecraft:tags": {
+        "tags": [
+          "minecraft:is_sword"
+        ]
+      },
+      "minecraft:interact_button": "Spin Attack!",
+      "minecraft:cooldown": {
+        "category": "bender_sweep",
+        "duration": 4
+      },
+      "bender:crystal_heal": {
+        "amount": 2
+      },
+      "bender:spin_sweep": {
+        "radius": 5,
+        "damage": 7,
+        "cooldown": 4
+      }
+    }
+  }
+}

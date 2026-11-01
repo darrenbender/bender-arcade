@@ -1,0 +1,61 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:timber_axe",
+      "menu_category": {
+        "category": "equipment",
+        "group": "minecraft:itemGroup.name.axe"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_timber_axe",
+      "minecraft:display_name": {
+        "value": "§cTimber Axe"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:hand_equipped": true,
+      "minecraft:damage": 7,
+      "minecraft:durability": {
+        "max_durability": 1600
+      },
+      "minecraft:enchantable": {
+        "slot": "axe",
+        "value": 14
+      },
+      "minecraft:repairable": {
+        "repair_items": [
+          {
+            "items": [
+              "minecraft:iron_ingot"
+            ],
+            "repair_amount": 400
+          }
+        ]
+      },
+      "minecraft:digger": {
+        "use_efficiency": true,
+        "destroy_speeds": [
+          {
+            "block": {
+              "tags": "q.any_tag('minecraft:is_axe_item_destructible', 'wood', 'log', 'pumpkin')"
+            },
+            "speed": 8
+          }
+        ]
+      },
+      "minecraft:tags": {
+        "tags": [
+          "minecraft:is_axe",
+          "minecraft:is_tool",
+          "minecraft:digger",
+          "minecraft:diamond_tier"
+        ]
+      },
+      "bender:vein_mine": {
+        "mode": "log",
+        "limit": 160
+      }
+    }
+  }
+}

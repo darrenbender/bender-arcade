@@ -1,0 +1,55 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:thunder_hammer",
+      "menu_category": {
+        "category": "equipment",
+        "group": "minecraft:itemGroup.name.sword"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_thunder_hammer",
+      "minecraft:display_name": {
+        "value": "§eThunder Hammer"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:hand_equipped": true,
+      "minecraft:damage": 9,
+      "minecraft:durability": {
+        "max_durability": 900
+      },
+      "minecraft:enchantable": {
+        "slot": "sword",
+        "value": 14
+      },
+      "minecraft:repairable": {
+        "repair_items": [
+          {
+            "items": [
+              "minecraft:copper_ingot"
+            ],
+            "repair_amount": 225
+          }
+        ]
+      },
+      "minecraft:can_destroy_in_creative": false,
+      "minecraft:tags": {
+        "tags": [
+          "minecraft:is_sword"
+        ]
+      },
+      "minecraft:interact_button": "Lightning!",
+      "minecraft:cooldown": {
+        "category": "bender_thunder",
+        "duration": 5
+      },
+      "bender:smash_strike": {
+        "power": 1.6
+      },
+      "bender:call_lightning": {
+        "cooldown": 5
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "resource_pack_name": "bender_forge",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "bender_blaze_sword": {
+      "textures": "textures/items/blaze_sword"
+    },
+    "bender_frost_blade": {
+      "textures": "textures/items/frost_blade"
+    },
+    "bender_thunder_hammer": {
+      "textures": "textures/items/thunder_hammer"
+    },
+    "bender_ender_dagger": {
+      "textures": "textures/items/ender_dagger"
+    },
+    "bender_sky_glaive": {
+      "textures": "textures/items/sky_glaive"
+    },
+    "bender_amethyst_scythe": {
+      "textures": "textures/items/amethyst_scythe"
+    },
+    "bender_quarry_hammer": {
+      "textures": "textures/items/quarry_hammer"
+    },
+    "bender_timber_axe": {
+      "textures": "textures/items/timber_axe"
+    },
+    "bender_ore_seeker": {
+      "textures": "textures/items/ore_seeker"
+    },
+    "bender_mega_shovel": {
+      "textures": "textures/items/mega_shovel"
+    }
+  }
+}
