@@ -1,0 +1,20 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:ride_seat",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/ride_seat"
+      },
+      "geometry": {
+        "default": "geometry.bender_ride_seat"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ]
+    }
+  }
+}

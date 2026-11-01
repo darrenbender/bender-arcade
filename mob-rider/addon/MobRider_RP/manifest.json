@@ -1,0 +1,29 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Mob Rider Textures",
+    "description": "Textures for the Mob Rider add-on.",
+    "uuid": "99910b74-5a30-4e4f-b6ca-dfa91a4a7e65",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      110
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "176f3b91-f03f-4b0d-b003-3edae9f90099",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

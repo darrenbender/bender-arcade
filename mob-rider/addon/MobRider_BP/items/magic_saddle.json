@@ -1,0 +1,21 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:magic_saddle",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_magic_saddle",
+      "minecraft:display_name": {
+        "value": "§6Magic Saddle"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:interact_button": "Ride!",
+      "minecraft:glint": true,
+      "bender:ride_saddle": {}
+    }
+  }
+}

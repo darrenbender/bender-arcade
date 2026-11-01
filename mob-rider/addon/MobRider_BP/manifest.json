@@ -1,0 +1,54 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Mob Rider",
+    "description": "Ride any mob with the Magic Saddle. Made for Michael and James.",
+    "uuid": "f6032221-714a-4b29-b3f3-014cd71db911",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      110
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "ac52eb58-3541-4ecf-a8e6-c03a5aeea160",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "c856c757-e2ae-4a9f-81b3-c8ae1dd8a961",
+      "entry": "scripts/main.js",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "99910b74-5a30-4e4f-b6ca-dfa91a4a7e65",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.2.0"
+    }
+  ]
+}

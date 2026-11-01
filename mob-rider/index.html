@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mob Rider</title>
+<style>
+  :root {
+    --bg: #0d2a20;
+    --bg2: #154535;
+    --card: #1b4a3a;
+    --card-edge: #2f7a5f;
+    --text: #ffffff;
+    --soft: #d4f2e4;
+    --gold: #ffc94a;
+    --gold-dark: #c98a12;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--text);
+    background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg) 70%) fixed;
+    background-color: var(--bg);
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  img.px { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+  .hero { text-align: center; padding: 8px 0 24px; }
+  .hero img { width: 128px; height: 128px; border-radius: 12px; box-shadow: 0 8px 30px rgba(255, 220, 100, 0.25); }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); margin: 16px 0 4px; color: var(--gold); }
+  .tagline { font-size: clamp(1.1rem, 3.4vw, 1.4rem); color: var(--soft); margin: 0 0 24px; }
+
+  .btn {
+    display: inline-block;
+    font: inherit;
+    font-size: clamp(1.3rem, 4vw, 1.7rem);
+    font-weight: 800;
+    padding: 22px 36px;
+    min-height: 72px;
+    border-radius: 22px;
+    text-decoration: none;
+    color: #2b1a00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 6px 0 #7a4f00, 0 12px 28px rgba(0,0,0,0.35);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #7a4f00, 0 6px 14px rgba(0,0,0,0.35); }
+  .btn.secondary { color: #fff; background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 6px 0 #4c1d95, 0 12px 28px rgba(0,0,0,0.35); }
+  .small-print { color: var(--soft); font-size: 0.95rem; margin-top: 14px; }
+
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 40px 0 16px; text-align: center; }
+
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    background: var(--card);
+    border: 2px solid var(--card-edge);
+    border-radius: 18px;
+    padding: 18px 18px 18px 76px;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 16px; top: 16px;
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.4rem;
+    background: var(--gold); color: #2b1a00;
+  }
+  .steps b { color: var(--gold); }
+
+  .kinds { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 700px) { .kinds { grid-template-columns: 1fr 1fr 1fr; } }
+  .kind {
+    background: var(--card);
+    border: 2px solid var(--card-edge);
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+  }
+  .kind .big { font-size: 3rem; line-height: 1; }
+  .kind h3 { margin: 10px 0 6px; font-size: 1.45rem; }
+  .kind p { margin: 0 0 10px; color: var(--soft); }
+  .kind .examples { font-size: 1.6rem; letter-spacing: 4px; }
+
+  .saddle {
+    display: flex; gap: 18px; align-items: center;
+    background: var(--card); border: 2px solid var(--card-edge); border-radius: 20px; padding: 18px;
+  }
+  .saddle img { width: 96px; height: 96px; flex: none; background: rgba(255,255,255,0.06); border-radius: 14px; padding: 8px; }
+  .saddle h3 { margin: 0 0 6px; font-size: 1.5rem; }
+  .saddle p { margin: 0; color: var(--soft); }
+  .craft {
+    display: grid; grid-template-columns: repeat(3, 52px); gap: 4px;
+    background: #8b8b8b; padding: 6px; border-radius: 8px; border: 3px solid #555;
+    margin-top: 12px; width: max-content;
+  }
+  .slot {
+    width: 52px; height: 52px; border-radius: 4px;
+    background: #6f6f6f; box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #a0a0a0;
+    display: flex; align-items: center; justify-content: center; font-size: 30px;
+  }
+
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .tips li { background: rgba(255,255,255,0.06); border-radius: 14px; padding: 14px 18px; }
+  .tips li::before { content: "⭐ "; }
+
+  .note {
+    margin-top: 14px; padding: 14px 18px; border-radius: 14px;
+    background: rgba(255, 201, 74, 0.12); border: 2px solid rgba(255, 201, 74, 0.45);
+    font-size: 1rem;
+  }
+  .back { text-align: center; margin-top: 44px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="px" src="addon/MobRider_BP/pack_icon.png" alt="Mob Rider icon: a magic saddle">
+    <h1>Mob Rider</h1>
+    <p class="tagline">A Minecraft add-on that lets you ride any mob. Zombies, creepers, dolphins, even ghasts!</p>
+    <a class="btn" href="MobRider.mcaddon" download>⬇️ Download for Minecraft</a>
+    <p class="small-print">For Minecraft Bedrock on iPad, iPhone, Android and Windows. Free, no ads.</p>
+  </header>
+
+  <section>
+    <h2>How to put it on the iPad</h2>
+    <ol class="steps">
+      <li>Tap <b>Download for Minecraft</b> above, then tap <b>Download</b> when Safari asks.</li>
+      <li>Open the <b>Files</b> app, go to <b>Downloads</b>, and tap <b>MobRider.mcaddon</b>. Minecraft opens and says <b>Successfully imported</b>.<br>
+        If tapping the file doesn't open Minecraft, tap the <b>Share</b> button and choose <b>Minecraft</b>.</li>
+      <li>In Minecraft, tap <b>Create New World</b> (or the pencil next to an old world). Scroll to <b>Behavior Packs</b>, tap <b>Available</b>, tap <b>Mob Rider</b>, then <b>Activate</b>. It works alongside Bender Forge too.</li>
+      <li>Tap <b>Create</b> or <b>Play</b>. You get a free <b>Magic Saddle</b> the first time you join.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>How to ride</h2>
+    <ol class="steps">
+      <li>Hold the <b>Magic Saddle</b>.</li>
+      <li>Walk up close to any mob and look right at it.</li>
+      <li>Tap the <b>Ride!</b> button. You hop on!</li>
+      <li>Steer with the joystick. Tap <b>Sneak</b> (or the get-off button) to hop off.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Three ways to ride</h2>
+    <div class="kinds">
+      <div class="kind">
+        <div class="big">🏃</div>
+        <h3>Walkers</h3>
+        <p>Run around and hold Jump for a big leap. They climb one-block steps by themselves.</p>
+        <div class="examples" aria-label="Examples: zombie, cow, spider, creeper">🧟🐄🕷️💥</div>
+      </div>
+      <div class="kind">
+        <div class="big">🪽</div>
+        <h3>Flyers</h3>
+        <p>Look where you want to go and walk forward. Hold Jump to go straight up.</p>
+        <div class="examples" aria-label="Examples: bee, parrot, bat, ghast">🐝🦜🦇👻</div>
+      </div>
+      <div class="kind">
+        <div class="big">🌊</div>
+        <h3>Swimmers</h3>
+        <p>Zoom through water wherever you look. On land they wiggle along slowly.</p>
+        <div class="examples" aria-label="Examples: dolphin, squid, fish, turtle">🐬🦑🐟🐢</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The Magic Saddle</h2>
+    <div class="saddle">
+      <img class="px" src="addon/MobRider_RP/textures/items/magic_saddle.png" alt="Magic Saddle">
+      <div>
+        <h3>Magic Saddle</h3>
+        <p>Lost it? Make another one in a crafting table: 5 leather and 1 gold ingot.</p>
+        <div class="craft" aria-label="Recipe: top row 3 leather, middle row leather, gold ingot, leather">
+          <div class="slot" title="Leather">🟫</div><div class="slot" title="Leather">🟫</div><div class="slot" title="Leather">🟫</div>
+          <div class="slot" title="Leather">🟫</div><div class="slot" title="Gold Ingot">🟨</div><div class="slot" title="Leather">🟫</div>
+          <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Good to know</h2>
+    <ul class="tips">
+      <li>The mob you're riding is friendly and can't get hurt while you ride it.</li>
+      <li>A creeper you're riding never explodes!</li>
+      <li>Hop off a flying mob in the sky and you float down slowly. No ouch.</li>
+      <li>When you get off a grumpy mob, it's too weak to hurt you for a few seconds. Run!</li>
+      <li>The Ender Dragon and shulkers can't be ridden.</li>
+    </ul>
+    <p class="note">Worlds with add-ons don't earn Xbox achievements.</p>
+  </section>
+
+  <div class="back">
+    <a class="btn secondary" href="/">← Back to Arcade</a>
+  </div>
+
+</div>
+</body>
+</html>
