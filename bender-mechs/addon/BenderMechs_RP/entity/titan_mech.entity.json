@@ -1,0 +1,46 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:titan_mech",
+      "materials": {
+        "default": "entity",
+        "alpha": "entity_alphatest"
+      },
+      "textures": {
+        "paint0": "textures/entity/mechs/paint_0",
+        "paint1": "textures/entity/mechs/paint_1",
+        "paint2": "textures/entity/mechs/paint_2",
+        "paint3": "textures/entity/mechs/paint_3",
+        "paint4": "textures/entity/mechs/paint_4",
+        "paint5": "textures/entity/mechs/paint_5",
+        "paint6": "textures/entity/mechs/paint_6",
+        "paint7": "textures/entity/mechs/paint_7",
+        "paint8": "textures/entity/mechs/paint_8",
+        "paint9": "textures/entity/mechs/paint_9",
+        "paint10": "textures/entity/mechs/paint_10",
+        "paint11": "textures/entity/mechs/paint_11",
+        "paint12": "textures/entity/mechs/paint_12",
+        "paint13": "textures/entity/mechs/paint_13",
+        "paint14": "textures/entity/mechs/paint_14",
+        "paint15": "textures/entity/mechs/paint_15"
+      },
+      "geometry": {
+        "body": "geometry.bender_titan_mech_body",
+        "accent": "geometry.bender_titan_mech_accent"
+      },
+      "animations": {
+        "walk": "animation.bender_titan.walk"
+      },
+      "scripts": {
+        "animate": [
+          "walk"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.bender_vehicle.body",
+        "controller.render.bender_vehicle.accent"
+      ]
+    }
+  }
+}

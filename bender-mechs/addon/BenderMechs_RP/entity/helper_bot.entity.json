@@ -1,0 +1,30 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:helper_bot",
+      "materials": {
+        "default": "entity"
+      },
+      "textures": {
+        "default": "textures/entity/mechs/helper_bot"
+      },
+      "geometry": {
+        "default": "geometry.bender_helper_bot"
+      },
+      "animations": {
+        "walk": "animation.bender_bot.walk",
+        "look": "animation.bender_bot.look"
+      },
+      "scripts": {
+        "animate": [
+          "walk",
+          "look"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.bender_bot"
+      ]
+    }
+  }
+}

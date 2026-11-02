@@ -1,0 +1,58 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Bender Mechs",
+    "description": "Pilot a giant mech, ride a motorcycle, build a mech base with sliding doors, and team up with a helper bot. Made for Michael and James.",
+    "uuid": "616af76e-86ba-4dd4-aef5-32cd2b702fbc",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      110
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "22cd7fe4-4ec4-4ef6-87f2-04aab6542529",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "113d3a2e-08ac-4eb7-bdf7-cf168d564237",
+      "entry": "scripts/main.js",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "842f3e02-1aa9-4edb-97e1-dbf273d30e95",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.2.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "2.0.0"
+    }
+  ]
+}

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bender Mechs</title>
+<style>
+  :root {
+    --bg: #14161f;
+    --bg2: #2a2f45;
+    --card: #262b3d;
+    --card-edge: #4a5378;
+    --text: #ffffff;
+    --soft: #dde3ff;
+    --gold: #ffc94a;
+    --gold-dark: #c98a12;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--text);
+    background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg) 70%) fixed;
+    background-color: var(--bg);
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  img { max-width: 100%; height: auto; }
+
+  .hero { text-align: center; padding: 8px 0 24px; }
+  .hero .icon { width: 128px; height: 128px; border-radius: 14px; box-shadow: 0 8px 30px rgba(255, 170, 60, 0.25); }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); margin: 14px 0 4px; color: var(--gold); }
+  .tagline { font-size: clamp(1.1rem, 3.4vw, 1.4rem); color: var(--soft); margin: 0 0 24px; }
+
+  .btn {
+    display: inline-block;
+    font: inherit;
+    font-size: clamp(1.3rem, 4vw, 1.7rem);
+    font-weight: 800;
+    padding: 22px 36px;
+    min-height: 72px;
+    border-radius: 22px;
+    text-decoration: none;
+    color: #2b1a00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 6px 0 #7a4f00, 0 12px 28px rgba(0,0,0,0.35);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #7a4f00, 0 6px 14px rgba(0,0,0,0.35); }
+  .btn.secondary { color: #fff; background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 6px 0 #4c1d95, 0 12px 28px rgba(0,0,0,0.35); }
+  .small-print { color: var(--soft); font-size: 0.95rem; margin-top: 14px; }
+
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 40px 0 16px; text-align: center; }
+
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    background: var(--card);
+    border: 2px solid var(--card-edge);
+    border-radius: 18px;
+    padding: 18px 18px 18px 76px;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 16px; top: 16px;
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.4rem;
+    background: var(--gold); color: #2b1a00;
+  }
+  .steps b { color: var(--gold); }
+
+  .cards { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 700px) { .cards { grid-template-columns: 1fr 1fr; } }
+  .card {
+    background: var(--card); border: 2px solid var(--card-edge); border-radius: 20px;
+    padding: 16px; display: flex; gap: 16px; align-items: center;
+  }
+  .card .pic { width: 120px; height: 140px; flex: none; display: flex; align-items: center; justify-content: center; }
+  .card .pic img { max-height: 140px; width: auto; }
+  .card h3 { margin: 0 0 6px; font-size: 1.4rem; }
+  .card ul { margin: 0; padding: 0; list-style: none; color: var(--soft); }
+  .card li { padding: 2px 0; }
+
+  .base { background: var(--card); border: 2px solid var(--card-edge); border-radius: 20px; padding: 16px; text-align: center; }
+  .base img { border-radius: 12px; }
+  .base p { color: var(--soft); margin: 12px 0 0; }
+  .base b { color: var(--gold); }
+
+  .recipes { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 700px) { .recipes { grid-template-columns: 1fr 1fr; } }
+  .recipe {
+    background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 14px;
+    display: flex; gap: 14px; align-items: center;
+  }
+  .recipe h3 { margin: 0 0 6px; font-size: 1.15rem; }
+  .craft {
+    display: grid; grid-template-columns: repeat(3, 44px); gap: 3px; flex: none;
+    background: #8b8b8b; padding: 5px; border-radius: 8px; border: 3px solid #555;
+  }
+  .slot {
+    width: 44px; height: 44px; border-radius: 4px;
+    background: #6f6f6f; box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #a0a0a0;
+    display: flex; align-items: center; justify-content: center; font-size: 25px;
+  }
+  .legend { margin: 0; padding: 0; list-style: none; font-size: 1rem; color: var(--soft); }
+
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .tips li { background: rgba(255,255,255,0.07); border-radius: 14px; padding: 14px 18px; }
+  .tips li::before { content: "⭐ "; }
+  .tips li.warn { background: rgba(255, 120, 90, 0.16); border: 2px solid rgba(255, 120, 90, 0.5); }
+  .tips li.warn::before { content: "⚠️ "; }
+  .back { text-align: center; margin-top: 44px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="icon" src="addon/BenderMechs_BP/pack_icon.png" alt="A red and yellow giant mech next to a little helper robot">
+    <h1>Bender Mechs</h1>
+    <p class="tagline">A Minecraft add-on: pilot a giant mech, ride a motorcycle, team up with a helper bot, and build your own mech base!</p>
+    <a class="btn" href="BenderMechs.mcaddon" download>⬇️ Download for Minecraft</a>
+    <p class="small-print">For Minecraft Bedrock on iPad, iPhone, Android and Windows. Free, no ads.</p>
+  </header>
+
+  <section>
+    <h2>How to put it on the iPad</h2>
+    <ol class="steps">
+      <li>Tap <b>Download for Minecraft</b> above, then tap <b>Download</b> when Safari asks.</li>
+      <li>Open the <b>Files</b> app, go to <b>Downloads</b>, and tap <b>BenderMechs.mcaddon</b>. Minecraft opens and says <b>Successfully imported</b>.<br>
+        If tapping the file doesn't open Minecraft, tap the <b>Share</b> button and choose <b>Minecraft</b>.</li>
+      <li>In Minecraft, tap <b>Create New World</b> (or the pencil next to an old world). Scroll to <b>Behavior Packs</b>, tap <b>Available</b>, tap <b>Bender Mechs</b>, then <b>Activate</b>. It works alongside the other Bender add-ons.</li>
+      <li>Tap <b>Create</b> or <b>Play</b>. The first time you join you get a mech, a motorcycle, a helper bot, a controller, a Base Kit and 8 sliding doors.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>How to pilot the mech</h2>
+    <ol class="steps">
+      <li>Hold the <b>Titan Mech</b> and tap the ground to put it down. Tap the mech to climb into the cockpit.</li>
+      <li>Walk with the joystick. The mech stomps up one-block steps by itself.</li>
+      <li>Hold <b>Jump</b> for a rocket jump!</li>
+      <li>Hit a monster for a <b>power punch</b> that sends it flying.</li>
+      <li>Hold the <b>Controller</b> and tap <b>Go!</b> to fire the shoulder <b>blaster</b>. It only hits monsters.</li>
+      <li>Tap <b>Sneak</b> to climb out.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>What's inside</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="pic"><img src="img/titan.png" alt="Red and yellow Titan Mech"></div>
+        <div><h3>Titan Mech</h3><ul><li>🚀 Rocket jump</li><li>👊 Power punch</li><li>⚡ Shoulder blaster</li><li>🛡️ Armor keeps the pilot safe</li></ul></div>
+      </div>
+      <div class="card">
+        <div class="pic"><img src="img/motorcycle.png" alt="Blue motorcycle"></div>
+        <div><h3>Motorcycle</h3><ul><li>💨 Super fast</li><li>👥 2 seats</li><li>🦘 Hold Jump to hop</li><li>📯 Controller = horn: beep beep!</li></ul></div>
+      </div>
+      <div class="card">
+        <div class="pic"><img src="img/bot.png" alt="Little white helper robot with a smiley screen face"></div>
+        <div><h3>Helper Bot</h3><ul><li>🤖 Follows you around</li><li>⚔️ Fights monsters (not creepers)</li><li>🔧 Feed it iron ingots to repair it</li><li>🏷️ Comes with a name, like Bolt or Sprocket</li></ul></div>
+      </div>
+      <div class="card">
+        <div class="pic"><img src="addon/BenderMechs_RP/textures/blocks/sliding_door_closed.png" alt="Metal sliding door" style="width:96px;image-rendering:pixelated"></div>
+        <div><h3>Sliding Doors</h3><ul><li>🚪 Whoosh open when you walk up</li><li>🔒 Close behind you</li><li>🧱 Stack them for big hangar doors</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The Base Kit</h2>
+    <div class="base">
+      <img src="img/base.png" width="504" height="306" alt="A mech base with a hangar, a lab, a landing pad and a fence">
+      <p>Stand on open land, hold the <b>Base Kit</b> and tap <b>Build Base!</b> Sparkles show the spot. Tap again and a whole base builds around you: a <b>hangar</b> with a giant sliding door, a <b>lab</b>, a <b>landing pad</b> for Bender Air planes, and a mech, a motorcycle and a helper bot waiting inside.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Paint shop</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="pic"><img src="img/titan-2.png" alt="Black and red Titan Mech"></div>
+        <div class="pic"><img src="img/motorcycle-2.png" alt="Orange and yellow motorcycle"></div>
+      </div>
+      <div class="card"><p style="margin:0;color:var(--soft)">Hold the <b style="color:var(--gold)">Controller</b>, look at your mech or motorcycle, and tap <b style="color:var(--gold)">Go!</b> Pick a main color and a trim color from 16 each, or tap <b style="color:var(--gold)">Surprise me!</b></p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Make more</h2>
+    <div class="recipes" id="recipes"></div>
+  </section>
+
+  <section>
+    <h2>Good to know</h2>
+    <ul class="tips">
+      <li class="warn">The Base Kit replaces everything inside the sparkles, so don't build a base on top of your house! Sneak and tap the Base Kit twice to undo your newest base.</li>
+      <li>Hit a mech or motorcycle three times to pack it up. It keeps its paint.</li>
+      <li>To pack up a helper bot, sneak and hit it three times. Players can't hurt bots by accident.</li>
+      <li>Sliding doors open for players, so mobs can't sneak in when nobody's around.</li>
+      <li>Worlds with add-ons don't earn Xbox achievements.</li>
+    </ul>
+  </section>
+
+  <div class="back">
+    <a class="btn secondary" href="/">← Back to Arcade</a>
+  </div>
+
+</div>
+
+<script>
+  const MATERIALS = {
+    I: { emoji: '🔩', name: 'Iron Ingot' },
+    B: { emoji: '⬜', name: 'Block of Iron' },
+    R: { emoji: '🔴', name: 'Redstone Dust' },
+    X: { emoji: '🟥', name: 'Block of Redstone' },
+    G: { emoji: '🪟', name: 'Glass' },
+    P: { emoji: '▫️', name: 'Glass Pane' },
+    C: { emoji: '⬛', name: 'Block of Coal' },
+    A: { emoji: '📄', name: 'Paper' },
+  };
+  const RECIPES = [
+    { name: 'Titan Mech', pattern: ['IXI', 'BGB', 'I I'] },
+    { name: 'Motorcycle', pattern: [' I ', 'IRI', 'C C'] },
+    { name: 'Helper Bot', pattern: [' P ', 'IRI', 'I I'] },
+    { name: 'Controller', pattern: ['RPR', 'III', '   '] },
+    { name: 'Base Kit', pattern: ['AAA', 'ABA', 'AAA'] },
+    { name: '3 Sliding Doors', pattern: ['II ', 'IR ', 'II '] },
+  ];
+  const host = document.getElementById('recipes');
+  for (const r of RECIPES) {
+    const card = document.createElement('div');
+    card.className = 'recipe';
+    const grid = document.createElement('div');
+    grid.className = 'craft';
+    grid.setAttribute('aria-label', `Crafting recipe for ${r.name}`);
+    const counts = {};
+    for (const ch of r.pattern.join('')) {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      if (MATERIALS[ch]) {
+        slot.textContent = MATERIALS[ch].emoji;
+        slot.title = MATERIALS[ch].name;
+        counts[ch] = (counts[ch] || 0) + 1;
+      }
+      grid.appendChild(slot);
+    }
+    const info = document.createElement('div');
+    const title = document.createElement('h3');
+    title.textContent = r.name;
+    const legend = document.createElement('ul');
+    legend.className = 'legend';
+    for (const [ch, n] of Object.entries(counts)) {
+      const li = document.createElement('li');
+      li.textContent = `${MATERIALS[ch].emoji} ${MATERIALS[ch].name} × ${n}`;
+      legend.appendChild(li);
+    }
+    info.append(title, legend);
+    card.append(grid, info);
+    host.appendChild(card);
+  }
+</script>
+</body>
+</html>

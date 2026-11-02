@@ -1,0 +1,56 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:block": {
+    "description": {
+      "identifier": "bender:sliding_door",
+      "menu_category": {
+        "category": "construction"
+      },
+      "states": {
+        "bender:open": [
+          false,
+          true
+        ]
+      }
+    },
+    "components": {
+      "minecraft:display_name": "Sliding Door",
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "bender_sliding_door_closed",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 10
+      },
+      "minecraft:map_color": "#8a96a6",
+      "minecraft:tick": {
+        "interval_range": [
+          4,
+          4
+        ],
+        "looping": true
+      },
+      "bender:auto_door": {}
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('bender:open')",
+        "components": {
+          "minecraft:collision_box": false,
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "bender_sliding_door_open",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

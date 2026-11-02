@@ -1,0 +1,21 @@
+{
+  "resource_pack_name": "bender_mechs",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "bender_titan_mech_kit": {
+      "textures": "textures/items/titan_mech_kit"
+    },
+    "bender_motorcycle_kit": {
+      "textures": "textures/items/motorcycle_kit"
+    },
+    "bender_helper_bot_kit": {
+      "textures": "textures/items/helper_bot_kit"
+    },
+    "bender_mech_controller": {
+      "textures": "textures/items/mech_controller"
+    },
+    "bender_base_kit": {
+      "textures": "textures/items/base_kit"
+    }
+  }
+}

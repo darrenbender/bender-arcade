@@ -1,0 +1,21 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:base_kit",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_base_kit",
+      "minecraft:display_name": {
+        "value": "§bMech Base Kit"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:interact_button": "Build Base!",
+      "minecraft:glint": true,
+      "bender:base_kit": {}
+    }
+  }
+}
