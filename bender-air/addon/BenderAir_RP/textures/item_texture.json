@@ -1,0 +1,18 @@
+{
+  "resource_pack_name": "bender_air",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "bender_stunt_plane_kit": {
+      "textures": "textures/items/stunt_plane_kit"
+    },
+    "bender_jet_kit": {
+      "textures": "textures/items/jet_kit"
+    },
+    "bender_private_jet_kit": {
+      "textures": "textures/items/private_jet_kit"
+    },
+    "bender_paint_brush": {
+      "textures": "textures/items/paint_brush"
+    }
+  }
+}

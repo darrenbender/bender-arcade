@@ -1,0 +1,99 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.bender_plane.body": {
+      "arrays": {
+        "textures": {
+          "Array.paint": [
+            "Texture.paint0",
+            "Texture.paint1",
+            "Texture.paint2",
+            "Texture.paint3",
+            "Texture.paint4",
+            "Texture.paint5",
+            "Texture.paint6",
+            "Texture.paint7",
+            "Texture.paint8",
+            "Texture.paint9",
+            "Texture.paint10",
+            "Texture.paint11",
+            "Texture.paint12",
+            "Texture.paint13",
+            "Texture.paint14",
+            "Texture.paint15"
+          ]
+        }
+      },
+      "geometry": "Geometry.body",
+      "materials": [
+        {
+          "*": "Material.default"
+        },
+        {
+          "windows": "Material.alpha"
+        }
+      ],
+      "textures": [
+        "Array.paint[q.property('bender:body')]"
+      ]
+    },
+    "controller.render.bender_plane.wings": {
+      "arrays": {
+        "textures": {
+          "Array.paint": [
+            "Texture.paint0",
+            "Texture.paint1",
+            "Texture.paint2",
+            "Texture.paint3",
+            "Texture.paint4",
+            "Texture.paint5",
+            "Texture.paint6",
+            "Texture.paint7",
+            "Texture.paint8",
+            "Texture.paint9",
+            "Texture.paint10",
+            "Texture.paint11",
+            "Texture.paint12",
+            "Texture.paint13",
+            "Texture.paint14",
+            "Texture.paint15"
+          ]
+        }
+      },
+      "geometry": "Geometry.wings",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.paint[q.property('bender:wings')]"
+      ]
+    },
+    "controller.render.bender_plane.decal": {
+      "arrays": {
+        "textures": {
+          "Array.decal": [
+            "Texture.decal1",
+            "Texture.decal2",
+            "Texture.decal3",
+            "Texture.decal4",
+            "Texture.decal5",
+            "Texture.decal6",
+            "Texture.decal7",
+            "Texture.decal8"
+          ]
+        }
+      },
+      "geometry": "Geometry.decal",
+      "materials": [
+        {
+          "*": "Material.alpha"
+        }
+      ],
+      "textures": [
+        "Array.decal[q.property('bender:decal') - 1]"
+      ]
+    }
+  }
+}

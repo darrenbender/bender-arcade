@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bender Air</title>
+<style>
+  :root {
+    --bg: #0e2a4a;
+    --bg2: #1d5a8f;
+    --card: #17406b;
+    --card-edge: #3a78b5;
+    --text: #ffffff;
+    --soft: #d8ecff;
+    --gold: #ffc94a;
+    --gold-dark: #c98a12;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--text);
+    background: linear-gradient(180deg, var(--bg2) 0%, var(--bg) 60%) fixed;
+    background-color: var(--bg);
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  img { max-width: 100%; height: auto; }
+
+  .hero { text-align: center; padding: 8px 0 24px; }
+  .hero .icon { width: 128px; height: 128px; border-radius: 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); margin: 14px 0 4px; color: var(--gold); }
+  .tagline { font-size: clamp(1.1rem, 3.4vw, 1.4rem); color: var(--soft); margin: 0 0 24px; }
+
+  .btn {
+    display: inline-block;
+    font: inherit;
+    font-size: clamp(1.3rem, 4vw, 1.7rem);
+    font-weight: 800;
+    padding: 22px 36px;
+    min-height: 72px;
+    border-radius: 22px;
+    text-decoration: none;
+    color: #2b1a00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 6px 0 #7a4f00, 0 12px 28px rgba(0,0,0,0.35);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #7a4f00, 0 6px 14px rgba(0,0,0,0.35); }
+  .btn.secondary { color: #fff; background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 6px 0 #4c1d95, 0 12px 28px rgba(0,0,0,0.35); }
+  .small-print { color: var(--soft); font-size: 0.95rem; margin-top: 14px; }
+
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 40px 0 16px; text-align: center; }
+
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    background: var(--card);
+    border: 2px solid var(--card-edge);
+    border-radius: 18px;
+    padding: 18px 18px 18px 76px;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 16px; top: 16px;
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.4rem;
+    background: var(--gold); color: #2b1a00;
+  }
+  .steps b { color: var(--gold); }
+
+  .planes { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 700px) { .planes { grid-template-columns: 1fr 1fr 1fr; } }
+  .plane {
+    background: var(--card); border: 2px solid var(--card-edge); border-radius: 20px;
+    padding: 16px; text-align: center; display: flex; flex-direction: column; gap: 8px;
+  }
+  .plane .pic { height: 150px; display: flex; align-items: center; justify-content: center; }
+  .plane .pic img { max-height: 150px; width: auto; }
+  .plane h3 { margin: 4px 0 0; font-size: 1.5rem; }
+  .stats { list-style: none; padding: 0; margin: 0; color: var(--soft); text-align: left; }
+  .stats li { padding: 3px 0; }
+
+  .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (min-width: 700px) { .gallery { grid-template-columns: 1fr 1fr 1fr; } }
+  .gallery div {
+    background: rgba(255,255,255,0.08); border-radius: 16px; height: 130px;
+    display: flex; align-items: center; justify-content: center; padding: 8px;
+  }
+  .gallery img { max-height: 114px; width: auto; }
+  .paint-note { text-align: center; color: var(--soft); margin: 14px 0 0; }
+  .paint-note b { color: var(--gold); }
+
+  .recipes { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 700px) { .recipes { grid-template-columns: 1fr 1fr; } }
+  .recipe {
+    background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 14px;
+    display: flex; gap: 14px; align-items: center;
+  }
+  .recipe h3 { margin: 0 0 6px; font-size: 1.2rem; }
+  .craft {
+    display: grid; grid-template-columns: repeat(3, 44px); gap: 3px; flex: none;
+    background: #8b8b8b; padding: 5px; border-radius: 8px; border: 3px solid #555;
+  }
+  .slot {
+    width: 44px; height: 44px; border-radius: 4px;
+    background: #6f6f6f; box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #a0a0a0;
+    display: flex; align-items: center; justify-content: center; font-size: 25px;
+  }
+  .legend { margin: 0; padding: 0; list-style: none; font-size: 1rem; color: var(--soft); }
+
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .tips li { background: rgba(255,255,255,0.08); border-radius: 14px; padding: 14px 18px; }
+  .tips li::before { content: "⭐ "; }
+  .back { text-align: center; margin-top: 44px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="icon" src="addon/BenderAir_BP/pack_icon.png" alt="A jet and a stunt plane flying through clouds">
+    <h1>Bender Air</h1>
+    <p class="tagline">A Minecraft add-on with a stunt plane, a jet and a private jet. Fly them anywhere and paint them any way you like!</p>
+    <a class="btn" href="BenderAir.mcaddon" download>⬇️ Download for Minecraft</a>
+    <p class="small-print">For Minecraft Bedrock on iPad, iPhone, Android and Windows. Free, no ads.</p>
+  </header>
+
+  <section>
+    <h2>How to put it on the iPad</h2>
+    <ol class="steps">
+      <li>Tap <b>Download for Minecraft</b> above, then tap <b>Download</b> when Safari asks.</li>
+      <li>Open the <b>Files</b> app, go to <b>Downloads</b>, and tap <b>BenderAir.mcaddon</b>. Minecraft opens and says <b>Successfully imported</b>.<br>
+        If tapping the file doesn't open Minecraft, tap the <b>Share</b> button and choose <b>Minecraft</b>.</li>
+      <li>In Minecraft, tap <b>Create New World</b> (or the pencil next to an old world). Scroll to <b>Behavior Packs</b>, tap <b>Available</b>, tap <b>Bender Air</b>, then <b>Activate</b>. It works alongside the other Bender add-ons.</li>
+      <li>Tap <b>Create</b> or <b>Play</b>. The first time you join you get all three planes and a <b>Paint Brush</b>.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>How to fly</h2>
+    <ol class="steps">
+      <li>Hold a plane and tap the ground to put it down. Tap the plane to climb in.</li>
+      <li>Push the joystick <b>forward</b> to speed up. When you're going fast, <b>look up</b> to take off!</li>
+      <li>The plane flies wherever you <b>look</b>. Pull the joystick <b>back</b> to slow down.</li>
+      <li>To land, look down gently until your wheels touch the ground. The plane rolls to a stop.</li>
+      <li>Tap <b>Sneak</b> to get out. Jump out up in the sky and a parachute opens!</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Meet the planes</h2>
+    <div class="planes">
+      <div class="plane">
+        <div class="pic"><img src="img/stunt_plane.png" alt="Red and yellow stunt plane with two sets of wings"></div>
+        <h3>Stunt Plane</h3>
+        <ul class="stats">
+          <li>👥 2 seats</li>
+          <li>💨 36 mph, the twistiest turns</li>
+          <li>⭐ Jump: colored smoke trail</li>
+        </ul>
+      </div>
+      <div class="plane">
+        <div class="pic"><img src="img/jet.png" alt="Silver jet with shark teeth on its nose"></div>
+        <h3>Jet</h3>
+        <ul class="stats">
+          <li>👤 1 seat</li>
+          <li>💨 56 mph, the fastest</li>
+          <li>⭐ Jump: afterburner boost to 76 mph</li>
+        </ul>
+      </div>
+      <div class="plane">
+        <div class="pic"><img src="img/private_jet.png" alt="White private jet with blue wings and windows"></div>
+        <h3>Private Jet</h3>
+        <ul class="stats">
+          <li>👪 4 seats, the whole family!</li>
+          <li>💨 45 mph, smooth and steady</li>
+          <li>⭐ Jump: "Ding!" cabin chime</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The paint shop</h2>
+    <div class="gallery">
+      <div><img src="img/paint-1.png" alt="Blue stunt plane with white wings and stars"></div>
+      <div><img src="img/paint-2.png" alt="Black jet with red wings and lightning"></div>
+      <div><img src="img/paint-3.png" alt="Purple private jet with pink wings and a rainbow"></div>
+      <div><img src="img/paint-4.png" alt="Lime stunt plane with pink wings and polka dots"></div>
+      <div><img src="img/paint-5.png" alt="Gold jet with black wings and checkers"></div>
+      <div><img src="img/paint-6.png" alt="Teal private jet with yellow wings and flames"></div>
+    </div>
+    <p class="paint-note">Hold the <b>Paint Brush</b>, look at a plane and tap <b>Paint!</b> Pick from <b>16 body colors</b>, <b>16 wing colors</b> and <b>8 decals</b> (or none): stripes, flames, lightning, stars, checkers, shark teeth, rainbow and polka dots. That's almost <b>7,000 different planes!</b> Or tap <b>Surprise me!</b></p>
+  </section>
+
+  <section>
+    <h2>Make more</h2>
+    <div class="recipes" id="recipes"></div>
+  </section>
+
+  <section>
+    <h2>Good to know</h2>
+    <ul class="tips">
+      <li>Hit a plane three times to pack it up. It keeps its paint for next time.</li>
+      <li>Planes can't get hurt or break. Fly into a hill and you just bonk to a stop.</li>
+      <li>In the Paint Shop you can switch to <b>cockpit view</b> if you'd rather see from the pilot's seat.</li>
+      <li>Planes float, so you can land on water too.</li>
+      <li>Worlds with add-ons don't earn Xbox achievements.</li>
+    </ul>
+  </section>
+
+  <div class="back">
+    <a class="btn secondary" href="/">← Back to Arcade</a>
+  </div>
+
+</div>
+
+<script>
+  const MATERIALS = {
+    S: { emoji: '🥢', name: 'Stick' },
+    I: { emoji: '🔩', name: 'Iron Ingot' },
+    W: { emoji: '☁️', name: 'White Wool' },
+    B: { emoji: '⬜', name: 'Block of Iron' },
+    F: { emoji: '🔥', name: 'Furnace' },
+    G: { emoji: '🪟', name: 'Glass' },
+  };
+  const RECIPES = [
+    { name: 'Stunt Plane', pattern: ['SIS', 'WWW', ' I '] },
+    { name: 'Jet', pattern: [' I ', 'BFB', ' I '] },
+    { name: 'Private Jet', pattern: ['GGG', 'BFB', ' I '] },
+    { name: 'Paint Brush', pattern: [' W ', ' S ', ' S '] },
+  ];
+  const host = document.getElementById('recipes');
+  for (const r of RECIPES) {
+    const card = document.createElement('div');
+    card.className = 'recipe';
+    const grid = document.createElement('div');
+    grid.className = 'craft';
+    grid.setAttribute('aria-label', `Crafting recipe for ${r.name}`);
+    const counts = {};
+    for (const ch of r.pattern.join('')) {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      if (MATERIALS[ch]) {
+        slot.textContent = MATERIALS[ch].emoji;
+        slot.title = MATERIALS[ch].name;
+        counts[ch] = (counts[ch] || 0) + 1;
+      }
+      grid.appendChild(slot);
+    }
+    const info = document.createElement('div');
+    const title = document.createElement('h3');
+    title.textContent = r.name;
+    const legend = document.createElement('ul');
+    legend.className = 'legend';
+    for (const [ch, n] of Object.entries(counts)) {
+      const li = document.createElement('li');
+      li.textContent = `${MATERIALS[ch].emoji} ${MATERIALS[ch].name} × ${n}`;
+      legend.appendChild(li);
+    }
+    info.append(title, legend);
+    card.append(grid, info);
+    host.appendChild(card);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:stunt_plane_kit",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_stunt_plane_kit",
+      "minecraft:display_name": {
+        "value": "§cStunt Plane"
+      },
+      "minecraft:max_stack_size": 1,
+      "bender:plane_kit": {}
+    }
+  }
+}

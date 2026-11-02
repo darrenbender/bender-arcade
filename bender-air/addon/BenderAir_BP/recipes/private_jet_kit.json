@@ -1,0 +1,38 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:private_jet_kit"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "GGG",
+      "BFB",
+      " I "
+    ],
+    "key": {
+      "G": {
+        "item": "minecraft:glass"
+      },
+      "B": {
+        "item": "minecraft:iron_block"
+      },
+      "F": {
+        "item": "minecraft:furnace"
+      },
+      "I": {
+        "item": "minecraft:iron_ingot"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:private_jet_kit"
+    }
+  }
+}

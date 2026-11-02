@@ -1,0 +1,29 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.bender_plane.attitude": {
+      "loop": true,
+      "bones": {
+        "root": {
+          "rotation": [
+            "q.property('bender:pitch')",
+            0,
+            "q.property('bender:roll')"
+          ]
+        }
+      }
+    },
+    "animation.bender_plane.propeller": {
+      "loop": true,
+      "bones": {
+        "propeller": {
+          "rotation": [
+            0,
+            0,
+            "q.life_time * (240 + 2400 * q.property('bender:throttle'))"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:stunt_plane",
+      "materials": {
+        "default": "entity",
+        "alpha": "entity_alphatest"
+      },
+      "textures": {
+        "paint0": "textures/entity/planes/paint_0",
+        "paint1": "textures/entity/planes/paint_1",
+        "paint2": "textures/entity/planes/paint_2",
+        "paint3": "textures/entity/planes/paint_3",
+        "paint4": "textures/entity/planes/paint_4",
+        "paint5": "textures/entity/planes/paint_5",
+        "paint6": "textures/entity/planes/paint_6",
+        "paint7": "textures/entity/planes/paint_7",
+        "paint8": "textures/entity/planes/paint_8",
+        "paint9": "textures/entity/planes/paint_9",
+        "paint10": "textures/entity/planes/paint_10",
+        "paint11": "textures/entity/planes/paint_11",
+        "paint12": "textures/entity/planes/paint_12",
+        "paint13": "textures/entity/planes/paint_13",
+        "paint14": "textures/entity/planes/paint_14",
+        "paint15": "textures/entity/planes/paint_15",
+        "decal1": "textures/entity/planes/decal_1",
+        "decal2": "textures/entity/planes/decal_2",
+        "decal3": "textures/entity/planes/decal_3",
+        "decal4": "textures/entity/planes/decal_4",
+        "decal5": "textures/entity/planes/decal_5",
+        "decal6": "textures/entity/planes/decal_6",
+        "decal7": "textures/entity/planes/decal_7",
+        "decal8": "textures/entity/planes/decal_8"
+      },
+      "geometry": {
+        "body": "geometry.bender_stunt_plane_body",
+        "wings": "geometry.bender_stunt_plane_wings",
+        "decal": "geometry.bender_stunt_plane_decal"
+      },
+      "animations": {
+        "attitude": "animation.bender_plane.attitude",
+        "propeller": "animation.bender_plane.propeller"
+      },
+      "scripts": {
+        "animate": [
+          "attitude",
+          "propeller"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.bender_plane.body",
+        "controller.render.bender_plane.wings",
+        {
+          "controller.render.bender_plane.decal": "q.property('bender:decal') > 0"
+        }
+      ]
+    }
+  }
+}
