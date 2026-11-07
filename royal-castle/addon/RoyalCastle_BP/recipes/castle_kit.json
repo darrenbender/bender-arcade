@@ -1,0 +1,32 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:castle_kit"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "SSS",
+      "SGS",
+      "SSS"
+    ],
+    "key": {
+      "S": {
+        "item": "minecraft:stone_bricks"
+      },
+      "G": {
+        "item": "minecraft:gold_block"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:castle_kit"
+    }
+  }
+}

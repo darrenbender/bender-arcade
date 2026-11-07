@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Royal Castle</title>
+<style>
+  :root {
+    --bg: #1f1530;
+    --bg2: #4a2c5e;
+    --card: #33244a;
+    --card-edge: #6b4f8f;
+    --text: #ffffff;
+    --soft: #eadcff;
+    --gold: #ffc94a;
+    --gold-dark: #c98a12;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--text);
+    background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg) 70%) fixed;
+    background-color: var(--bg);
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  img { max-width: 100%; height: auto; }
+  .pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+  .hero { text-align: center; padding: 8px 0 24px; }
+  .hero .icon { width: 128px; height: 128px; border-radius: 14px; box-shadow: 0 8px 30px rgba(255, 200, 80, 0.3); }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); margin: 14px 0 4px; color: var(--gold); }
+  .tagline { font-size: clamp(1.1rem, 3.4vw, 1.4rem); color: var(--soft); margin: 0 0 24px; }
+
+  .btn {
+    display: inline-block;
+    font: inherit;
+    font-size: clamp(1.3rem, 4vw, 1.7rem);
+    font-weight: 800;
+    padding: 22px 36px;
+    min-height: 72px;
+    border-radius: 22px;
+    text-decoration: none;
+    color: #2b1a00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 6px 0 #7a4f00, 0 12px 28px rgba(0,0,0,0.35);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #7a4f00, 0 6px 14px rgba(0,0,0,0.35); }
+  .btn.secondary { color: #fff; background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 6px 0 #4c1d95, 0 12px 28px rgba(0,0,0,0.35); }
+  .small-print { color: var(--soft); font-size: 0.95rem; margin-top: 14px; }
+
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 40px 0 16px; text-align: center; }
+
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    background: var(--card);
+    border: 2px solid var(--card-edge);
+    border-radius: 18px;
+    padding: 18px 18px 18px 76px;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 16px; top: 16px;
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.4rem;
+    background: var(--gold); color: #2b1a00;
+  }
+  .steps b { color: var(--gold); }
+
+  .castle { background: var(--card); border: 2px solid var(--card-edge); border-radius: 20px; padding: 16px; text-align: center; }
+
+  .features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (min-width: 700px) { .features { grid-template-columns: 1fr 1fr 1fr; } }
+  .feature { background: var(--card); border: 2px solid var(--card-edge); border-radius: 16px; padding: 14px; text-align: center; }
+  .feature .big { font-size: 2.4rem; line-height: 1.1; }
+  .feature b { display: block; margin-top: 6px; font-size: 1.1rem; }
+  .feature span { color: var(--soft); font-size: 0.95rem; }
+
+  .cards { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 700px) { .cards { grid-template-columns: 1fr 1fr; } }
+  .card { background: var(--card); border: 2px solid var(--card-edge); border-radius: 20px; padding: 16px; display: flex; gap: 16px; align-items: center; }
+  .card img { width: 96px; height: 96px; flex: none; }
+  .card h3 { margin: 0 0 6px; font-size: 1.4rem; }
+  .card p { margin: 0; color: var(--soft); }
+
+  .recipes { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 700px) { .recipes { grid-template-columns: 1fr 1fr 1fr; } }
+  .recipe { background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 14px; text-align: center; }
+  .recipe h3 { margin: 0 0 8px; font-size: 1.15rem; }
+  .craft {
+    display: inline-grid; grid-template-columns: repeat(3, 44px); gap: 3px;
+    background: #8b8b8b; padding: 5px; border-radius: 8px; border: 3px solid #555;
+  }
+  .slot {
+    width: 44px; height: 44px; border-radius: 4px;
+    background: #6f6f6f; box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #a0a0a0;
+    display: flex; align-items: center; justify-content: center; font-size: 25px;
+  }
+  .legend { margin: 8px 0 0; padding: 0; list-style: none; font-size: 1rem; color: var(--soft); }
+
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .tips li { background: rgba(255,255,255,0.07); border-radius: 14px; padding: 14px 18px; }
+  .tips li::before { content: "⭐ "; }
+  .tips li.warn { background: rgba(255, 120, 90, 0.16); border: 2px solid rgba(255, 120, 90, 0.5); }
+  .tips li.warn::before { content: "⚠️ "; }
+  .back { text-align: center; margin-top: 44px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="icon" src="addon/RoyalCastle_BP/pack_icon.png" alt="A golden crown above a stone castle">
+    <h1>Royal Castle</h1>
+    <p class="tagline">A Minecraft add-on: tap the Castle Kit and a whole castle builds itself. Then sit on your throne and rule your kingdom!</p>
+    <a class="btn" href="RoyalCastle.mcaddon" download>⬇️ Download for Minecraft</a>
+    <p class="small-print">For Minecraft Bedrock on iPad, iPhone, Android and Windows. Free, no ads.</p>
+  </header>
+
+  <section>
+    <h2>How to put it on the iPad</h2>
+    <ol class="steps">
+      <li>Tap <b>Download for Minecraft</b> above, then tap <b>Download</b> when Safari asks.</li>
+      <li>Open the <b>Files</b> app, go to <b>Downloads</b>, and tap <b>RoyalCastle.mcaddon</b>. Minecraft opens and says <b>Successfully imported</b>.<br>
+        If tapping the file doesn't open Minecraft, tap the <b>Share</b> button and choose <b>Minecraft</b>.</li>
+      <li>In Minecraft, tap <b>Create New World</b> (or the pencil next to an old world). Scroll to <b>Behavior Packs</b>, tap <b>Available</b>, tap <b>Royal Castle</b>, then <b>Activate</b>. It works alongside the other Bender add-ons.</li>
+      <li>Tap <b>Create</b> or <b>Play</b>. The first time you join you get a <b>Castle Kit</b> and a <b>Royal Crown</b>.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>How to build your castle</h2>
+    <ol class="steps">
+      <li>Find a big open space. Flat and dry is best.</li>
+      <li>Stand in the middle, hold the <b>Castle Kit</b> and tap <b>Build Castle!</b> Green sparkles show how big it will be.</li>
+      <li>Tap <b>Build Castle!</b> again and watch your castle rise from the ground!</li>
+      <li>Put on the <b>Royal Crown</b>, walk into the great hall, and tap the throne to sit on it. Long live the king (or queen)!</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Your castle</h2>
+    <div class="castle">
+      <img src="img/castle.png" alt="A stone castle with a moat, four towers, battlement walls and a tall keep with a red flag">
+    </div>
+    <div class="features" style="margin-top:16px">
+      <div class="feature"><div class="big">🌊</div><b>Moat</b><span>and a drawbridge</span></div>
+      <div class="feature"><div class="big">🚪</div><b>Portcullis</b><span>rises when you walk up</span></div>
+      <div class="feature"><div class="big">🏰</div><b>4 towers</b><span>climb to the top</span></div>
+      <div class="feature"><div class="big">🧱</div><b>Wall walk</b><span>all the way around</span></div>
+      <div class="feature"><div class="big">👑</div><b>Great hall</b><span>with a golden throne</span></div>
+      <div class="feature"><div class="big">💎</div><b>Secret vault</b><span>full of treasure</span></div>
+      <div class="feature"><div class="big">🛏️</div><b>Royal bedroom</b><span>and a library</span></div>
+      <div class="feature"><div class="big">🐴</div><b>Stables</b><span>with two horses</span></div>
+      <div class="feature"><div class="big">⚒️</div><b>Blacksmith</b><span>barracks and kitchen</span></div>
+      <div class="feature"><div class="big">🎯</div><b>Training yard</b><span>with targets</span></div>
+      <div class="feature"><div class="big">🧑‍🌾</div><b>Castle folk</b><span>villagers, guards, a cat</span></div>
+      <div class="feature"><div class="big">🚩</div><b>Rooftop flag</b><span>on top of the keep</span></div>
+    </div>
+    <p style="text-align:center;color:var(--soft)">Every castle gets its own name, like <b style="color:var(--gold)">Castle Starhaven</b> or <b style="color:var(--gold)">Castle Lioncrest</b>.</p>
+  </section>
+
+  <section>
+    <h2>Royal treasures</h2>
+    <div class="cards">
+      <div class="card">
+        <img class="pixel" src="img/crown.png" alt="Golden crown with red, blue and green jewels">
+        <div><h3>Royal Crown</h3><p>Wear it on your head like a helmet. Sit on the throne while you're wearing it for a sparkly royal welcome!</p></div>
+      </div>
+      <div class="card">
+        <img class="pixel" src="img/portcullis.png" alt="Iron portcullis gate">
+        <div><h3>Portcullis</h3><p>An iron castle gate that rises when you walk up and drops when you leave. Craft more for your own builds.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Make more</h2>
+    <div class="recipes" id="recipes"></div>
+  </section>
+
+  <section>
+    <h2>Good to know</h2>
+    <ul class="tips">
+      <li class="warn">The Castle Kit replaces everything inside the sparkles, so don't build a castle on top of your house! Sneak and tap the Castle Kit twice to undo your newest castle.</li>
+      <li>Look for a ladder going down in the great hall floor. It leads to the treasure vault.</li>
+      <li>There are saddles in the vault for the horses in the stables.</li>
+      <li>Climb any tower's ladder to reach the wall walk and the rooftops.</li>
+      <li>Worlds with add-ons don't earn Xbox achievements.</li>
+    </ul>
+  </section>
+
+  <div class="back">
+    <a class="btn secondary" href="/">← Back to Arcade</a>
+  </div>
+
+</div>
+
+<script>
+  const MATERIALS = {
+    S: { emoji: '🧱', name: 'Stone Bricks' },
+    G: { emoji: '🟨', name: 'Block of Gold' },
+    g: { emoji: '🪙', name: 'Gold Ingot' },
+    D: { emoji: '💎', name: 'Diamond' },
+    B: { emoji: '🔲', name: 'Iron Bars' },
+    I: { emoji: '🔩', name: 'Iron Ingot' },
+  };
+  const RECIPES = [
+    { name: 'Castle Kit', pattern: ['SSS', 'SGS', 'SSS'] },
+    { name: 'Royal Crown', pattern: ['gDg', 'ggg', '   '] },
+    { name: '4 Portcullis', pattern: ['BIB', 'BIB', '   '] },
+  ];
+  const host = document.getElementById('recipes');
+  for (const r of RECIPES) {
+    const card = document.createElement('div');
+    card.className = 'recipe';
+    const title = document.createElement('h3');
+    title.textContent = r.name;
+    const grid = document.createElement('div');
+    grid.className = 'craft';
+    grid.setAttribute('aria-label', `Crafting recipe for ${r.name}`);
+    const counts = {};
+    for (const ch of r.pattern.join('')) {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      if (MATERIALS[ch]) {
+        slot.textContent = MATERIALS[ch].emoji;
+        slot.title = MATERIALS[ch].name;
+        counts[ch] = (counts[ch] || 0) + 1;
+      }
+      grid.appendChild(slot);
+    }
+    const legend = document.createElement('ul');
+    legend.className = 'legend';
+    for (const [ch, n] of Object.entries(counts)) {
+      const li = document.createElement('li');
+      li.textContent = `${MATERIALS[ch].emoji} ${MATERIALS[ch].name} × ${n}`;
+      legend.appendChild(li);
+    }
+    card.append(title, grid, legend);
+    host.appendChild(card);
+  }
+</script>
+</body>
+</html>

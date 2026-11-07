@@ -1,0 +1,12 @@
+{
+  "resource_pack_name": "royal_castle",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "bender_castle_kit": {
+      "textures": "textures/items/castle_kit"
+    },
+    "bender_royal_crown": {
+      "textures": "textures/items/royal_crown"
+    }
+  }
+}

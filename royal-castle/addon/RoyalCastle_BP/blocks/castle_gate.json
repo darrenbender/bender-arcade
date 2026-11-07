@@ -1,0 +1,57 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:block": {
+    "description": {
+      "identifier": "bender:castle_gate",
+      "menu_category": {
+        "category": "construction"
+      },
+      "states": {
+        "bender:open": [
+          false,
+          true
+        ]
+      }
+    },
+    "components": {
+      "minecraft:display_name": "Portcullis",
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "bender_portcullis_closed",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.5
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 30
+      },
+      "minecraft:map_color": "#4e5058",
+      "minecraft:light_dampening": 0,
+      "minecraft:tick": {
+        "interval_range": [
+          4,
+          4
+        ],
+        "looping": true
+      },
+      "bender:portcullis": {}
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('bender:open')",
+        "components": {
+          "minecraft:collision_box": false,
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "bender_portcullis_open",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

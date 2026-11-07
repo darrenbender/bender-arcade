@@ -1,0 +1,21 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:castle_kit",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_castle_kit",
+      "minecraft:display_name": {
+        "value": "§6Castle Kit"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:interact_button": "Build Castle!",
+      "minecraft:glint": true,
+      "bender:castle_kit": {}
+    }
+  }
+}

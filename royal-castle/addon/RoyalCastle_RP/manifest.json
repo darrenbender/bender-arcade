@@ -1,0 +1,29 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Royal Castle Textures",
+    "description": "Textures and the crown model for Royal Castle.",
+    "uuid": "7ebaa12d-485a-4d38-b133-4ff6ad1ea35b",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      110
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "15ded585-d51b-45f5-b0d2-5d939fea19dc",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

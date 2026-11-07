@@ -1,0 +1,22 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:royal_crown",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_royal_crown",
+      "minecraft:display_name": {
+        "value": "§6Royal Crown"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.head",
+        "protection": 1
+      }
+    }
+  }
+}

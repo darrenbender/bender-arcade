@@ -1,0 +1,54 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Royal Castle",
+    "description": "Tap the Castle Kit and a whole castle builds itself. Sit on the throne and wear the Royal Crown. Made for Michael and James.",
+    "uuid": "7343f2db-8214-4c9d-919c-f772ec3ab2fe",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      110
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "f9970837-f96d-408e-a496-1238b0d42be7",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "70c0e906-3d14-4398-a9e3-927b0a05d367",
+      "entry": "scripts/main.js",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "7ebaa12d-485a-4d38-b133-4ff6ad1ea35b",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.2.0"
+    }
+  ]
+}

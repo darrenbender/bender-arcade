@@ -1,0 +1,20 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:throne_seat",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/throne_seat"
+      },
+      "geometry": {
+        "default": "geometry.bender_throne_seat"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ]
+    }
+  }
+}
