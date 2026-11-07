@@ -1,0 +1,30 @@
+{
+  "resource_pack_name": "bender_boxing",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "bender_training_gloves": {
+      "textures": "textures/items/training_gloves"
+    },
+    "bender_pro_gloves": {
+      "textures": "textures/items/pro_gloves"
+    },
+    "bender_champion_gloves": {
+      "textures": "textures/items/champion_gloves"
+    },
+    "bender_hay_bag_kit": {
+      "textures": "textures/items/hay_bag_kit"
+    },
+    "bender_leather_bag_kit": {
+      "textures": "textures/items/leather_bag_kit"
+    },
+    "bender_iron_bag_kit": {
+      "textures": "textures/items/iron_bag_kit"
+    },
+    "bender_diamond_bag_kit": {
+      "textures": "textures/items/diamond_bag_kit"
+    },
+    "bender_netherite_bag_kit": {
+      "textures": "textures/items/netherite_bag_kit"
+    }
+  }
+}

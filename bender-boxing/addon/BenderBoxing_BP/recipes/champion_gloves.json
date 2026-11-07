@@ -1,0 +1,35 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:champion_gloves"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      " D ",
+      "AGA",
+      " D "
+    ],
+    "key": {
+      "D": {
+        "item": "minecraft:diamond"
+      },
+      "A": {
+        "item": "minecraft:gold_ingot"
+      },
+      "G": {
+        "item": "bender:pro_gloves"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:champion_gloves"
+    }
+  }
+}

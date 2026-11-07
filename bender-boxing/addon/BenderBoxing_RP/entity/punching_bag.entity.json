@@ -1,0 +1,30 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:punching_bag",
+      "materials": {
+        "default": "entity"
+      },
+      "textures": {
+        "hay": "textures/entity/bags/hay",
+        "leather": "textures/entity/bags/leather",
+        "iron": "textures/entity/bags/iron",
+        "diamond": "textures/entity/bags/diamond",
+        "netherite": "textures/entity/bags/netherite"
+      },
+      "geometry": {
+        "default": "geometry.bender_punching_bag"
+      },
+      "animations": {
+        "punch_front": "animation.bender_bag.punch_front",
+        "punch_back": "animation.bender_bag.punch_back",
+        "punch_right": "animation.bender_bag.punch_right",
+        "punch_left": "animation.bender_bag.punch_left"
+      },
+      "render_controllers": [
+        "controller.render.bender_punching_bag"
+      ]
+    }
+  }
+}

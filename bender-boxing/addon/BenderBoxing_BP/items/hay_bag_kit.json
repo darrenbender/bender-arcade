@@ -1,0 +1,19 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:hay_bag_kit",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_hay_bag_kit",
+      "minecraft:display_name": {
+        "value": "§eHay Bag"
+      },
+      "minecraft:max_stack_size": 16,
+      "bender:bag_kit": {}
+    }
+  }
+}

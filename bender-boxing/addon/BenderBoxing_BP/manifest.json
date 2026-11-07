@@ -1,0 +1,54 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Bender Boxing",
+    "description": "Punching bags and boxing gloves. Punch the bags to train and grow extra hearts. Made for Michael and James.",
+    "uuid": "ddfe134b-e4f5-4ebc-9c7d-41a63060494a",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      110
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "5de0af0d-30ef-4567-8ba1-cddb0fde3d5d",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "cabb0698-ced4-41d5-9d12-dccd656dcaeb",
+      "entry": "scripts/main.js",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "97748d07-4ab2-40ef-a3a3-23e55d7a48be",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.2.0"
+    }
+  ]
+}

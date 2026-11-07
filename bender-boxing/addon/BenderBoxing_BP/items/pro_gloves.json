@@ -1,0 +1,30 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:pro_gloves",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_pro_gloves",
+      "minecraft:display_name": {
+        "value": "§9Pro Gloves"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:allow_off_hand": {
+        "value": true
+      },
+      "minecraft:wearable": {
+        "slot": "slot.armor.chest",
+        "protection": 4
+      },
+      "minecraft:tags": {
+        "tags": [
+          "bender:boxing_gloves"
+        ]
+      }
+    }
+  }
+}

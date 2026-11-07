@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bender Boxing</title>
+<style>
+  :root {
+    --bg: #1d0c12;
+    --bg2: #5c1824;
+    --card: #36161f;
+    --card-edge: #86374a;
+    --text: #ffffff;
+    --soft: #ffdde3;
+    --gold: #ffc94a;
+    --gold-dark: #c98a12;
+    --heart: #ff5a6e;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--text);
+    background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg) 70%) fixed;
+    background-color: var(--bg);
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  img { max-width: 100%; height: auto; }
+  .pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+  .hero { text-align: center; padding: 8px 0 24px; }
+  .hero .icon { width: 128px; height: 128px; border-radius: 14px; box-shadow: 0 8px 30px rgba(255, 90, 110, 0.35); }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); margin: 14px 0 4px; color: var(--gold); }
+  .tagline { font-size: clamp(1.1rem, 3.4vw, 1.4rem); color: var(--soft); margin: 0 0 24px; }
+
+  .btn {
+    display: inline-block;
+    font: inherit;
+    font-size: clamp(1.3rem, 4vw, 1.7rem);
+    font-weight: 800;
+    padding: 22px 36px;
+    min-height: 72px;
+    border-radius: 22px;
+    text-decoration: none;
+    color: #2b1a00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 6px 0 #7a4f00, 0 12px 28px rgba(0,0,0,0.35);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #7a4f00, 0 6px 14px rgba(0,0,0,0.35); }
+  .btn.secondary { color: #fff; background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 6px 0 #4c1d95, 0 12px 28px rgba(0,0,0,0.35); }
+  .small-print { color: var(--soft); font-size: 0.95rem; margin-top: 14px; }
+
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 40px 0 16px; text-align: center; }
+  .intro { text-align: center; color: var(--soft); margin: -6px 0 18px; }
+
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    background: var(--card);
+    border: 2px solid var(--card-edge);
+    border-radius: 18px;
+    padding: 18px 18px 18px 76px;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 16px; top: 16px;
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.4rem;
+    background: var(--gold); color: #2b1a00;
+  }
+  .steps b { color: var(--gold); }
+
+  .lineup { background: linear-gradient(180deg, #2a3350, #3d4a73); border: 2px solid var(--card-edge); border-radius: 20px; padding: 18px 12px 10px; text-align: center; }
+
+  .bags { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 16px; }
+  @media (min-width: 700px) { .bags { grid-template-columns: 1fr 1fr; } }
+  .bag { background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 12px 14px; display: flex; gap: 14px; align-items: center; }
+  .bag img { width: 64px; flex: none; }
+  .bag h3 { margin: 0 0 2px; font-size: 1.3rem; }
+  .bag p { margin: 0; color: var(--soft); }
+  .hearts { color: var(--heart); font-weight: 800; letter-spacing: 1px; }
+
+  .cards { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 700px) { .cards { grid-template-columns: 1fr 1fr 1fr; } }
+  .card { background: var(--card); border: 2px solid var(--card-edge); border-radius: 20px; padding: 16px; text-align: center; }
+  .card img { width: 96px; height: 96px; }
+  .card h3 { margin: 6px 0 6px; font-size: 1.4rem; }
+  .card p { margin: 0; color: var(--soft); }
+
+  .recipes { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 700px) { .recipes { grid-template-columns: 1fr 1fr 1fr; } }
+  .recipe { background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 14px; text-align: center; }
+  .recipe h3 { margin: 0 0 8px; font-size: 1.15rem; }
+  .craft {
+    display: inline-grid; grid-template-columns: repeat(3, 44px); gap: 3px;
+    background: #8b8b8b; padding: 5px; border-radius: 8px; border: 3px solid #555;
+  }
+  .slot {
+    width: 44px; height: 44px; border-radius: 4px;
+    background: #6f6f6f; box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #a0a0a0;
+    display: flex; align-items: center; justify-content: center; font-size: 25px;
+  }
+  .legend { margin: 8px 0 0; padding: 0; list-style: none; font-size: 1rem; color: var(--soft); }
+
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .tips li { background: rgba(255,255,255,0.07); border-radius: 14px; padding: 14px 18px; }
+  .tips li::before { content: "⭐ "; }
+  .back { text-align: center; margin-top: 44px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="icon" src="addon/BenderBoxing_BP/pack_icon.png" alt="Red boxing gloves next to a punching bag in a boxing ring">
+    <h1>Bender Boxing</h1>
+    <p class="tagline">A Minecraft add-on: put on your boxing gloves, punch the bags, and train your way up to 20 hearts!</p>
+    <a class="btn" href="BenderBoxing.mcaddon" download>⬇️ Download for Minecraft</a>
+    <p class="small-print">For Minecraft Bedrock on iPad, iPhone, Android and Windows. Free, no ads.</p>
+  </header>
+
+  <section>
+    <h2>How to put it on the iPad</h2>
+    <ol class="steps">
+      <li>Tap <b>Download for Minecraft</b> above, then tap <b>Download</b> when Safari asks.</li>
+      <li>Open the <b>Files</b> app, go to <b>Downloads</b>, and tap <b>BenderBoxing.mcaddon</b>. Minecraft opens and says <b>Successfully imported</b>.<br>
+        If tapping the file doesn't open Minecraft, tap the <b>Share</b> button and choose <b>Minecraft</b>.</li>
+      <li>In Minecraft, tap <b>Create New World</b> (or the pencil next to an old world). Scroll to <b>Behavior Packs</b>, tap <b>Available</b>, tap <b>Bender Boxing</b>, then <b>Activate</b>. It works alongside the other Bender add-ons.</li>
+      <li>Tap <b>Create</b> or <b>Play</b>. The first time you join you get <b>Training Gloves</b>, a <b>Hay Bag</b> and a <b>Leather Bag</b>.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>How to train</h2>
+    <ol class="steps">
+      <li>Hold a bag and <b>tap the ground</b> to set it up. It fits inside a house too (it's 2 blocks tall).</li>
+      <li><b>Put on your gloves.</b> Just hold them, or wear them in the chestplate slot so your hands are free.</li>
+      <li><b>Punch the bag!</b> Every punch fills up your training bar. Keep a steady rhythm for a <b>combo</b>: combos train you faster.</li>
+      <li>Fill the bar to <b>level up</b> and get <span class="hearts">+2 hearts</span>. Your extra hearts stay forever, even after you die or leave the world.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>The bags</h2>
+    <p class="intro">Every bag can make you stronger, but only up to a point. To reach the top, you need tougher bags!</p>
+    <div class="lineup">
+      <img class="pixel" src="img/bags.png" alt="Five punching bags on stands: hay, leather, iron, diamond and netherite">
+    </div>
+    <div class="bags">
+      <div class="bag"><img class="pixel" src="img/bag_hay.png" alt="Hay punching bag"><div><h3>Hay Bag</h3><p>Trains you up to <b>level 1</b><br><span class="hearts">12 hearts</span></p></div></div>
+      <div class="bag"><img class="pixel" src="img/bag_leather.png" alt="Leather punching bag"><div><h3>Leather Bag</h3><p>Trains you up to <b>level 2</b><br><span class="hearts">14 hearts</span></p></div></div>
+      <div class="bag"><img class="pixel" src="img/bag_iron.png" alt="Iron punching bag"><div><h3>Iron Bag</h3><p>Trains you up to <b>level 3</b><br><span class="hearts">16 hearts</span></p></div></div>
+      <div class="bag"><img class="pixel" src="img/bag_diamond.png" alt="Diamond punching bag"><div><h3>Diamond Bag</h3><p>Trains you up to <b>level 4</b><br><span class="hearts">18 hearts</span></p></div></div>
+      <div class="bag"><img class="pixel" src="img/bag_netherite.png" alt="Netherite punching bag"><div><h3>Netherite Bag</h3><p>Trains you up to <b>level 5</b><br><span class="hearts">20 hearts!</span></p></div></div>
+      <div class="bag"><div style="font-size:3rem;flex:none;width:64px;text-align:center">💪</div><div><h3>Tougher = faster</h3><p>Tougher bags also train you faster. A Netherite Bag counts 5 times as much as a Hay Bag.</p></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The gloves</h2>
+    <div class="cards">
+      <div class="card"><img class="pixel" src="img/gloves_training.png" alt="Red boxing gloves"><h3>Training Gloves</h3><p>Your first pair. Every boxer starts here.</p></div>
+      <div class="card"><img class="pixel" src="img/gloves_pro.png" alt="Blue boxing gloves"><h3>Pro Gloves</h3><p>Train <b>1.5×</b> faster and punch monsters harder.</p></div>
+      <div class="card"><img class="pixel" src="img/gloves_champion.png" alt="Gold boxing gloves"><h3>Champion Gloves</h3><p>Train <b>2×</b> faster and punch monsters hardest of all.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Make more</h2>
+    <div class="recipes" id="recipes"></div>
+  </section>
+
+  <section>
+    <h2>Good to know</h2>
+    <ul class="tips">
+      <li>Hold your gloves to see your level, your hearts, and which bag to train on next.</li>
+      <li>If a bag says <b>Too easy!</b>, you've learned all it can teach you. Move up to a tougher bag.</li>
+      <li>To pack a bag away, <b>crouch</b> and punch it 3 times. You get the bag back.</li>
+      <li>Gloves give your punches extra power against monsters, but never hurt pets, animals or other players.</li>
+      <li>Drinking milk takes your extra hearts away for a second, then they come right back.</li>
+      <li>Worlds with add-ons don't earn Xbox achievements.</li>
+    </ul>
+  </section>
+
+  <div class="back">
+    <a class="btn secondary" href="/">← Back to Arcade</a>
+  </div>
+
+</div>
+
+<script>
+  const MATERIALS = {
+    R: { emoji: '🟥', name: 'Red Wool' },
+    L: { emoji: '🟫', name: 'Leather' },
+    B: { emoji: '🟦', name: 'Blue Wool' },
+    I: { emoji: '🔩', name: 'Iron Ingot' },
+    T: { emoji: '🥊', name: 'Training Gloves' },
+    P: { emoji: '🥊', name: 'Pro Gloves' },
+    D: { emoji: '💎', name: 'Diamond' },
+    g: { emoji: '🪙', name: 'Gold Ingot' },
+    S: { emoji: '🥢', name: 'Stick' },
+    w: { emoji: '⬜', name: 'White Wool' },
+    H: { emoji: '🌾', name: 'Hay Bale' },
+    N: { emoji: '⬛', name: 'Netherite Ingot' },
+  };
+  const RECIPES = [
+    { name: 'Training Gloves', pattern: ['   ', 'RLR', '   '] },
+    { name: 'Pro Gloves', pattern: [' B ', 'ITI', ' B '] },
+    { name: 'Champion Gloves', pattern: [' D ', 'gPg', ' D '] },
+    { name: 'Hay Bag', pattern: ['SSS', ' H ', ' w '] },
+    { name: 'Leather Bag', pattern: ['SSS', ' L ', ' w '] },
+    { name: 'Iron Bag', pattern: ['SSS', ' I ', ' w '] },
+    { name: 'Diamond Bag', pattern: ['SSS', ' D ', ' w '] },
+    { name: 'Netherite Bag', pattern: ['SSS', ' N ', ' w '] },
+  ];
+  const host = document.getElementById('recipes');
+  for (const r of RECIPES) {
+    const card = document.createElement('div');
+    card.className = 'recipe';
+    const title = document.createElement('h3');
+    title.textContent = r.name;
+    const grid = document.createElement('div');
+    grid.className = 'craft';
+    grid.setAttribute('aria-label', `Crafting recipe for ${r.name}`);
+    const counts = {};
+    for (const ch of r.pattern.join('')) {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      if (MATERIALS[ch]) {
+        slot.textContent = MATERIALS[ch].emoji;
+        slot.title = MATERIALS[ch].name;
+        counts[ch] = (counts[ch] || 0) + 1;
+      }
+      grid.appendChild(slot);
+    }
+    const legend = document.createElement('ul');
+    legend.className = 'legend';
+    for (const [ch, n] of Object.entries(counts)) {
+      const li = document.createElement('li');
+      li.textContent = `${MATERIALS[ch].emoji} ${MATERIALS[ch].name} × ${n}`;
+      legend.appendChild(li);
+    }
+    card.append(title, grid, legend);
+    host.appendChild(card);
+  }
+</script>
+</body>
+</html>

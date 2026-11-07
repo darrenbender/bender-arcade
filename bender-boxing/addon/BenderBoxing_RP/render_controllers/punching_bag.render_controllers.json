@@ -1,0 +1,27 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.bender_punching_bag": {
+      "arrays": {
+        "textures": {
+          "Array.bags": [
+            "Texture.hay",
+            "Texture.leather",
+            "Texture.iron",
+            "Texture.diamond",
+            "Texture.netherite"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.bags[q.property('bender:material')]"
+      ]
+    }
+  }
+}
