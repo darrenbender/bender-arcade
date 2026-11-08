@@ -1,0 +1,20 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:dragon_egg",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_dragon_egg",
+      "minecraft:display_name": {
+        "value": "§dEnder Dragon Egg"
+      },
+      "minecraft:max_stack_size": 16,
+      "minecraft:glint": true,
+      "bender:egg": {}
+    }
+  }
+}

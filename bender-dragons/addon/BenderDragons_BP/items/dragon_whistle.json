@@ -1,0 +1,20 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:dragon_whistle",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_dragon_whistle",
+      "minecraft:display_name": {
+        "value": "§6Dragon Whistle"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:interact_button": "Whistle!",
+      "bender:whistle": {}
+    }
+  }
+}

@@ -1,0 +1,184 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "bender:pet_dragon",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "properties": {
+        "bender:stage": {
+          "type": "int",
+          "range": [
+            0,
+            2
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "bender:color": {
+          "type": "int",
+          "range": [
+            0,
+            5
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "bender:pose": {
+          "type": "int",
+          "range": [
+            0,
+            1
+          ],
+          "default": 1,
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "bender:baby": {
+        "minecraft:scale": {
+          "value": 0.12
+        },
+        "minecraft:collision_box": {
+          "width": 0.6,
+          "height": 0.6
+        }
+      },
+      "bender:young": {
+        "minecraft:scale": {
+          "value": 0.19
+        },
+        "minecraft:collision_box": {
+          "width": 0.9,
+          "height": 0.9
+        }
+      },
+      "bender:adult": {
+        "minecraft:scale": {
+          "value": 0.3
+        },
+        "minecraft:collision_box": {
+          "width": 1.3,
+          "height": 1.5
+        },
+        "minecraft:rideable": {
+          "seat_count": 2,
+          "family_types": [
+            "player"
+          ],
+          "interact_text": "Ride",
+          "crouching_skip_interact": true,
+          "pull_in_entities": false,
+          "seats": [
+            {
+              "position": [
+                0,
+                1.25,
+                0.25
+              ]
+            },
+            {
+              "position": [
+                0,
+                1.2,
+                -0.35
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "dragon",
+          "bender_pet_dragon",
+          "mob"
+        ]
+      },
+      "minecraft:health": {
+        "value": 100,
+        "max": 100
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "all",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 0.6,
+        "height": 0.6
+      },
+      "minecraft:physics": {
+        "has_gravity": false,
+        "has_collision": true
+      },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": false
+      },
+      "minecraft:knockback_resistance": {
+        "value": 1.0
+      },
+      "minecraft:fire_immune": true,
+      "minecraft:breathable": {
+        "breathes_air": true,
+        "breathes_water": true
+      },
+      "minecraft:movement": {
+        "value": 0.3
+      },
+      "minecraft:nameable": {
+        "always_show": true,
+        "allow_name_tag_renaming": true
+      },
+      "minecraft:persistent": {}
+    },
+    "events": {
+      "bender:hatch": {
+        "add": {
+          "component_groups": [
+            "bender:baby"
+          ]
+        },
+        "set_property": {
+          "bender:stage": 0
+        }
+      },
+      "bender:grow_young": {
+        "remove": {
+          "component_groups": [
+            "bender:baby"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "bender:young"
+          ]
+        },
+        "set_property": {
+          "bender:stage": 1
+        }
+      },
+      "bender:grow_adult": {
+        "remove": {
+          "component_groups": [
+            "bender:young"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "bender:adult"
+          ]
+        },
+        "set_property": {
+          "bender:stage": 2
+        }
+      }
+    }
+  }
+}

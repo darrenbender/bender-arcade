@@ -1,0 +1,591 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.bender_dragon.fly": {
+      "loop": true,
+      "bones": {
+        "right_wing": {
+          "rotation": [
+            "7 - math.cos(q.life_time * 220) * 10",
+            0,
+            "(math.sin(q.life_time * 220) + 0.15) * 40"
+          ]
+        },
+        "right_wingtip": {
+          "rotation": [
+            0,
+            0,
+            "-(math.sin(q.life_time * 220 + 115) + 0.5) * 38"
+          ]
+        },
+        "left_wing": {
+          "rotation": [
+            "7 - math.cos(q.life_time * 220) * 10",
+            0,
+            "-(math.sin(q.life_time * 220) + 0.15) * 40"
+          ]
+        },
+        "left_wingtip": {
+          "rotation": [
+            0,
+            0,
+            "(math.sin(q.life_time * 220 + 115) + 0.5) * 38"
+          ]
+        },
+        "right_frontleg": {
+          "rotation": [
+            70,
+            0,
+            0
+          ]
+        },
+        "left_frontleg": {
+          "rotation": [
+            70,
+            0,
+            0
+          ]
+        },
+        "right_frontlegtip": {
+          "rotation": [
+            -30,
+            0,
+            0
+          ]
+        },
+        "left_frontlegtip": {
+          "rotation": [
+            -30,
+            0,
+            0
+          ]
+        },
+        "right_frontfoot": {
+          "rotation": [
+            40,
+            0,
+            0
+          ]
+        },
+        "left_frontfoot": {
+          "rotation": [
+            40,
+            0,
+            0
+          ]
+        },
+        "right_rearleg": {
+          "rotation": [
+            55,
+            0,
+            0
+          ]
+        },
+        "left_rearleg": {
+          "rotation": [
+            55,
+            0,
+            0
+          ]
+        },
+        "right_rearlegtip": {
+          "rotation": [
+            30,
+            0,
+            0
+          ]
+        },
+        "left_rearlegtip": {
+          "rotation": [
+            30,
+            0,
+            0
+          ]
+        },
+        "right_rearfoot": {
+          "rotation": [
+            40,
+            0,
+            0
+          ]
+        },
+        "left_rearfoot": {
+          "rotation": [
+            40,
+            0,
+            0
+          ]
+        },
+        "jaw": {
+          "rotation": [
+            "6 + (math.sin(q.life_time * 220) + 1) * 4",
+            0,
+            0
+          ]
+        },
+        "body": {
+          "position": [
+            0,
+            "math.sin(q.life_time * 220 - 60) * 1.5",
+            0
+          ]
+        },
+        "neck1": {
+          "rotation": [
+            "-4 + math.cos(q.life_time * 220 + 0) * 3",
+            0,
+            0
+          ]
+        },
+        "neck2": {
+          "rotation": [
+            "-4 + math.cos(q.life_time * 220 + 26) * 3",
+            0,
+            0
+          ]
+        },
+        "neck3": {
+          "rotation": [
+            "-4 + math.cos(q.life_time * 220 + 52) * 3",
+            0,
+            0
+          ]
+        },
+        "neck4": {
+          "rotation": [
+            "-4 + math.cos(q.life_time * 220 + 78) * 3",
+            0,
+            0
+          ]
+        },
+        "neck5": {
+          "rotation": [
+            "-4 + math.cos(q.life_time * 220 + 104) * 3",
+            0,
+            0
+          ]
+        },
+        "head": {
+          "rotation": [
+            "12 + math.cos(q.life_time * 220 + 130) * 3",
+            0,
+            0
+          ]
+        },
+        "tail1": {
+          "rotation": [
+            "1.5 + math.sin(q.life_time * 220 + 0) * 1.5",
+            "math.sin(q.life_time * 60 + 0) * 2.5",
+            0
+          ]
+        },
+        "tail2": {
+          "rotation": [
+            "1.5 + math.sin(q.life_time * 220 + 26) * 1.5",
+            "math.sin(q.life_time * 60 + 30) * 2.5",
+            0
+          ]
+        },
+        "tail3": {
+          "rotation": [
+            "1.5 + math.sin(q.life_time * 220 + 52) * 1.5",
+            "math.sin(q.life_time * 60 + 60) * 2.5",
+            0
+          ]
+        },
+        "tail4": {
+          "rotation": [
+            "1.5 + math.sin(q.life_time * 220 + 78) * 1.5",
+            "math.sin(q.life_time * 60 + 90) * 2.5",
+            0
+          ]
+        },
+        "tail5": {
+          "rotation": [
+            "1.5 + math.sin(q.life_time * 220 + 104) * 1.5",
+            "math.sin(q.life_time * 60 + 120) * 2.5",
+            0
+          ]
+        },
+        "tail6": {
+          "rotation": [
+            "1.5 + math.sin(q.life_time * 220 + 130) * 1.5",
+            "math.sin(q.life_time * 60 + 150) * 2.5",
+            0
+          ]
+        },
+        "tail7": {
+          "rotation": [
+            "-1.5 + math.sin(q.life_time * 220 + 156) * 1.5",
+            "math.sin(q.life_time * 60 + 180) * 2.5",
+            0
+          ]
+        },
+        "tail8": {
+          "rotation": [
+            "-1.5 + math.sin(q.life_time * 220 + 182) * 1.5",
+            "math.sin(q.life_time * 60 + 210) * 2.5",
+            0
+          ]
+        },
+        "tail9": {
+          "rotation": [
+            "-1.5 + math.sin(q.life_time * 220 + 208) * 1.5",
+            "math.sin(q.life_time * 60 + 240) * 2.5",
+            0
+          ]
+        },
+        "tail10": {
+          "rotation": [
+            "-1.5 + math.sin(q.life_time * 220 + 234) * 1.5",
+            "math.sin(q.life_time * 60 + 270) * 2.5",
+            0
+          ]
+        },
+        "tail11": {
+          "rotation": [
+            "-1.5 + math.sin(q.life_time * 220 + 260) * 1.5",
+            "math.sin(q.life_time * 60 + 300) * 2.5",
+            0
+          ]
+        },
+        "tail12": {
+          "rotation": [
+            "-1.5 + math.sin(q.life_time * 220 + 286) * 1.5",
+            "math.sin(q.life_time * 60 + 330) * 2.5",
+            0
+          ]
+        }
+      }
+    },
+    "animation.bender_dragon.perch": {
+      "loop": true,
+      "bones": {
+        "root": {
+          "rotation": [
+            8,
+            0,
+            0
+          ]
+        },
+        "right_wing": {
+          "rotation": [
+            0,
+            -35,
+            -22
+          ]
+        },
+        "left_wing": {
+          "rotation": [
+            0,
+            35,
+            22
+          ]
+        },
+        "right_wingtip": {
+          "rotation": [
+            0,
+            -25,
+            -35
+          ]
+        },
+        "left_wingtip": {
+          "rotation": [
+            0,
+            25,
+            35
+          ]
+        },
+        "right_frontleg": {
+          "rotation": [
+            -10,
+            0,
+            0
+          ]
+        },
+        "left_frontleg": {
+          "rotation": [
+            -10,
+            0,
+            0
+          ]
+        },
+        "right_frontlegtip": {
+          "rotation": [
+            -14,
+            0,
+            0
+          ]
+        },
+        "left_frontlegtip": {
+          "rotation": [
+            -14,
+            0,
+            0
+          ]
+        },
+        "right_frontfoot": {
+          "rotation": [
+            24,
+            0,
+            0
+          ]
+        },
+        "left_frontfoot": {
+          "rotation": [
+            24,
+            0,
+            0
+          ]
+        },
+        "right_rearleg": {
+          "rotation": [
+            -22,
+            0,
+            0
+          ]
+        },
+        "left_rearleg": {
+          "rotation": [
+            -22,
+            0,
+            0
+          ]
+        },
+        "right_rearlegtip": {
+          "rotation": [
+            40,
+            0,
+            0
+          ]
+        },
+        "left_rearlegtip": {
+          "rotation": [
+            40,
+            0,
+            0
+          ]
+        },
+        "right_rearfoot": {
+          "rotation": [
+            -18,
+            0,
+            0
+          ]
+        },
+        "left_rearfoot": {
+          "rotation": [
+            -18,
+            0,
+            0
+          ]
+        },
+        "body": {
+          "position": [
+            0,
+            "math.sin(q.life_time * 80) * 0.6",
+            0
+          ]
+        },
+        "head": {
+          "rotation": [
+            "6 + math.sin(q.life_time * 80) * 2",
+            0,
+            0
+          ]
+        },
+        "jaw": {
+          "rotation": [
+            4,
+            0,
+            0
+          ]
+        },
+        "neck1": {
+          "rotation": [
+            -7,
+            0,
+            0
+          ]
+        },
+        "neck2": {
+          "rotation": [
+            -7,
+            0,
+            0
+          ]
+        },
+        "neck3": {
+          "rotation": [
+            -7,
+            0,
+            0
+          ]
+        },
+        "neck4": {
+          "rotation": [
+            -7,
+            0,
+            0
+          ]
+        },
+        "neck5": {
+          "rotation": [
+            -7,
+            0,
+            0
+          ]
+        },
+        "tail1": {
+          "rotation": [
+            -8,
+            "math.sin(q.life_time * 40 + 0) * 4",
+            0
+          ]
+        },
+        "tail2": {
+          "rotation": [
+            -8,
+            "math.sin(q.life_time * 40 + 25) * 4",
+            0
+          ]
+        },
+        "tail3": {
+          "rotation": [
+            -8,
+            "math.sin(q.life_time * 40 + 50) * 4",
+            0
+          ]
+        },
+        "tail4": {
+          "rotation": [
+            -8,
+            "math.sin(q.life_time * 40 + 75) * 4",
+            0
+          ]
+        },
+        "tail5": {
+          "rotation": [
+            -8,
+            "math.sin(q.life_time * 40 + 100) * 4",
+            0
+          ]
+        },
+        "tail6": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time * 40 + 125) * 4",
+            0
+          ]
+        },
+        "tail7": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time * 40 + 150) * 4",
+            0
+          ]
+        },
+        "tail8": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time * 40 + 175) * 4",
+            0
+          ]
+        },
+        "tail9": {
+          "rotation": [
+            0,
+            "math.sin(q.life_time * 40 + 200) * 4",
+            0
+          ]
+        },
+        "tail10": {
+          "rotation": [
+            4,
+            "math.sin(q.life_time * 40 + 225) * 4",
+            0
+          ]
+        },
+        "tail11": {
+          "rotation": [
+            4,
+            "math.sin(q.life_time * 40 + 250) * 4",
+            0
+          ]
+        },
+        "tail12": {
+          "rotation": [
+            4,
+            "math.sin(q.life_time * 40 + 275) * 4",
+            0
+          ]
+        }
+      }
+    },
+    "animation.bender_dragon.roar": {
+      "animation_length": 1.6,
+      "bones": {
+        "jaw": {
+          "rotation": {
+            "0.0": [
+              0,
+              0,
+              0
+            ],
+            "0.25": [
+              38,
+              0,
+              0
+            ],
+            "1.3": [
+              38,
+              0,
+              0
+            ],
+            "1.6": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "head": {
+          "rotation": {
+            "0.0": [
+              0,
+              0,
+              0
+            ],
+            "0.25": [
+              -18,
+              0,
+              0
+            ],
+            "1.3": [
+              -18,
+              0,
+              0
+            ],
+            "1.6": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    "animation.bender_dragon_egg.wobble": {
+      "loop": true,
+      "bones": {
+        "egg": {
+          "rotation": [
+            0,
+            0,
+            "q.property('bender:hatching') == 1 ? math.sin(q.life_time * 900) * 9 : 0"
+          ]
+        }
+      }
+    }
+  }
+}

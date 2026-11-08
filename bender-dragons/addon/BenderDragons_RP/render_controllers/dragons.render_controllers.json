@@ -1,0 +1,33 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.bender_pet_dragon": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ],
+      "overlay_color": {
+        "r": "variable.tint_r",
+        "g": "variable.tint_g",
+        "b": "variable.tint_b",
+        "a": "variable.tint_a"
+      }
+    },
+    "controller.render.bender_dragon_crystal": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ]
+    }
+  }
+}

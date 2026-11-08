@@ -1,0 +1,41 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:pet_dragon",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/dragon/dragon"
+      },
+      "geometry": {
+        "default": "geometry.bender_ender_dragon"
+      },
+      "animations": {
+        "fly": "animation.bender_dragon.fly",
+        "perch": "animation.bender_dragon.perch",
+        "roar": "animation.bender_dragon.roar"
+      },
+      "scripts": {
+        "animate": [
+          {
+            "fly": "q.property('bender:pose') == 0"
+          },
+          {
+            "perch": "q.property('bender:pose') == 1"
+          }
+        ],
+        "pre_animation": [
+          "variable.tint_r = q.property('bender:color') == 1 ? 1 : (q.property('bender:color') == 2 ? 0.25 : (q.property('bender:color') == 3 ? 0.15 : (q.property('bender:color') == 4 ? 1 : (q.property('bender:color') == 5 ? 0.7 : (0.0)))));",
+          "variable.tint_g = q.property('bender:color') == 1 ? 0.18 : (q.property('bender:color') == 2 ? 0.65 : (q.property('bender:color') == 3 ? 0.9 : (q.property('bender:color') == 4 ? 0.8 : (q.property('bender:color') == 5 ? 0.25 : (0.0)))));",
+          "variable.tint_b = q.property('bender:color') == 1 ? 0.08 : (q.property('bender:color') == 2 ? 1 : (q.property('bender:color') == 3 ? 0.3 : (q.property('bender:color') == 4 ? 0.15 : (q.property('bender:color') == 5 ? 1 : (0.0)))));",
+          "variable.tint_a = q.property('bender:color') == 1 ? 0.45 : (q.property('bender:color') == 2 ? 0.45 : (q.property('bender:color') == 3 ? 0.42 : (q.property('bender:color') == 4 ? 0.48 : (q.property('bender:color') == 5 ? 0.45 : (0.0)))));"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.bender_pet_dragon"
+      ]
+    }
+  }
+}

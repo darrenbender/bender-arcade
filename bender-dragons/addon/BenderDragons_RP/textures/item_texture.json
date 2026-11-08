@@ -1,0 +1,15 @@
+{
+  "resource_pack_name": "bender_dragons",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "bender_dragon_arena_kit": {
+      "textures": "textures/items/dragon_arena_kit"
+    },
+    "bender_dragon_egg": {
+      "textures": "textures/items/dragon_egg"
+    },
+    "bender_dragon_whistle": {
+      "textures": "textures/items/dragon_whistle"
+    }
+  }
+}

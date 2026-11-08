@@ -1,0 +1,156 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "bender:ender_dragon",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "properties": {
+        "bender:pose": {
+          "type": "int",
+          "range": [
+            0,
+            1
+          ],
+          "default": 0,
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "bender:easy": {
+        "minecraft:health": {
+          "value": 120,
+          "max": 120
+        }
+      },
+      "bender:normal": {
+        "minecraft:health": {
+          "value": 200,
+          "max": 200
+        }
+      },
+      "bender:hard": {
+        "minecraft:health": {
+          "value": 300,
+          "max": 300
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "dragon",
+          "bender_dragon_boss",
+          "mob"
+        ]
+      },
+      "minecraft:health": {
+        "value": 200,
+        "max": 200
+      },
+      "minecraft:boss": {
+        "hud_range": 64,
+        "should_darken_sky": true
+      },
+      "minecraft:scale": {
+        "value": 0.6
+      },
+      "minecraft:collision_box": {
+        "width": 3,
+        "height": 3.38
+      },
+      "minecraft:custom_hit_test": {
+        "hitboxes": [
+          {
+            "width": 3.6,
+            "height": 2.2,
+            "pivot": [
+              0,
+              2.58,
+              0
+            ]
+          }
+        ]
+      },
+      "minecraft:physics": {
+        "has_gravity": false,
+        "has_collision": false
+      },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": false
+      },
+      "minecraft:knockback_resistance": {
+        "value": 1.0
+      },
+      "minecraft:fire_immune": true,
+      "minecraft:breathable": {
+        "breathes_air": true,
+        "breathes_water": true
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "suffocation",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "drowning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire_tick",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "lava",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "freezing",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:movement": {
+        "value": 0.3
+      },
+      "minecraft:persistent": {},
+      "minecraft:experience_reward": {
+        "on_death": "q.last_hit_by_player ? 500 : 0"
+      }
+    },
+    "events": {
+      "bender:difficulty_easy": {
+        "add": {
+          "component_groups": [
+            "bender:easy"
+          ]
+        }
+      },
+      "bender:difficulty_normal": {
+        "add": {
+          "component_groups": [
+            "bender:normal"
+          ]
+        }
+      },
+      "bender:difficulty_hard": {
+        "add": {
+          "component_groups": [
+            "bender:hard"
+          ]
+        }
+      }
+    }
+  }
+}

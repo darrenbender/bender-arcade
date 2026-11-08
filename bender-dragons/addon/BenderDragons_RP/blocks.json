@@ -1,0 +1,10 @@
+{
+  "format_version": [
+    1,
+    1,
+    0
+  ],
+  "bender:dragon_altar": {
+    "sound": "stone"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Bender Dragons",
+    "description": "Fight the Ender Dragon in the Overworld, then hatch, raise and ride a dragon of your own. Made for Michael and James.",
+    "uuid": "69d2393c-e100-4044-ba6f-68c38d2465e0",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      110
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "824a63c2-b4e4-4895-be30-c56a35eb4287",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "eee40561-6e97-4024-bb57-456632a559c9",
+      "entry": "scripts/main.js",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "d9151709-873e-455b-9496-71b857dadc78",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.2.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "2.0.0"
+    }
+  ]
+}

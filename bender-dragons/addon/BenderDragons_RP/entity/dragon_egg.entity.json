@@ -1,0 +1,28 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:dragon_egg",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/dragon_egg"
+      },
+      "geometry": {
+        "default": "geometry.bender_dragon_egg"
+      },
+      "animations": {
+        "wobble": "animation.bender_dragon_egg.wobble"
+      },
+      "scripts": {
+        "animate": [
+          "wobble"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ]
+    }
+  }
+}

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bender Dragons</title>
+<style>
+  :root {
+    --bg: #0d0716;
+    --bg2: #3a1a5c;
+    --card: #221338;
+    --card-edge: #5e3a8c;
+    --text: #ffffff;
+    --soft: #e6d8ff;
+    --gold: #ffc94a;
+    --gold-dark: #c98a12;
+    --pink: #ff8ff0;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--text);
+    background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg) 70%) fixed;
+    background-color: var(--bg);
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  img { max-width: 100%; height: auto; }
+  .pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+  .hero { text-align: center; padding: 8px 0 24px; }
+  .hero .icon { width: 128px; height: 128px; border-radius: 14px; box-shadow: 0 8px 30px rgba(194, 124, 255, 0.45); }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); margin: 14px 0 4px; color: var(--pink); }
+  .tagline { font-size: clamp(1.1rem, 3.4vw, 1.4rem); color: var(--soft); margin: 0 0 24px; }
+
+  .btn {
+    display: inline-block;
+    font: inherit;
+    font-size: clamp(1.3rem, 4vw, 1.7rem);
+    font-weight: 800;
+    padding: 22px 36px;
+    min-height: 72px;
+    border-radius: 22px;
+    text-decoration: none;
+    color: #2b1a00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 6px 0 #7a4f00, 0 12px 28px rgba(0,0,0,0.35);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #7a4f00, 0 6px 14px rgba(0,0,0,0.35); }
+  .btn.secondary { color: #fff; background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 6px 0 #4c1d95, 0 12px 28px rgba(0,0,0,0.35); }
+  .small-print { color: var(--soft); font-size: 0.95rem; margin-top: 14px; }
+
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 40px 0 16px; text-align: center; }
+  .intro { text-align: center; color: var(--soft); margin: -6px 0 18px; }
+
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    background: var(--card);
+    border: 2px solid var(--card-edge);
+    border-radius: 18px;
+    padding: 18px 18px 18px 76px;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 16px; top: 16px;
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.4rem;
+    background: var(--gold); color: #2b1a00;
+  }
+  .steps b { color: var(--gold); }
+
+  .picture { background: linear-gradient(180deg, #1a1030, #2c1a4a); border: 2px solid var(--card-edge); border-radius: 20px; padding: 16px; text-align: center; margin: 16px 0; }
+  .picture p { margin: 8px 0 0; color: var(--soft); }
+
+  .colors { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (min-width: 700px) { .colors { grid-template-columns: 1fr 1fr 1fr; } }
+  .color { background: var(--card); border: 2px solid var(--card-edge); border-radius: 16px; padding: 10px; text-align: center; }
+  .color img { width: 100%; max-width: 220px; }
+  .color b { display: block; font-size: 1.05rem; }
+
+  .cards { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 700px) { .cards { grid-template-columns: 1fr 1fr 1fr; } }
+  .card { background: var(--card); border: 2px solid var(--card-edge); border-radius: 20px; padding: 16px; text-align: center; }
+  .card img { width: 96px; height: 96px; }
+  .card h3 { margin: 6px 0 6px; font-size: 1.35rem; }
+  .card p { margin: 0; color: var(--soft); }
+
+  .recipes { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 700px) { .recipes { grid-template-columns: 1fr 1fr; } }
+  .recipe { background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 14px; text-align: center; }
+  .recipe h3 { margin: 0 0 8px; font-size: 1.15rem; }
+  .craft {
+    display: inline-grid; grid-template-columns: repeat(3, 44px); gap: 3px;
+    background: #8b8b8b; padding: 5px; border-radius: 8px; border: 3px solid #555;
+  }
+  .slot {
+    width: 44px; height: 44px; border-radius: 4px;
+    background: #6f6f6f; box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #a0a0a0;
+    display: flex; align-items: center; justify-content: center; font-size: 25px;
+  }
+  .legend { margin: 8px 0 0; padding: 0; list-style: none; font-size: 1rem; color: var(--soft); }
+
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .tips li { background: rgba(255,255,255,0.07); border-radius: 14px; padding: 14px 18px; }
+  .tips li::before { content: "⭐ "; }
+  .tips li.warn { background: rgba(255, 120, 90, 0.16); border: 2px solid rgba(255, 120, 90, 0.5); }
+  .tips li.warn::before { content: "⚠️ "; }
+  .back { text-align: center; margin-top: 44px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="icon" src="addon/BenderDragons_BP/pack_icon.png" alt="The Ender Dragon flying over an End island with crystal pillars">
+    <h1>Bender Dragons</h1>
+    <p class="tagline">A Minecraft add-on: fight the Ender Dragon right in the Overworld, then hatch, raise and ride a dragon of your very own!</p>
+    <a class="btn" href="BenderDragons.mcaddon" download>⬇️ Download for Minecraft</a>
+    <p class="small-print">For Minecraft Bedrock on iPad, iPhone, Android and Windows. Free, no ads.</p>
+  </header>
+
+  <section>
+    <h2>How to put it on the iPad</h2>
+    <ol class="steps">
+      <li>Tap <b>Download for Minecraft</b> above, then tap <b>Download</b> when Safari asks.</li>
+      <li>Open the <b>Files</b> app, go to <b>Downloads</b>, and tap <b>BenderDragons.mcaddon</b>. Minecraft opens and says <b>Successfully imported</b>.<br>
+        If tapping the file doesn't open Minecraft, tap the <b>Share</b> button and choose <b>Minecraft</b>.</li>
+      <li>In Minecraft, tap <b>Create New World</b> (or the pencil next to an old world). Scroll to <b>Behavior Packs</b>, tap <b>Available</b>, tap <b>Bender Dragons</b>, then <b>Activate</b>. It works alongside the other Bender add-ons.</li>
+      <li>Tap <b>Create</b> or <b>Play</b>. The first time you join you get a <b>Dragon Arena Kit</b> and a <b>Dragon Whistle</b>.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>The big fight</h2>
+    <ol class="steps">
+      <li>Find a big open space. Hold the <b>Dragon Arena Kit</b> and tap <b>Build Arena!</b> Sparkles show where it goes. Tap again to build it.</li>
+      <li>An End island appears, with six obsidian pillars and an <b>altar</b> in the middle. Tap the altar and pick <b>Easy</b>, <b>Normal</b> or <b>Hard</b>.</li>
+      <li>The Ender Dragon swoops in! First break the pink <b>End crystals</b> on top of the pillars, because they heal the dragon. Climb the ladders and hit them, or shoot them with a bow.</li>
+      <li>Watch out for purple fireballs, and run when it dives at you! When the dragon <b>lands on the altar</b>, hit it as hard as you can.</li>
+      <li>Beat it and everyone in the fight wins an <b>Ender Dragon Egg</b>!</li>
+    </ol>
+    <div class="picture">
+      <img src="img/arena.png" alt="The Ender Dragon flying over a round End-stone island with six obsidian pillars topped with pink crystals and an altar in the middle">
+    </div>
+  </section>
+
+  <section>
+    <h2>Your own dragon</h2>
+    <ol class="steps">
+      <li>Hold the egg and <b>tap the ground</b>. It wobbles, and after about 20 seconds a baby dragon hatches! Give it a name and pick its color.</li>
+      <li>Your baby dragon flies after you everywhere. To help it grow, hold <b>meat or fish</b> and tap it. Feed it 3 times and it grows bigger. Feed it 3 more times and it's all grown up.</li>
+      <li>Tap your grown-up dragon to <b>climb on</b>. Look where you want to go and walk forward to fly. Jump to go up. Sneak to get off (you float down safely). A friend can ride with you!</li>
+      <li>Use the <b>Dragon Whistle</b>: tap it to call your dragon, sneak and tap to make it stay, and tap it while riding to <b>shoot a fireball</b>.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Pick a color</h2>
+    <div class="colors">
+      <div class="color"><img src="img/pet_0.png" alt="Black dragon"><b>Ender black</b></div>
+      <div class="color"><img src="img/pet_1.png" alt="Red dragon"><b>Fire red</b></div>
+      <div class="color"><img src="img/pet_2.png" alt="Blue dragon"><b>Ice blue</b></div>
+      <div class="color"><img src="img/pet_3.png" alt="Green dragon"><b>Emerald green</b></div>
+      <div class="color"><img src="img/pet_4.png" alt="Gold dragon"><b>Royal gold</b></div>
+      <div class="color"><img src="img/pet_5.png" alt="Purple dragon"><b>Galaxy purple</b></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What you get</h2>
+    <div class="cards">
+      <div class="card"><img class="pixel" src="img/dragon_arena_kit.png" alt="Obsidian pillar with a pink crystal"><h3>Dragon Arena Kit</h3><p>Builds the End island where you fight the dragon.</p></div>
+      <div class="card"><img class="pixel" src="img/dragon_egg.png" alt="Black dragon egg with purple specks"><h3>Ender Dragon Egg</h3><p>Win it by beating the dragon. It hatches into your own baby dragon.</p></div>
+      <div class="card"><img class="pixel" src="img/dragon_whistle.png" alt="Gold whistle on a red cord"><h3>Dragon Whistle</h3><p>Call your dragon, tell it to stay, and shoot fireballs while you ride.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Make more</h2>
+    <div class="recipes" id="recipes"></div>
+  </section>
+
+  <section>
+    <h2>Good to know</h2>
+    <ul class="tips">
+      <li class="warn">The arena replaces everything inside the sparkles, so don't build it on top of your house! Sneak and tap the Dragon Arena Kit twice to undo your newest arena.</li>
+      <li>This dragon never breaks blocks, so your builds are safe.</li>
+      <li>Start on <b>Easy</b>. The tougher dragons have more health and stronger fireballs.</li>
+      <li>If everyone leaves the arena, the dragon gets bored and flies away. Tap the altar to call it back any time, and beat it again for more eggs.</li>
+      <li>Pet dragons can't get hurt. Grown-up dragons shoot fireballs at monsters near you, but never at animals or friends.</li>
+      <li>Worlds with add-ons don't earn Xbox achievements.</li>
+    </ul>
+  </section>
+
+  <div class="back">
+    <a class="btn secondary" href="/">← Back to Arcade</a>
+  </div>
+
+</div>
+
+<script>
+  const MATERIALS = {
+    O: { emoji: '⬛', name: 'Obsidian' },
+    P: { emoji: '🔮', name: 'Ender Pearl' },
+    D: { emoji: '💎', name: 'Diamond' },
+    G: { emoji: '🪙', name: 'Gold Ingot' },
+    I: { emoji: '🔩', name: 'Iron Ingot' },
+  };
+  const RECIPES = [
+    { name: 'Dragon Arena Kit', pattern: ['OPO', 'PDP', 'OPO'] },
+    { name: 'Dragon Whistle', pattern: ['   ', 'GIG', '   '] },
+  ];
+  const host = document.getElementById('recipes');
+  for (const r of RECIPES) {
+    const card = document.createElement('div');
+    card.className = 'recipe';
+    const title = document.createElement('h3');
+    title.textContent = r.name;
+    const grid = document.createElement('div');
+    grid.className = 'craft';
+    grid.setAttribute('aria-label', `Crafting recipe for ${r.name}`);
+    const counts = {};
+    for (const ch of r.pattern.join('')) {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      if (MATERIALS[ch]) {
+        slot.textContent = MATERIALS[ch].emoji;
+        slot.title = MATERIALS[ch].name;
+        counts[ch] = (counts[ch] || 0) + 1;
+      }
+      grid.appendChild(slot);
+    }
+    const legend = document.createElement('ul');
+    legend.className = 'legend';
+    for (const [ch, n] of Object.entries(counts)) {
+      const li = document.createElement('li');
+      li.textContent = `${MATERIALS[ch].emoji} ${MATERIALS[ch].name} × ${n}`;
+      legend.appendChild(li);
+    }
+    card.append(title, grid, legend);
+    host.appendChild(card);
+  }
+</script>
+</body>
+</html>
