@@ -1,0 +1,27 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:ice_helmet",
+      "menu_category": {
+        "category": "equipment",
+        "group": "minecraft:itemGroup.name.helmet"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_ice_helmet",
+      "minecraft:display_name": {
+        "value": "§bIce Helmet"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.head",
+        "protection": 3
+      },
+      "minecraft:enchantable": {
+        "slot": "armor_head",
+        "value": 12
+      }
+    }
+  }
+}

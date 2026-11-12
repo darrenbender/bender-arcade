@@ -1,0 +1,216 @@
+{
+  "resource_pack_name": "bender_elements",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "bender_fire_staff": {
+      "textures": "textures/items/fire_staff"
+    },
+    "bender_fire_orb": {
+      "textures": "textures/items/fire_orb"
+    },
+    "bender_fire_shard": {
+      "textures": "textures/items/fire_shard"
+    },
+    "bender_fire_helmet": {
+      "textures": "textures/items/fire_helmet"
+    },
+    "bender_fire_chestplate": {
+      "textures": "textures/items/fire_chestplate"
+    },
+    "bender_fire_leggings": {
+      "textures": "textures/items/fire_leggings"
+    },
+    "bender_fire_boots": {
+      "textures": "textures/items/fire_boots"
+    },
+    "bender_water_staff": {
+      "textures": "textures/items/water_staff"
+    },
+    "bender_water_orb": {
+      "textures": "textures/items/water_orb"
+    },
+    "bender_water_shard": {
+      "textures": "textures/items/water_shard"
+    },
+    "bender_water_helmet": {
+      "textures": "textures/items/water_helmet"
+    },
+    "bender_water_chestplate": {
+      "textures": "textures/items/water_chestplate"
+    },
+    "bender_water_leggings": {
+      "textures": "textures/items/water_leggings"
+    },
+    "bender_water_boots": {
+      "textures": "textures/items/water_boots"
+    },
+    "bender_earth_staff": {
+      "textures": "textures/items/earth_staff"
+    },
+    "bender_earth_orb": {
+      "textures": "textures/items/earth_orb"
+    },
+    "bender_earth_shard": {
+      "textures": "textures/items/earth_shard"
+    },
+    "bender_earth_helmet": {
+      "textures": "textures/items/earth_helmet"
+    },
+    "bender_earth_chestplate": {
+      "textures": "textures/items/earth_chestplate"
+    },
+    "bender_earth_leggings": {
+      "textures": "textures/items/earth_leggings"
+    },
+    "bender_earth_boots": {
+      "textures": "textures/items/earth_boots"
+    },
+    "bender_air_staff": {
+      "textures": "textures/items/air_staff"
+    },
+    "bender_air_orb": {
+      "textures": "textures/items/air_orb"
+    },
+    "bender_air_shard": {
+      "textures": "textures/items/air_shard"
+    },
+    "bender_air_helmet": {
+      "textures": "textures/items/air_helmet"
+    },
+    "bender_air_chestplate": {
+      "textures": "textures/items/air_chestplate"
+    },
+    "bender_air_leggings": {
+      "textures": "textures/items/air_leggings"
+    },
+    "bender_air_boots": {
+      "textures": "textures/items/air_boots"
+    },
+    "bender_lightning_staff": {
+      "textures": "textures/items/lightning_staff"
+    },
+    "bender_lightning_orb": {
+      "textures": "textures/items/lightning_orb"
+    },
+    "bender_lightning_shard": {
+      "textures": "textures/items/lightning_shard"
+    },
+    "bender_lightning_helmet": {
+      "textures": "textures/items/lightning_helmet"
+    },
+    "bender_lightning_chestplate": {
+      "textures": "textures/items/lightning_chestplate"
+    },
+    "bender_lightning_leggings": {
+      "textures": "textures/items/lightning_leggings"
+    },
+    "bender_lightning_boots": {
+      "textures": "textures/items/lightning_boots"
+    },
+    "bender_ice_staff": {
+      "textures": "textures/items/ice_staff"
+    },
+    "bender_ice_orb": {
+      "textures": "textures/items/ice_orb"
+    },
+    "bender_ice_shard": {
+      "textures": "textures/items/ice_shard"
+    },
+    "bender_ice_helmet": {
+      "textures": "textures/items/ice_helmet"
+    },
+    "bender_ice_chestplate": {
+      "textures": "textures/items/ice_chestplate"
+    },
+    "bender_ice_leggings": {
+      "textures": "textures/items/ice_leggings"
+    },
+    "bender_ice_boots": {
+      "textures": "textures/items/ice_boots"
+    },
+    "bender_nature_staff": {
+      "textures": "textures/items/nature_staff"
+    },
+    "bender_nature_orb": {
+      "textures": "textures/items/nature_orb"
+    },
+    "bender_nature_shard": {
+      "textures": "textures/items/nature_shard"
+    },
+    "bender_nature_helmet": {
+      "textures": "textures/items/nature_helmet"
+    },
+    "bender_nature_chestplate": {
+      "textures": "textures/items/nature_chestplate"
+    },
+    "bender_nature_leggings": {
+      "textures": "textures/items/nature_leggings"
+    },
+    "bender_nature_boots": {
+      "textures": "textures/items/nature_boots"
+    },
+    "bender_lava_staff": {
+      "textures": "textures/items/lava_staff"
+    },
+    "bender_lava_orb": {
+      "textures": "textures/items/lava_orb"
+    },
+    "bender_lava_shard": {
+      "textures": "textures/items/lava_shard"
+    },
+    "bender_lava_helmet": {
+      "textures": "textures/items/lava_helmet"
+    },
+    "bender_lava_chestplate": {
+      "textures": "textures/items/lava_chestplate"
+    },
+    "bender_lava_leggings": {
+      "textures": "textures/items/lava_leggings"
+    },
+    "bender_lava_boots": {
+      "textures": "textures/items/lava_boots"
+    },
+    "bender_light_staff": {
+      "textures": "textures/items/light_staff"
+    },
+    "bender_light_orb": {
+      "textures": "textures/items/light_orb"
+    },
+    "bender_light_shard": {
+      "textures": "textures/items/light_shard"
+    },
+    "bender_light_helmet": {
+      "textures": "textures/items/light_helmet"
+    },
+    "bender_light_chestplate": {
+      "textures": "textures/items/light_chestplate"
+    },
+    "bender_light_leggings": {
+      "textures": "textures/items/light_leggings"
+    },
+    "bender_light_boots": {
+      "textures": "textures/items/light_boots"
+    },
+    "bender_shadow_staff": {
+      "textures": "textures/items/shadow_staff"
+    },
+    "bender_shadow_orb": {
+      "textures": "textures/items/shadow_orb"
+    },
+    "bender_shadow_shard": {
+      "textures": "textures/items/shadow_shard"
+    },
+    "bender_shadow_helmet": {
+      "textures": "textures/items/shadow_helmet"
+    },
+    "bender_shadow_chestplate": {
+      "textures": "textures/items/shadow_chestplate"
+    },
+    "bender_shadow_leggings": {
+      "textures": "textures/items/shadow_leggings"
+    },
+    "bender_shadow_boots": {
+      "textures": "textures/items/shadow_boots"
+    }
+  }
+}

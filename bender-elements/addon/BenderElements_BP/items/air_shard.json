@@ -1,0 +1,18 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:air_shard",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_air_shard",
+      "minecraft:display_name": {
+        "value": "§fAir Shard"
+      },
+      "minecraft:max_stack_size": 64
+    }
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.bender_guardian.move": {
+      "loop": true,
+      "bones": {
+        "right_leg": {
+          "rotation": [
+            "math.cos(q.modified_distance_moved * 22) * 30 * math.min(1, q.modified_move_speed * 4)",
+            0,
+            0
+          ]
+        },
+        "left_leg": {
+          "rotation": [
+            "-math.cos(q.modified_distance_moved * 22) * 30 * math.min(1, q.modified_move_speed * 4)",
+            0,
+            0
+          ]
+        },
+        "right_arm": {
+          "rotation": [
+            "-math.cos(q.modified_distance_moved * 22) * 20 * math.min(1, q.modified_move_speed * 4)",
+            0,
+            "math.sin(q.life_time * 90) * 3 + 4"
+          ]
+        },
+        "left_arm": {
+          "rotation": [
+            "math.cos(q.modified_distance_moved * 22) * 20 * math.min(1, q.modified_move_speed * 4)",
+            0,
+            "-math.sin(q.life_time * 90) * 3 - 4"
+          ]
+        }
+      }
+    },
+    "animation.bender_guardian.idle": {
+      "loop": true,
+      "bones": {
+        "orbit": {
+          "rotation": [
+            0,
+            "q.life_time * 90",
+            0
+          ],
+          "position": [
+            0,
+            "math.sin(q.life_time * 120) * 1.5",
+            0
+          ]
+        },
+        "head": {
+          "rotation": [
+            "q.target_x_rotation * 0.6",
+            "q.target_y_rotation * 0.6",
+            0
+          ]
+        }
+      }
+    },
+    "animation.bender_guardian.cast": {
+      "animation_length": 1.0,
+      "bones": {
+        "right_arm": {
+          "rotation": {
+            "0.0": [
+              0,
+              0,
+              0
+            ],
+            "0.25": [
+              -150,
+              0,
+              18
+            ],
+            "0.75": [
+              -150,
+              0,
+              18
+            ],
+            "1.0": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "left_arm": {
+          "rotation": {
+            "0.0": [
+              0,
+              0,
+              0
+            ],
+            "0.25": [
+              -150,
+              0,
+              -18
+            ],
+            "0.75": [
+              -150,
+              0,
+              -18
+            ],
+            "1.0": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    "animation.bender_guardian.swing": {
+      "animation_length": 0.5,
+      "bones": {
+        "right_arm": {
+          "rotation": {
+            "0.0": [
+              0,
+              0,
+              0
+            ],
+            "0.15": [
+              -110,
+              15,
+              0
+            ],
+            "0.5": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    }
+  }
+}

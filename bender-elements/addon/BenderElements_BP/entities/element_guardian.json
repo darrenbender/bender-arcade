@@ -1,0 +1,190 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "bender:element_guardian",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "properties": {
+        "bender:element": {
+          "type": "int",
+          "range": [
+            0,
+            9
+          ],
+          "default": 0,
+          "client_sync": true
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "bender_guardian",
+          "mob"
+        ]
+      },
+      "minecraft:health": {
+        "value": 150,
+        "max": 150
+      },
+      "minecraft:boss": {
+        "hud_range": 48,
+        "should_darken_sky": false
+      },
+      "minecraft:collision_box": {
+        "width": 1.3,
+        "height": 2.8
+      },
+      "minecraft:attack": {
+        "damage": 4
+      },
+      "minecraft:movement": {
+        "value": 0.27
+      },
+      "minecraft:navigation.walk": {
+        "can_path_over_water": true,
+        "avoid_water": false,
+        "can_open_doors": false
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:jump.static": {},
+      "minecraft:can_climb": {},
+      "minecraft:follow_range": {
+        "value": 48,
+        "max": 48
+      },
+      "minecraft:behavior.float": {
+        "priority": 0
+      },
+      "minecraft:behavior.melee_attack": {
+        "priority": 2,
+        "speed_multiplier": 1.15,
+        "track_target": true
+      },
+      "minecraft:behavior.nearest_attackable_target": {
+        "priority": 1,
+        "must_see": false,
+        "reselect_targets": true,
+        "entity_types": [
+          {
+            "filters": {
+              "test": "is_family",
+              "subject": "other",
+              "value": "player"
+            },
+            "max_dist": 32
+          }
+        ]
+      },
+      "minecraft:behavior.hurt_by_target": {
+        "priority": 1
+      },
+      "minecraft:behavior.random_stroll": {
+        "priority": 6,
+        "speed_multiplier": 0.8
+      },
+      "minecraft:behavior.look_at_player": {
+        "priority": 7,
+        "look_distance": 16
+      },
+      "minecraft:physics": {},
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:knockback_resistance": {
+        "value": 0.8
+      },
+      "minecraft:fire_immune": true,
+      "minecraft:breathable": {
+        "breathes_air": true,
+        "breathes_water": true
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "suffocation",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "drowning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "lava",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire_tick",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:persistent": {},
+      "minecraft:experience_reward": {
+        "on_death": "q.last_hit_by_player ? 100 : 0"
+      }
+    },
+    "events": {
+      "bender:element_fire": {
+        "set_property": {
+          "bender:element": 0
+        }
+      },
+      "bender:element_water": {
+        "set_property": {
+          "bender:element": 1
+        }
+      },
+      "bender:element_earth": {
+        "set_property": {
+          "bender:element": 2
+        }
+      },
+      "bender:element_air": {
+        "set_property": {
+          "bender:element": 3
+        }
+      },
+      "bender:element_lightning": {
+        "set_property": {
+          "bender:element": 4
+        }
+      },
+      "bender:element_ice": {
+        "set_property": {
+          "bender:element": 5
+        }
+      },
+      "bender:element_nature": {
+        "set_property": {
+          "bender:element": 6
+        }
+      },
+      "bender:element_lava": {
+        "set_property": {
+          "bender:element": 7
+        }
+      },
+      "bender:element_light": {
+        "set_property": {
+          "bender:element": 8
+        }
+      },
+      "bender:element_shadow": {
+        "set_property": {
+          "bender:element": 9
+        }
+      }
+    }
+  }
+}

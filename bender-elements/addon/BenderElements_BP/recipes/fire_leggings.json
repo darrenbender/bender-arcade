@@ -1,0 +1,29 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:fire_leggings"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "SSS",
+      "S S",
+      "S S"
+    ],
+    "key": {
+      "S": {
+        "item": "bender:fire_shard"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:fire_leggings"
+    }
+  }
+}

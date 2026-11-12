@@ -1,0 +1,27 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:air_chestplate",
+      "menu_category": {
+        "category": "equipment",
+        "group": "minecraft:itemGroup.name.chestplate"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_air_chestplate",
+      "minecraft:display_name": {
+        "value": "§fAir Chestplate"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.chest",
+        "protection": 7
+      },
+      "minecraft:enchantable": {
+        "slot": "armor_torso",
+        "value": 12
+      }
+    }
+  }
+}

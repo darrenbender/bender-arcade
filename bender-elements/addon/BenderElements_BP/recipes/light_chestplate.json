@@ -1,0 +1,29 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:light_chestplate"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "S S",
+      "SSS",
+      "SSS"
+    ],
+    "key": {
+      "S": {
+        "item": "bender:light_shard"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:light_chestplate"
+    }
+  }
+}

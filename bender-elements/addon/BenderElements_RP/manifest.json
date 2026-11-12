@@ -1,0 +1,29 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Bender Elements Textures",
+    "description": "Models and textures for Bender Elements.",
+    "uuid": "a5582db0-1594-4f1d-b012-1d7c6469c1b6",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      110
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "df5f751e-b752-4734-a2ec-a217fb58eb84",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

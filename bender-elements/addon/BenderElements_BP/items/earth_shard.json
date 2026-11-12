@@ -1,0 +1,18 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:earth_shard",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_earth_shard",
+      "minecraft:display_name": {
+        "value": "§6Earth Shard"
+      },
+      "minecraft:max_stack_size": 64
+    }
+  }
+}

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bender Elements</title>
+<style>
+  :root {
+    --bg: #0e0b18;
+    --bg2: #2c2350;
+    --card: #1d1833;
+    --card-edge: #4a3f7a;
+    --text: #ffffff;
+    --soft: #e3dcff;
+    --gold: #ffc94a;
+    --gold-dark: #c98a12;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--text);
+    background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg) 70%) fixed;
+    background-color: var(--bg);
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  img { max-width: 100%; height: auto; }
+  .pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+  .hero { text-align: center; padding: 8px 0 24px; }
+  .hero .icon { width: 128px; height: 128px; border-radius: 14px; box-shadow: 0 8px 30px rgba(255, 200, 80, 0.35); }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); margin: 14px 0 4px; background: linear-gradient(90deg, #ff7a3d, #ffe14d, #7fdc5a, #6fb1ff, #c79bff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tagline { font-size: clamp(1.1rem, 3.4vw, 1.4rem); color: var(--soft); margin: 0 0 24px; }
+
+  .btn {
+    display: inline-block;
+    font: inherit;
+    font-size: clamp(1.3rem, 4vw, 1.7rem);
+    font-weight: 800;
+    padding: 22px 36px;
+    min-height: 72px;
+    border-radius: 22px;
+    text-decoration: none;
+    color: #2b1a00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 6px 0 #7a4f00, 0 12px 28px rgba(0,0,0,0.35);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #7a4f00, 0 6px 14px rgba(0,0,0,0.35); }
+  .btn.secondary { color: #fff; background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 6px 0 #4c1d95, 0 12px 28px rgba(0,0,0,0.35); }
+  .small-print { color: var(--soft); font-size: 0.95rem; margin-top: 14px; }
+
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 40px 0 16px; text-align: center; }
+  .intro { text-align: center; color: var(--soft); margin: -6px 0 18px; }
+
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    background: var(--card);
+    border: 2px solid var(--card-edge);
+    border-radius: 18px;
+    padding: 18px 18px 18px 76px;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 16px; top: 16px;
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.4rem;
+    background: var(--gold); color: #2b1a00;
+  }
+  .steps b { color: var(--gold); }
+
+  .elements { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 640px) { .elements { grid-template-columns: 1fr 1fr; } }
+  .el { background: var(--card); border: 2px solid var(--c); border-radius: 18px; padding: 14px 16px; }
+  .el-head { display: flex; align-items: center; gap: 12px; }
+  .el-head img { width: 56px; height: 56px; flex: none; }
+  .el h3 { margin: 0; font-size: 1.4rem; color: var(--c); }
+  .el ol { margin: 10px 0 8px; padding-left: 26px; }
+  .el li { margin: 2px 0; }
+  .el li.ult { color: var(--gold); font-weight: 700; }
+  .el li span { font-size: 0.8rem; background: var(--gold); color: #2b1a00; border-radius: 6px; padding: 1px 6px; vertical-align: 2px; }
+  .el .bonus, .el .orb { margin: 4px 0 0; color: var(--soft); font-size: 0.95rem; }
+
+  .picture { background: linear-gradient(180deg, #221b3d, #2f2554); border: 2px solid var(--card-edge); border-radius: 20px; padding: 16px; text-align: center; margin: 16px 0; }
+
+  .recipes { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (min-width: 700px) { .recipes { grid-template-columns: repeat(5, 1fr); } }
+  .recipe { background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 12px 8px; text-align: center; }
+  .recipe h3 { margin: 0 0 8px; font-size: 1.05rem; }
+  .craft {
+    display: inline-grid; grid-template-columns: repeat(3, 36px); gap: 3px;
+    background: #8b8b8b; padding: 4px; border-radius: 8px; border: 3px solid #555;
+  }
+  .slot {
+    width: 36px; height: 36px; border-radius: 4px;
+    background: #6f6f6f; box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #a0a0a0;
+    display: flex; align-items: center; justify-content: center; font-size: 21px;
+  }
+  .legend { margin: 8px 0 0; padding: 0; list-style: none; font-size: 0.95rem; color: var(--soft); }
+
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .tips li { background: rgba(255,255,255,0.07); border-radius: 14px; padding: 14px 18px; }
+  .tips li::before { content: "⭐ "; }
+  .back { text-align: center; margin-top: 44px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="icon" src="addon/BenderElements_BP/pack_icon.png" alt="A glowing element guardian with fire, water, earth and air orbs">
+    <h1>Bender Elements</h1>
+    <p class="tagline">A Minecraft add-on: master ten elements with magic staffs, beat the element guardians, and wear their armor!</p>
+    <a class="btn" href="BenderElements.mcaddon" download>⬇️ Download for Minecraft</a>
+    <p class="small-print">For Minecraft Bedrock on iPad, iPhone, Android and Windows. Free, no ads.</p>
+  </header>
+
+  <section>
+    <h2>How to put it on the iPad</h2>
+    <ol class="steps">
+      <li>Tap <b>Download for Minecraft</b> above, then tap <b>Download</b> when Safari asks.</li>
+      <li>Open the <b>Files</b> app, go to <b>Downloads</b>, and tap <b>BenderElements.mcaddon</b>. Minecraft opens and says <b>Successfully imported</b>.<br>
+        If tapping the file doesn't open Minecraft, tap the <b>Share</b> button and choose <b>Minecraft</b>.</li>
+      <li>In Minecraft, tap <b>Create New World</b> (or the pencil next to an old world). Scroll to <b>Behavior Packs</b>, tap <b>Available</b>, tap <b>Bender Elements</b>, then <b>Activate</b>. It works alongside the other Bender add-ons.</li>
+      <li>Tap <b>Create</b> or <b>Play</b>. The first time you join, you <b>choose your element</b> and get its staff, plus 2 Guardian Orbs.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>How to bend</h2>
+    <ol class="steps">
+      <li>Hold your staff and tap <b>Use Power!</b> (or tap the screen) to use the power that's chosen. The bar at the bottom shows which one.</li>
+      <li><b>Sneak and tap</b> to switch to the next power. Each staff has 4.</li>
+      <li>Powers use <b>energy</b>, which fills back up by itself in a few seconds.</li>
+      <li>The 4th power is your <b>ultimate</b>. It charges up slowly, and much faster when your powers hit monsters. When it says <b>ULTIMATE READY!</b>, let it rip!</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>The ten elements</h2>
+    <p class="intro">Each staff has 3 powers and an ultimate. Hitting a monster with a staff also has an element touch, like setting it on fire or freezing it.</p>
+    <div class="elements">
+      <div class="el" style="--c:#ff7a3d">
+        <div class="el-head"><img class="pixel" src="img/staff_fire.png" alt="Fire Staff"><h3>🔥 Fire</h3></div>
+        <ol><li>Fireball</li><li>Flame Ring</li><li>Fire Jet</li><li class="ult">Meteor Storm <span>ultimate</span></li></ol>
+        <p class="bonus">Full armor set: fire resistance and strength</p>
+        <p class="orb">Guardian Orb: 4 Blaze Powder + 1 Gold Ingot</p>
+      </div>
+      <div class="el" style="--c:#6fb1ff">
+        <div class="el-head"><img class="pixel" src="img/staff_water.png" alt="Water Staff"><h3>💧 Water</h3></div>
+        <ol><li>Water Whip</li><li>Healing Waters</li><li>Tidal Wave</li><li class="ult">Tsunami <span>ultimate</span></li></ol>
+        <p class="bonus">Full armor set: water breathing and healing</p>
+        <p class="orb">Guardian Orb: 4 Prismarine Shard + 1 Gold Ingot</p>
+      </div>
+      <div class="el" style="--c:#d9a066">
+        <div class="el-head"><img class="pixel" src="img/staff_earth.png" alt="Earth Staff"><h3>🪨 Earth</h3></div>
+        <ol><li>Rock Throw</li><li>Stone Wall</li><li>Earthquake</li><li class="ult">Rock Fissure <span>ultimate</span></li></ol>
+        <p class="bonus">Full armor set: toughness and fast digging</p>
+        <p class="orb">Guardian Orb: 4 Cobblestone + 1 Gold Ingot</p>
+      </div>
+      <div class="el" style="--c:#e8f4ff">
+        <div class="el-head"><img class="pixel" src="img/staff_air.png" alt="Air Staff"><h3>🌪️ Air</h3></div>
+        <ol><li>Air Blast</li><li>Air Leap</li><li>Wind Shield</li><li class="ult">Tornado <span>ultimate</span></li></ol>
+        <p class="bonus">Full armor set: super jumps and soft landings</p>
+        <p class="orb">Guardian Orb: 4 Feather + 1 Gold Ingot</p>
+      </div>
+      <div class="el" style="--c:#ffe14d">
+        <div class="el-head"><img class="pixel" src="img/staff_lightning.png" alt="Lightning Staff"><h3>⚡ Lightning</h3></div>
+        <ol><li>Spark Bolt</li><li>Static Dash</li><li>Thunder Clap</li><li class="ult">Thunderstorm <span>ultimate</span></li></ol>
+        <p class="bonus">Full armor set: super speed</p>
+        <p class="orb">Guardian Orb: 4 Copper Ingot + 1 Gold Ingot</p>
+      </div>
+      <div class="el" style="--c:#9fe8ff">
+        <div class="el-head"><img class="pixel" src="img/staff_ice.png" alt="Ice Staff"><h3>❄️ Ice</h3></div>
+        <ol><li>Ice Shard</li><li>Ice Wall</li><li>Frost Nova</li><li class="ult">Blizzard <span>ultimate</span></li></ol>
+        <p class="bonus">Full armor set: speed and walking on water (it freezes)</p>
+        <p class="orb">Guardian Orb: 4 Packed Ice + 1 Gold Ingot</p>
+      </div>
+      <div class="el" style="--c:#7fdc5a">
+        <div class="el-head"><img class="pixel" src="img/staff_nature.png" alt="Nature Staff"><h3>🌿 Nature</h3></div>
+        <ol><li>Thorn Shot</li><li>Healing Bloom</li><li>Vine Snare</li><li class="ult">Wild Grove <span>ultimate</span></li></ol>
+        <p class="bonus">Full armor set: healing over time</p>
+        <p class="orb">Guardian Orb: 4 Oak Sapling + 1 Gold Ingot</p>
+      </div>
+      <div class="el" style="--c:#ff8a3d">
+        <div class="el-head"><img class="pixel" src="img/staff_lava.png" alt="Lava Staff"><h3>🌋 Lava</h3></div>
+        <ol><li>Magma Ball</li><li>Molten Skin</li><li>Eruption</li><li class="ult">Volcano <span>ultimate</span></li></ol>
+        <p class="bonus">Full armor set: fire resistance and toughness</p>
+        <p class="orb">Guardian Orb: 4 Magma Cream + 1 Gold Ingot</p>
+      </div>
+      <div class="el" style="--c:#fff3b0">
+        <div class="el-head"><img class="pixel" src="img/staff_light.png" alt="Light Staff"><h3>☀️ Light</h3></div>
+        <ol><li>Light Beam</li><li>Radiant Heal</li><li>Flash</li><li class="ult">Sun Pillars <span>ultimate</span></li></ol>
+        <p class="bonus">Full armor set: night vision and healing</p>
+        <p class="orb">Guardian Orb: 4 Glowstone Dust + 1 Gold Ingot</p>
+      </div>
+      <div class="el" style="--c:#c79bff">
+        <div class="el-head"><img class="pixel" src="img/staff_shadow.png" alt="Shadow Staff"><h3>🌑 Shadow</h3></div>
+        <ol><li>Shadow Bolt</li><li>Shadow Step</li><li>Cloak</li><li class="ult">Void Vortex <span>ultimate</span></li></ol>
+        <p class="bonus">Full armor set: night vision and speed</p>
+        <p class="orb">Guardian Orb: 4 Ink Sac + 1 Gold Ingot</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The guardians</h2>
+    <div class="picture">
+      <img src="img/guardians.png" alt="Ten element guardians: fire, water, earth, air, lightning, ice, nature, lava, light and shadow">
+    </div>
+    <ol class="steps">
+      <li>Hold a <b>Guardian Orb</b> and tap the ground. The guardian rises out of a whirl of sparkles!</li>
+      <li>Each guardian fights with its own element's powers, and uses its ultimate when it gets hurt.</li>
+      <li>Beat it and <b>everyone nearby</b> wins that element's <b>staff</b> and <b>6 shards</b>. Make more orbs to fight again and collect more shards.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Element armor</h2>
+    <div class="picture">
+      <img src="img/armor.png" alt="Ten sets of element armor">
+    </div>
+    <p class="intro">Craft armor from a guardian's shards, the same way you'd make iron armor. Wear all 4 pieces of one element for a bonus, and your energy refills faster with that element's staff.</p>
+  </section>
+
+  <section>
+    <h2>Make more</h2>
+    <div class="recipes" id="recipes"></div>
+  </section>
+
+  <section>
+    <h2>Good to know</h2>
+    <ul class="tips">
+      <li>Powers only hurt monsters and guardians. They never hurt you, your friends, pets or animals.</li>
+      <li>Walls and spikes made by powers disappear by themselves after a few seconds.</li>
+      <li>If nobody fights a guardian for a minute, it goes back into its orb and you get the orb back.</li>
+      <li>In Creative mode, every staff, orb and armor piece is in the inventory, so you can try them all.</li>
+      <li>Worlds with add-ons don't earn Xbox achievements.</li>
+    </ul>
+  </section>
+
+  <div class="back">
+    <a class="btn secondary" href="/">← Back to Arcade</a>
+  </div>
+
+</div>
+
+<script>
+  const MATERIALS = {
+    M: { emoji: '✨', name: 'Element material' },
+    G: { emoji: '🪙', name: 'Gold Ingot' },
+    S: { emoji: '🔷', name: 'Shards of one element' },
+  };
+  const RECIPES = [
+    { name: 'Guardian Orb', pattern: [' M ', 'MGM', ' M '] },
+    { name: 'Helmet', pattern: ['SSS', 'S S', '   '] },
+    { name: 'Chestplate', pattern: ['S S', 'SSS', 'SSS'] },
+    { name: 'Leggings', pattern: ['SSS', 'S S', 'S S'] },
+    { name: 'Boots', pattern: ['   ', 'S S', 'S S'] },
+  ];
+  const host = document.getElementById('recipes');
+  for (const r of RECIPES) {
+    const card = document.createElement('div');
+    card.className = 'recipe';
+    const title = document.createElement('h3');
+    title.textContent = r.name;
+    const grid = document.createElement('div');
+    grid.className = 'craft';
+    grid.setAttribute('aria-label', `Crafting recipe for ${r.name}`);
+    const counts = {};
+    for (const ch of r.pattern.join('')) {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      if (MATERIALS[ch]) {
+        slot.textContent = MATERIALS[ch].emoji;
+        slot.title = MATERIALS[ch].name;
+        counts[ch] = (counts[ch] || 0) + 1;
+      }
+      grid.appendChild(slot);
+    }
+    const legend = document.createElement('ul');
+    legend.className = 'legend';
+    for (const [ch, n] of Object.entries(counts)) {
+      const li = document.createElement('li');
+      li.textContent = `${MATERIALS[ch].name} × ${n}`;
+      legend.appendChild(li);
+    }
+    card.append(title, grid, legend);
+    host.appendChild(card);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:element_guardian",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "fire": "textures/entity/guardians/fire",
+        "water": "textures/entity/guardians/water",
+        "earth": "textures/entity/guardians/earth",
+        "air": "textures/entity/guardians/air",
+        "lightning": "textures/entity/guardians/lightning",
+        "ice": "textures/entity/guardians/ice",
+        "nature": "textures/entity/guardians/nature",
+        "lava": "textures/entity/guardians/lava",
+        "light": "textures/entity/guardians/light",
+        "shadow": "textures/entity/guardians/shadow"
+      },
+      "geometry": {
+        "default": "geometry.bender_element_guardian"
+      },
+      "animations": {
+        "move": "animation.bender_guardian.move",
+        "idle": "animation.bender_guardian.idle",
+        "cast": "animation.bender_guardian.cast",
+        "swing": "animation.bender_guardian.swing"
+      },
+      "scripts": {
+        "animate": [
+          "move",
+          "idle"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.bender_element_guardian"
+      ]
+    }
+  }
+}

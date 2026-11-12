@@ -1,0 +1,32 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:earth_orb"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      " M ",
+      "MGM",
+      " M "
+    ],
+    "key": {
+      "M": {
+        "item": "minecraft:cobblestone"
+      },
+      "G": {
+        "item": "minecraft:gold_ingot"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:earth_orb"
+    }
+  }
+}

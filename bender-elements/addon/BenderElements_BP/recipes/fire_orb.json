@@ -1,0 +1,32 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:fire_orb"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      " M ",
+      "MGM",
+      " M "
+    ],
+    "key": {
+      "M": {
+        "item": "minecraft:blaze_powder"
+      },
+      "G": {
+        "item": "minecraft:gold_ingot"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:fire_orb"
+    }
+  }
+}

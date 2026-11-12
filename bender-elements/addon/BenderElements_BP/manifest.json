@@ -1,0 +1,58 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Bender Elements",
+    "description": "Ten elements to master: staffs with 40 powers, guardian bosses, and element armor. Made for Michael and James.",
+    "uuid": "0a368a30-1bb7-4507-92f8-507ef9af341d",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      110
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "32076fbf-7d67-48a5-804b-225998becb56",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "d6e99d38-2166-4b39-bbda-da0d7811fe6e",
+      "entry": "scripts/main.js",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "a5582db0-1594-4f1d-b012-1d7c6469c1b6",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.2.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "2.0.0"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:lava_boots"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "S S",
+      "S S"
+    ],
+    "key": {
+      "S": {
+        "item": "bender:lava_shard"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:lava_boots"
+    }
+  }
+}

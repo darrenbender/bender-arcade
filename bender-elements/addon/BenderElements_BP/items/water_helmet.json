@@ -1,0 +1,27 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:water_helmet",
+      "menu_category": {
+        "category": "equipment",
+        "group": "minecraft:itemGroup.name.helmet"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_water_helmet",
+      "minecraft:display_name": {
+        "value": "§9Water Helmet"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.head",
+        "protection": 3
+      },
+      "minecraft:enchantable": {
+        "slot": "armor_head",
+        "value": 12
+      }
+    }
+  }
+}

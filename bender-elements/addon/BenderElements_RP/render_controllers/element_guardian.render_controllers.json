@@ -1,0 +1,32 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.bender_element_guardian": {
+      "arrays": {
+        "textures": {
+          "Array.skins": [
+            "Texture.fire",
+            "Texture.water",
+            "Texture.earth",
+            "Texture.air",
+            "Texture.lightning",
+            "Texture.ice",
+            "Texture.nature",
+            "Texture.lava",
+            "Texture.light",
+            "Texture.shadow"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.skins[q.property('bender:element')]"
+      ]
+    }
+  }
+}
