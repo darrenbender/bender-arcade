@@ -1,0 +1,20 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:seismic_charge",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_seismic_charge",
+      "minecraft:display_name": {
+        "value": "§6Seismic Charge"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:interact_button": "Use Seismic Charge!",
+      "bender:gadget": {}
+    }
+  }
+}

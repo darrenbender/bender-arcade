@@ -1,0 +1,20 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:phase_beacon",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_phase_beacon",
+      "minecraft:display_name": {
+        "value": "§5Phase Beacon"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:interact_button": "Use Phase Beacon!",
+      "bender:gadget": {}
+    }
+  }
+}

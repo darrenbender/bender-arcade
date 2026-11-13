@@ -1,0 +1,29 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Bender Power Suits Textures",
+    "description": "Suit textures, icons and the hologram for Bender Power Suits.",
+    "uuid": "7648523d-97b9-449a-b4f6-ab1e63b61f83",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      110
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "11f10f17-c1d6-4511-859d-a2608e627f06",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

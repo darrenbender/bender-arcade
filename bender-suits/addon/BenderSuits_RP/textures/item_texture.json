@@ -1,0 +1,123 @@
+{
+  "resource_pack_name": "bender_suits",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "bender_rocket_helmet": {
+      "textures": "textures/items/rocket_helmet"
+    },
+    "bender_rocket_chestplate": {
+      "textures": "textures/items/rocket_chestplate"
+    },
+    "bender_rocket_leggings": {
+      "textures": "textures/items/rocket_leggings"
+    },
+    "bender_rocket_boots": {
+      "textures": "textures/items/rocket_boots"
+    },
+    "bender_stealth_helmet": {
+      "textures": "textures/items/stealth_helmet"
+    },
+    "bender_stealth_chestplate": {
+      "textures": "textures/items/stealth_chestplate"
+    },
+    "bender_stealth_leggings": {
+      "textures": "textures/items/stealth_leggings"
+    },
+    "bender_stealth_boots": {
+      "textures": "textures/items/stealth_boots"
+    },
+    "bender_titan_helmet": {
+      "textures": "textures/items/titan_helmet"
+    },
+    "bender_titan_chestplate": {
+      "textures": "textures/items/titan_chestplate"
+    },
+    "bender_titan_leggings": {
+      "textures": "textures/items/titan_leggings"
+    },
+    "bender_titan_boots": {
+      "textures": "textures/items/titan_boots"
+    },
+    "bender_aqua_helmet": {
+      "textures": "textures/items/aqua_helmet"
+    },
+    "bender_aqua_chestplate": {
+      "textures": "textures/items/aqua_chestplate"
+    },
+    "bender_aqua_leggings": {
+      "textures": "textures/items/aqua_leggings"
+    },
+    "bender_aqua_boots": {
+      "textures": "textures/items/aqua_boots"
+    },
+    "bender_thunder_helmet": {
+      "textures": "textures/items/thunder_helmet"
+    },
+    "bender_thunder_chestplate": {
+      "textures": "textures/items/thunder_chestplate"
+    },
+    "bender_thunder_leggings": {
+      "textures": "textures/items/thunder_leggings"
+    },
+    "bender_thunder_boots": {
+      "textures": "textures/items/thunder_boots"
+    },
+    "bender_frost_helmet": {
+      "textures": "textures/items/frost_helmet"
+    },
+    "bender_frost_chestplate": {
+      "textures": "textures/items/frost_chestplate"
+    },
+    "bender_frost_leggings": {
+      "textures": "textures/items/frost_leggings"
+    },
+    "bender_frost_boots": {
+      "textures": "textures/items/frost_boots"
+    },
+    "bender_nano_helmet": {
+      "textures": "textures/items/nano_helmet"
+    },
+    "bender_nano_chestplate": {
+      "textures": "textures/items/nano_chestplate"
+    },
+    "bender_nano_leggings": {
+      "textures": "textures/items/nano_leggings"
+    },
+    "bender_nano_boots": {
+      "textures": "textures/items/nano_boots"
+    },
+    "bender_solar_helmet": {
+      "textures": "textures/items/solar_helmet"
+    },
+    "bender_solar_chestplate": {
+      "textures": "textures/items/solar_chestplate"
+    },
+    "bender_solar_leggings": {
+      "textures": "textures/items/solar_leggings"
+    },
+    "bender_solar_boots": {
+      "textures": "textures/items/solar_boots"
+    },
+    "bender_power_glove": {
+      "textures": "textures/items/power_glove"
+    },
+    "bender_grapple_hook": {
+      "textures": "textures/items/grapple_hook"
+    },
+    "bender_nova_charge": {
+      "textures": "textures/items/nova_charge"
+    },
+    "bender_energy_shield": {
+      "textures": "textures/items/energy_shield"
+    },
+    "bender_phase_beacon": {
+      "textures": "textures/items/phase_beacon"
+    },
+    "bender_seismic_charge": {
+      "textures": "textures/items/seismic_charge"
+    },
+    "bender_hologram_decoy": {
+      "textures": "textures/items/hologram_decoy"
+    }
+  }
+}

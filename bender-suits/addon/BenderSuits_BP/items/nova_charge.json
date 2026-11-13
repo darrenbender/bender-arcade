@@ -1,0 +1,20 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:nova_charge",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_nova_charge",
+      "minecraft:display_name": {
+        "value": "§dNova Charge"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:interact_button": "Use Nova Charge!",
+      "bender:gadget": {}
+    }
+  }
+}
