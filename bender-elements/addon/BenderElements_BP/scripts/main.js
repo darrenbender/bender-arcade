@@ -812,34 +812,85 @@ system.runInterval(() => {
   }
 }, 40);
 
-// Ice armor: water under your feet freezes so you can walk on it (it melts again by itself).
-system.runInterval(() => {
-  for (const player of world.getAllPlayers()) {
-    if (fullSet(worn(player)) < 0 || !ELEMENTS[fullSet(worn(player))].bonus.frostWalk) continue;
-    let inWater = false;
+// Ice armor: walking on water.
+// Water around you freezes so you can walk on it (it melts again once you've gone).
+// Works on still and flowing water, from a shore that's higher than the water, and
+// keeps the ice under you solid while you stand on it. Fall in, and you pop back up
+// onto the ice (sneak to swim instead).
+const FROST_RADIUS = 3;
+
+function isWaterSource(block) {
+  if (!block || (block.typeId !== "minecraft:water" && block.typeId !== "minecraft:flowing_water")) return false;
+  try {
+    return block.permutation.getState("liquid_depth") === 0;
+  } catch {
+    return false;
+  }
+}
+
+function frostWalk(player, ice) {
+  const dim = player.dimension;
+  const { x, y, z } = player.location;
+  const fy = Math.floor(y);
+  const at = (dx, yy, dz) => {
     try {
-      inWater = player.isInWater;
+      return dim.getBlock({ x: x + dx, y: yy, z: z + dz });
     } catch {
-      inWater = false;
+      return undefined;
     }
-    if (inWater) continue;
-    const { x, y, z } = player.location;
-    for (let dx = -2; dx <= 2; dx++) {
-      for (let dz = -2; dz <= 2; dz++) {
-        if (dx * dx + dz * dz > 5) continue;
+  };
+  const near = (dx, dz) => dx * dx + dz * dz <= FROST_RADIUS * FROST_RADIUS + 1;
+  let inWater = false;
+  try {
+    inWater = player.isInWater;
+  } catch {
+    inWater = false;
+  }
+  if (inWater) {
+    if (player.isSneaking) return; // sneak to swim
+    // swimming at the top of the water: freeze it and stand on the ice
+    if (!isWaterSource(at(0, fy, 0)) || !at(0, fy + 1, 0)?.isAir || !at(0, fy + 2, 0)?.isAir) return;
+    for (let dx = -FROST_RADIUS; dx <= FROST_RADIUS; dx++) {
+      for (let dz = -FROST_RADIUS; dz <= FROST_RADIUS; dz++) {
+        const b = at(dx, fy, dz);
+        if (near(dx, dz) && isWaterSource(b) && at(dx, fy + 1, dz)?.isAir) b?.setPermutation(ice);
+      }
+    }
+    try {
+      player.teleport({ x, y: fy + 1, z }, { keepVelocity: false });
+    } catch {
+      // Swim instead.
+    }
+    return;
+  }
+  for (let dx = -FROST_RADIUS; dx <= FROST_RADIUS; dx++) {
+    for (let dz = -FROST_RADIUS; dz <= FROST_RADIUS; dz++) {
+      if (!near(dx, dz)) continue;
+      // look down (up to 3 blocks) for the top of the water in this column
+      for (let dy = 1; dy <= 3; dy++) {
+        const b = at(dx, fy - dy, dz);
+        if (!b) break;
+        if (b.isAir) continue;
         try {
-          const b = player.dimension.getBlock({ x: x + dx, y: y - 1, z: z + dz });
-          if (b?.typeId === "minecraft:water" && b.permutation.getState("liquid_depth") === 0) {
-            const ice = perm("minecraft:frosted_ice");
-            if (ice) b.setPermutation(ice);
-          }
+          if (b.typeId === "minecraft:frosted_ice") b.setPermutation(ice); // keep it from melting under you
+          else if (isWaterSource(b) && at(dx, fy - dy + 1, dz)?.isAir) b.setPermutation(ice);
         } catch {
           // Skip that block.
         }
+        break;
       }
     }
   }
-}, 4);
+}
+
+system.runInterval(() => {
+  const ice = perm("minecraft:frosted_ice");
+  if (!ice) return;
+  for (const player of world.getAllPlayers()) {
+    const set = fullSet(worn(player));
+    if (set >= 0 && ELEMENTS[set].bonus.frostWalk) frostWalk(player, ice);
+  }
+}, 2);
 
 // ------------------------------------------------------------ blocks made by powers go away again
 
