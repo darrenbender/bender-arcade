@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bender Realism</title>
+<style>
+  :root {
+    --bg: #0d1630;
+    --bg2: #3a3f78;
+    --card: #1a2449;
+    --card-edge: #46598f;
+    --text: #ffffff;
+    --soft: #dbe5ff;
+    --gold: #ffc56b;
+    --gold-dark: #e0892a;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--text);
+    background: linear-gradient(180deg, var(--bg2) 0%, #7a5a7e 22%, var(--bg) 60%) fixed;
+    background-color: var(--bg);
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  img { max-width: 100%; height: auto; }
+  .pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+  .hero { text-align: center; padding: 8px 0 24px; }
+  .hero .icon { width: 128px; height: 128px; border-radius: 14px; box-shadow: 0 8px 30px rgba(255, 197, 107, 0.45); }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); margin: 14px 0 4px; color: var(--gold); }
+  .tagline { font-size: clamp(1.1rem, 3.4vw, 1.4rem); color: var(--soft); margin: 0 0 24px; }
+
+  .btn {
+    display: inline-block;
+    font: inherit;
+    font-size: clamp(1.3rem, 4vw, 1.7rem);
+    font-weight: 800;
+    padding: 22px 36px;
+    min-height: 72px;
+    border-radius: 22px;
+    text-decoration: none;
+    color: #2b1a00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 6px 0 #8a4b00, 0 12px 28px rgba(0,0,0,0.35);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #8a4b00, 0 6px 14px rgba(0,0,0,0.35); }
+  .btn.secondary { color: #fff; background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 6px 0 #4c1d95, 0 12px 28px rgba(0,0,0,0.35); }
+  .small-print { color: var(--soft); font-size: 0.95rem; margin-top: 14px; }
+
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 40px 0 16px; text-align: center; }
+  .intro { text-align: center; color: var(--soft); margin: -6px 0 18px; }
+
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    background: var(--card);
+    border: 2px solid var(--card-edge);
+    border-radius: 18px;
+    padding: 18px 18px 18px 76px;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 16px; top: 16px;
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.4rem;
+    background: var(--gold); color: #2b1a00;
+  }
+  .steps b { color: var(--gold); }
+  .steps .note { display: block; margin-top: 8px; color: var(--soft); font-size: 0.95rem; }
+
+  .cards { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 700px) { .cards { grid-template-columns: 1fr 1fr; } }
+  .card { background: var(--card); border: 2px solid var(--card-edge); border-radius: 20px; padding: 16px 18px; display: flex; gap: 14px; align-items: flex-start; }
+  .card .emoji { font-size: 2.4rem; line-height: 1; flex: none; }
+  .card h3 { margin: 0 0 4px; font-size: 1.3rem; }
+  .card p { margin: 0; color: var(--soft); }
+
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .tips li { background: rgba(255,255,255,0.07); border-radius: 14px; padding: 14px 18px; }
+  .tips li::before { content: "⭐ "; }
+  .tips b { color: var(--gold); }
+  .back { text-align: center; margin-top: 44px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="icon pixel" src="addon/BenderRealism_RP/pack_icon.png" alt="A blocky sun rising over rolling waves next to a grassy island">
+    <h1>Bender Realism</h1>
+    <p class="tagline">Make your Minecraft world look more real: rolling waves, real sunlight and long shadows, sunbeams, and movie-style color.</p>
+    <a class="btn" href="BenderRealism.mcpack" download>⬇️ Download for Minecraft</a>
+    <p class="small-print">For Minecraft Bedrock with <b>Vibrant Visuals</b> (most iPads from 2019 or newer). Works in every world, with or without other add-ons. Free, no ads.</p>
+  </header>
+
+  <section>
+    <h2>What changes</h2>
+    <div class="cards">
+      <div class="card"><span class="emoji">🌊</span><div><h3>Real waves</h3><p>Lakes and oceans roll with moving waves, and sunlight ripples across the bottom. Water gets a natural color, and swamps stay murky.</p></div></div>
+      <div class="card"><span class="emoji">☀️</span><div><h3>Real sunlight</h3><p>The sun crosses the sky at an angle like it does in real life, so shadows stay long and slanted all day, and shady spots are deeper.</p></div></div>
+      <div class="card"><span class="emoji">🌲</span><div><h3>Sunbeams</h3><p>A light haze in the air lets you see rays of light through trees, windows and cave openings.</p></div></div>
+      <div class="card"><span class="emoji">🎬</span><div><h3>Movie colors</h3><p>Colors like a film camera, with a soft glow around the sun all day, not just at sunrise and sunset.</p></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How to put it on the iPad</h2>
+    <ol class="steps">
+      <li>In Minecraft, go to <b>Settings</b> → <b>Video</b> → <b>Graphics Mode</b> and pick <b>Vibrant Visuals</b>.
+        <span class="note">No Vibrant Visuals option? The iPad needs an A12 chip or newer: iPad 8th generation (2020) or newer, iPad Air 3 or iPad mini 5 (2019) or newer, or any iPad Pro from 2018 on.</span></li>
+      <li>Tap <b>Download for Minecraft</b> above, then tap <b>Download</b> when Safari asks.</li>
+      <li>Open the <b>Files</b> app, go to <b>Downloads</b>, and tap <b>BenderRealism.mcpack</b>. Minecraft opens and says <b>Successfully imported</b>.<br>
+        If tapping the file doesn't open Minecraft, tap the <b>Share</b> button and choose <b>Minecraft</b>.</li>
+      <li>To use it in <b>every</b> world: <b>Settings</b> → <b>Global Resources</b> → <b>My Packs</b> → <b>Bender Realism</b> → <b>Activate</b>.
+        <span class="note">Or for just one world: tap the pencil next to the world, then <b>Resource Packs</b> → <b>Available</b> → <b>Bender Realism</b> → <b>Activate</b>.</span></li>
+      <li>Using Bender add-ons? <b>Download them again</b> from the arcade. They're now marked as ready for Vibrant Visuals, because older add-on packs can stop Vibrant Visuals from turning on.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Good to know</h2>
+    <ul class="tips">
+      <li>Watch a sunrise or sunset by the ocean, or stand in a forest in the morning to see the sunbeams.</li>
+      <li>If the world looks the same as before, check that <b>Graphics Mode</b> says <b>Vibrant Visuals</b>, and turn off any other texture packs one at a time to see if one is switching it off.</li>
+      <li>Vibrant Visuals turns off in split-screen. That's a Minecraft rule.</li>
+      <li>If the iPad feels slow or warm, lower <b>Render Distance</b> in <b>Settings</b> → <b>Video</b>.</li>
+      <li>To go back to normal, deactivate Bender Realism in Global Resources. Nothing in your worlds changes.</li>
+      <li>The Nether and the End keep Minecraft's normal look.</li>
+    </ul>
+  </section>
+
+  <div class="back">
+    <a class="btn secondary" href="/">← Back to Arcade</a>
+  </div>
+
+</div>
+</body>
+</html>

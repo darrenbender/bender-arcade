@@ -1,0 +1,32 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Bender Realism",
+    "description": "Makes the world look more real with Vibrant Visuals: moving waves, angled sunlight and long shadows, sunbeams and film-style color.",
+    "uuid": "b51ba39e-74fa-4d58-a2ae-b3f1021d2de8",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      120
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "0551f732-3f5c-4363-b662-4b35f0d47267",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "capabilities": [
+    "pbr"
+  ]
+}
