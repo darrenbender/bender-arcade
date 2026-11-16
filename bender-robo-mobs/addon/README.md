@@ -13,7 +13,9 @@
     damage. `bender:knock_out` removes the `bender:rideable` group and sets
     `bender:down`; `bender:repair` puts both back.
   - `items/`, `recipes/`: 12 robot kits and the Robo Remote
-- `BenderRoboMobs_RP/`: resource pack: models (`models/entity/robo_mobs.geo.json`),
+- `BenderRoboMobs_RP/`: resource pack: models (`models/entity/robo_mobs.geo.json`; each
+  robot is a giant, 5-11 blocks, with a hollow cockpit in its chest where the pilot sits:
+  the seat in each entity file is on the cockpit floor),
   textures (glowing pixels have alpha 0 for the `entity_emissive_alpha` material),
   walk/idle/knocked-out animations, kit and remote icons, the `bender:robo_dot` particle
 

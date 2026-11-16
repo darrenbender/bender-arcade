@@ -12,7 +12,7 @@
      ],
      "position": [
       0,
-      -2,
+      -5.0,
       0
      ]
     }
@@ -23,28 +23,28 @@
    "bones": {
     "leg_fl": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "leg_br": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "leg_fr": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22 + 180) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "leg_bl": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22 + 180) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
@@ -56,28 +56,28 @@
    "bones": {
     "leg_l": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "leg_r": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22 + 180) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "arm_l": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22 + 180) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "arm_r": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
@@ -90,56 +90,56 @@
     "leg_l0": {
      "rotation": [
       0,
-      "math.sin(q.modified_distance_moved * 22) * 18 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 16 * math.min(q.modified_move_speed * 1.6, 1)",
       0
      ]
     },
     "leg_r0": {
      "rotation": [
       0,
-      "math.sin(q.modified_distance_moved * 22 + 180) * 18 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 16 * math.min(q.modified_move_speed * 1.6, 1)",
       0
      ]
     },
     "leg_l1": {
      "rotation": [
       0,
-      "math.sin(q.modified_distance_moved * 22 + 180) * 18 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 16 * math.min(q.modified_move_speed * 1.6, 1)",
       0
      ]
     },
     "leg_r1": {
      "rotation": [
       0,
-      "math.sin(q.modified_distance_moved * 22) * 18 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 16 * math.min(q.modified_move_speed * 1.6, 1)",
       0
      ]
     },
     "leg_l2": {
      "rotation": [
       0,
-      "math.sin(q.modified_distance_moved * 22) * 18 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 16 * math.min(q.modified_move_speed * 1.6, 1)",
       0
      ]
     },
     "leg_r2": {
      "rotation": [
       0,
-      "math.sin(q.modified_distance_moved * 22 + 180) * 18 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 16 * math.min(q.modified_move_speed * 1.6, 1)",
       0
      ]
     },
     "leg_l3": {
      "rotation": [
       0,
-      "math.sin(q.modified_distance_moved * 22 + 180) * 18 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 16 * math.min(q.modified_move_speed * 1.6, 1)",
       0
      ]
     },
     "leg_r3": {
      "rotation": [
       0,
-      "math.sin(q.modified_distance_moved * 22) * 18 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 16 * math.min(q.modified_move_speed * 1.6, 1)",
       0
      ]
     }
@@ -150,14 +150,14 @@
    "bones": {
     "leg_l": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "leg_r": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22 + 180) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
@@ -183,28 +183,28 @@
    "bones": {
     "leg_l": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "leg_r": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22 + 180) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "arm_l": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22 + 180) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "arm_r": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
@@ -217,7 +217,7 @@
     "root": {
      "position": [
       0,
-      "math.sin(q.life_time * 120) * 0.8",
+      "math.sin(q.life_time * 90) * 2.0",
       0
      ]
     },
@@ -243,7 +243,7 @@
     "root": {
      "position": [
       0,
-      "math.sin(q.life_time * 120) * 0.8",
+      "math.sin(q.life_time * 90) * 2.0",
       0
      ]
     },
@@ -317,28 +317,28 @@
    "bones": {
     "leg_l": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "leg_r": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22 + 180) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "arm_l": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22 + 180) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "arm_r": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
@@ -363,7 +363,7 @@
     "root": {
      "position": [
       0,
-      "math.sin(q.life_time * 120) * 0.8",
+      "math.sin(q.life_time * 90) * 2.0",
       0
      ]
     },
@@ -415,7 +415,7 @@
     "root": {
      "position": [
       0,
-      "math.sin(q.life_time * 120) * 0.8",
+      "math.sin(q.life_time * 90) * 2.0",
       0
      ]
     }
@@ -426,28 +426,28 @@
    "bones": {
     "leg_fl": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "leg_br": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "leg_fr": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22 + 180) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]
     },
     "leg_bl": {
      "rotation": [
-      "math.sin(q.modified_distance_moved * 22 + 180) * 32 * math.min(q.modified_move_speed * 1.6, 1)",
+      "math.sin(q.modified_distance_moved * 9 + 180) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
       0,
       0
      ]

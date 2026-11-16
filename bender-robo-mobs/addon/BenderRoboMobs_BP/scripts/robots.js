@@ -21,27 +21,27 @@ const fx = (id, seconds, amp = 0) => ({ id, ticks: Math.round(seconds * 20), amp
 /** @type {any[]} */
 export const ROBOTS = [
   {
-    key: "creeper", name: "Robo Creeper", color: "§a", move: "walk", speed: 0.24, jump: 0.7, armor: 50,
+    key: "creeper", name: "Robo Creeper", color: "§a", move: "walk", speed: 0.3, jump: 0.8, armor: 50,
     drop: "minecraft:gunpowder", about: "Boom! A shockwave that never breaks blocks",
-    attack: { name: "Boom Wave", kind: "wave", radius: 5, damage: 9, knock: 1.8, lift: 0.4, cooldown: 60 },
+    attack: { name: "Boom Wave", kind: "wave", radius: 7, damage: 9, knock: 1.8, lift: 0.4, cooldown: 60 },
   },
   {
-    key: "skeleton", name: "Robo Skeleton", color: "§f", move: "walk", speed: 0.25, jump: 0.8, armor: 45,
+    key: "skeleton", name: "Robo Skeleton", color: "§f", move: "walk", speed: 0.3, jump: 0.9, armor: 45,
     drop: "minecraft:arrow", about: "Fires a fan of 5 laser arrows",
     attack: { name: "Arrow Storm", kind: "volley", shot: "arrow", count: 5, spread: 7, damage: 4, speed: 2.0, gravity: 0.02, range: 40, cooldown: 30 },
   },
   {
-    key: "spider", name: "Robo Spider", color: "§8", move: "walk", climb: true, speed: 0.3, jump: 0.8, armor: 45,
+    key: "spider", name: "Robo Spider", color: "§8", move: "walk", climb: true, speed: 0.36, jump: 0.9, armor: 45,
     drop: "minecraft:string", about: "Climbs walls! Web Shot slows monsters down",
     attack: { name: "Web Shot", kind: "volley", shot: "web", count: 1, spread: 0, damage: 4, speed: 1.4, gravity: 0.03, range: 30, blast: 2, effects: [fx("slowness", 5, 3)], cooldown: 30 },
   },
   {
-    key: "zombie", name: "Robo Zombie", color: "§2", move: "walk", speed: 0.22, jump: 0.7, armor: 70,
+    key: "zombie", name: "Robo Zombie", color: "§2", move: "walk", speed: 0.28, jump: 0.8, armor: 70,
     drop: "minecraft:rotten_flesh", about: "Tough as nails, with a Mega Punch",
-    attack: { name: "Mega Punch", kind: "punch", reach: 5, damage: 12, knock: 2.6, cooldown: 20 },
+    attack: { name: "Mega Punch", kind: "punch", reach: 7, damage: 12, knock: 2.6, cooldown: 20 },
   },
   {
-    key: "enderman", name: "Robo Enderman", color: "§5", move: "walk", speed: 0.27, jump: 0.9, armor: 50,
+    key: "enderman", name: "Robo Enderman", color: "§5", move: "walk", speed: 0.32, jump: 1.0, armor: 50,
     drop: "minecraft:ender_pearl", about: "Super tall. Warp Dash zooms you forward",
     attack: { name: "Warp Dash", kind: "dash", power: 2.6, up: 0.15, damage: 8, ticks: 12, cooldown: 60 },
   },
@@ -56,12 +56,12 @@ export const ROBOTS = [
     attack: { name: "Mega Fireball", kind: "volley", shot: "big_fire", count: 1, spread: 0, damage: 12, blast: 4, fire: 5, speed: 1.0, gravity: 0, range: 48, cooldown: 60 },
   },
   {
-    key: "golem", name: "Robo Golem", color: "§f", move: "walk", speed: 0.2, jump: 0.6, armor: 90,
+    key: "golem", name: "Robo Golem", color: "§f", move: "walk", speed: 0.26, jump: 0.7, armor: 90,
     drop: "minecraft:iron_block", about: "The strongest. Ground Slam throws monsters up",
-    attack: { name: "Ground Slam", kind: "wave", radius: 6, damage: 10, knock: 1.0, lift: 1.0, cooldown: 60 },
+    attack: { name: "Ground Slam", kind: "wave", radius: 8, damage: 10, knock: 1.0, lift: 1.0, cooldown: 60 },
   },
   {
-    key: "slime", name: "Robo Slime", color: "§a", move: "walk", bounce: true, speed: 0.26, jump: 1.3, armor: 55,
+    key: "slime", name: "Robo Slime", color: "§a", move: "walk", bounce: true, speed: 0.3, jump: 1.4, armor: 55,
     drop: "minecraft:slime_ball", about: "Super bouncy! Land from high up to smash",
     attack: { name: "Slime Ball", kind: "volley", shot: "slime", count: 1, spread: 0, damage: 6, blast: 2.5, speed: 1.2, gravity: 0.05, range: 32, effects: [fx("slowness", 4, 2)], cooldown: 20 },
   },
@@ -71,19 +71,38 @@ export const ROBOTS = [
     attack: { name: "Skull Volley", kind: "volley", shot: "skull", count: 3, spread: 9, damage: 7, blast: 2.5, speed: 1.3, gravity: 0, range: 40, effects: [fx("wither", 4)], cooldown: 40 },
   },
   {
-    key: "guardian", name: "Robo Guardian", color: "§3", move: "swim", speed: 0.1, swimSpeed: 0.6, armor: 60,
+    key: "guardian", name: "Robo Guardian", color: "§3", move: "swim", speed: 0.14, swimSpeed: 0.6, armor: 60,
     drop: "minecraft:prismarine_shard", about: "Zooms underwater. Laser charges, then zaps",
     attack: { name: "Laser", kind: "laser", charge: 20, damage: 14, range: 28, cooldown: 40 },
   },
   {
-    key: "wolf", name: "Robo Wolf", color: "§7", move: "walk", speed: 0.34, jump: 0.9, armor: 50,
+    key: "wolf", name: "Robo Wolf", color: "§7", move: "walk", speed: 0.4, jump: 1.0, armor: 50,
     drop: "minecraft:bone", about: "The fastest runner. Pounce leaps at monsters",
     attack: { name: "Pounce", kind: "dash", power: 1.8, up: 0.5, damage: 9, ticks: 14, cooldown: 40 },
   },
 ];
 
+
+// How big each robot is (from the models, in blocks): size = [width, height],
+// mouth = how high attacks come out, front = how far in front of the middle.
+const BODIES = {
+  creeper: { size: [4.92, 8.12], mouth: 6.72, front: 1.41 },
+  skeleton: { size: [5.47, 9.84], mouth: 8.75, front: 1.25 },
+  spider: { size: [8.28, 4.69], mouth: 2.81, front: 2.19 },
+  zombie: { size: [6.09, 10.31], mouth: 7.03, front: 1.41 },
+  enderman: { size: [3.59, 10.94], mouth: 9.84, front: 1.41 },
+  blaze: { size: [4.53, 8.12], mouth: 7.03, front: 1.56 },
+  ghast: { size: [5.31, 7.19], mouth: 4.69, front: 2.5 },
+  golem: { size: [7.34, 10.0], mouth: 6.88, front: 1.72 },
+  slime: { size: [5.0, 5.16], mouth: 2.5, front: 2.34 },
+  wither: { size: [8.12, 10.31], mouth: 9.06, front: 1.56 },
+  guardian: { size: [8.75, 5.0], mouth: 2.5, front: 2.19 },
+  wolf: { size: [9.45, 4.84], mouth: 3.44, front: 4.69 },
+};
+
 for (const r of ROBOTS) {
   r.id = `bender:robo_${r.key}`;
+  r.body = BODIES[r.key];
   r.kit = `bender:robo_${r.key}_kit`;
 }
 

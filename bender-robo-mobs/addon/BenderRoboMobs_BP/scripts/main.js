@@ -123,6 +123,22 @@ function center(entity, up = 0.9) {
   return { x: entity.location.x, y: entity.location.y + up, z: entity.location.z };
 }
 
+/** The middle of a robot's giant body. */
+function robotMiddle(robot) {
+  const body = ROBOTS[robotIndex(robot.typeId)]?.body;
+  return center(robot, body ? body.size[1] / 2 : 1);
+}
+
+/** How far a spot is from a robot's body (0 when it's inside it). */
+function distToRobot(robot, at) {
+  const body = ROBOTS[robotIndex(robot.typeId)]?.body;
+  const half = body ? body.size[0] / 2 : 1;
+  const top = robot.location.y + (body ? body.size[1] : 2);
+  const flat = Math.max(0, Math.hypot(at.x - robot.location.x, at.z - robot.location.z) - half);
+  const up = at.y < robot.location.y ? robot.location.y - at.y : at.y > top ? at.y - top : 0;
+  return Math.hypot(flat, up);
+}
+
 function giveOrDrop(player, item) {
   const leftover = player.getComponent("minecraft:inventory")?.container?.addItem(item);
   if (leftover) player.dimension.spawnItem(leftover, player.location);
@@ -267,11 +283,11 @@ function sideOf(player, robot) {
 /** Robots near a spot that this attacker may hit in Battle Mode. */
 function battleTargets(player, myRobot, location, radius) {
   const me = sideOf(player, myRobot);
-  return nearby(myRobot.dimension, location, radius + 2).filter((e) => {
+  return nearby(myRobot.dimension, location, radius + 14).filter((e) => {
     if (!ROBOT_IDS.has(e.typeId) || e.id === myRobot.id) return false;
     const pilot = pilotPlayerOf(e);
     if (!pilot || !canBattle(me, sideOf(pilot, e))) return false;
-    return dist(center(e, 1), location) <= radius + 1;
+    return distToRobot(e, location) <= radius;
   });
 }
 
@@ -302,7 +318,7 @@ function knockOut(robot, byPlayer, byRobot) {
   movers.delete(robot.id);
   dashes.delete(robot.id);
   lasers.delete(robot.id);
-  particle(robot.dimension, "minecraft:huge_explosion_emitter", center(robot, 1.2));
+  particle(robot.dimension, "minecraft:huge_explosion_emitter", robotMiddle(robot));
   for (let i = 0; i < 6; i++) {
     particle(robot.dimension, "minecraft:basic_smoke_particle", {
       x: robot.location.x + (Math.random() - 0.5) * 1.5, y: robot.location.y + 1 + Math.random() * 2, z: robot.location.z + (Math.random() - 0.5) * 1.5,
@@ -328,25 +344,16 @@ function knockOut(robot, byPlayer, byRobot) {
 
 function boarded(player, robot) {
   const r = ROBOTS[robotIndex(robot.typeId)];
-  try {
-    player.camera.setCamera("minecraft:third_person");
-  } catch {
-    // Camera control isn't available.
-  }
   const how = r.move === "fly" ? "Look where to go and push forward. Hold jump to climb."
     : r.move === "swim" ? "Zoom around underwater: look where to go and push forward."
       : r.climb ? "Walk into a wall to climb it!" : r.bounce ? "Hold jump for a super bounce!" : "Hold jump to jump high.";
   title(player, `${r.color}§l${r.name}`, `§7${how}`);
-  player.sendMessage(`${r.color}${r.name}§r: ${how} Hold the §bRobo Remote§r and tap for §e${r.attack.name}§r. Hit monsters for a robo punch. Sneak to get off.`);
+  player.sendMessage(`${r.color}${r.name}§r: ${how} Hold the §bRobo Remote§r and tap for §e${r.attack.name}§r. Sneak to get off. §7Tip: first-person view puts you in the cockpit.`);
   sound(robot, "mob.irongolem.repair", 0.8, 0.8);
 }
 
 function leftRobot(player) {
-  try {
-    player.camera.clear();
-  } catch {
-    // Camera control isn't available.
-  }
+  actionBar(player, "");
 }
 
 // ------------------------------------------------------------ flying, swimming, climbing, bouncing
@@ -385,7 +392,7 @@ function drive(robot, index, player, tick) {
     } else {
       const v = robot.getVelocity();
       const yaw = input.yaw * (Math.PI / 180);
-      const ahead = { x: robot.location.x - Math.sin(yaw) * 1.3, y: robot.location.y + 0.5, z: robot.location.z + Math.cos(yaw) * 1.3 };
+      const ahead = { x: robot.location.x - Math.sin(yaw) * 1.9, y: robot.location.y + 0.5, z: robot.location.z + Math.cos(yaw) * 1.9 };
       const blocked = robot.isOnGround && solidAt(robot.dimension, ahead);
       const flop = landFlop(spec.speed, v, input, blocked);
       robot.applyImpulse({ x: flop.x - v.x, y: flop.y > 0.4 ? flop.y - v.y : 0, z: flop.z - v.z });
@@ -421,7 +428,7 @@ function climb(robot, player) {
   const yaw = robot.getRotation().y;
   const f = lookVector(yaw, 0);
   const base = robot.location;
-  const reach = 1.9;
+  const reach = 2.0;
   const low = { x: base.x + f.x * reach, y: base.y + 0.4, z: base.z + f.z * reach };
   const high = { x: base.x + f.x * reach, y: base.y + 1.3, z: base.z + f.z * reach };
   if (!solidAt(robot.dimension, low) && !solidAt(robot.dimension, high)) return;
@@ -444,15 +451,15 @@ function bounce(robot, player, index) {
   if (!bounceSmash(top, y)) return;
   // Robo Slime smash: everything close by gets bounced.
   const at = robot.location;
-  for (const foe of nearby(robot.dimension, at, 5).filter(isFoe)) {
+  for (const foe of nearby(robot.dimension, at, 7).filter(isFoe)) {
     hurt(foe, 6, player);
     push(foe, at, 1.4, 0.6);
   }
-  for (const other of battleTargets(player, robot, at, 4)) hitRobot(player, robot, other, 6);
+  for (const other of battleTargets(player, robot, at, 5)) hitRobot(player, robot, other, 6);
   particle(robot.dimension, "minecraft:huge_explosion_emitter", at);
   for (let i = 0; i < 12; i++) {
     const a = (i / 12) * Math.PI * 2;
-    dot(robot.dimension, { x: at.x + Math.cos(a) * 3, y: at.y + 0.3, z: at.z + Math.sin(a) * 3 }, SHOT_LOOK.slime.color, 0.6);
+    dot(robot.dimension, { x: at.x + Math.cos(a) * 5, y: at.y + 0.3, z: at.z + Math.sin(a) * 5 }, SHOT_LOOK.slime.color, 0.9);
   }
   sound(robot, "mob.slime.big", 1, 0.6);
 }
@@ -491,7 +498,7 @@ function wave(player, robot, index) {
     hurt(foe, dmg, player);
     push(foe, at, a.knock, a.lift);
   }
-  for (const other of battleTargets(player, robot, at, a.radius)) hitRobot(player, robot, other, waveDamage(index, Math.min(dist(other.location, at), a.radius)));
+  for (const other of battleTargets(player, robot, at, a.radius)) hitRobot(player, robot, other, waveDamage(index, Math.min(distToRobot(other, at), a.radius)));
   const color = ROBOTS[index].key === "creeper" ? { red: 0.55, green: 1, blue: 0.4 } : { red: 0.9, green: 0.85, blue: 0.75 };
   for (let ring = 1; ring <= 3; ring++) {
     const r = (a.radius * ring) / 3;
@@ -501,7 +508,7 @@ function wave(player, robot, index) {
     }
   }
   if (ROBOTS[index].key === "creeper") {
-    particle(robot.dimension, "minecraft:huge_explosion_emitter", center(robot, 1));
+    particle(robot.dimension, "minecraft:huge_explosion_emitter", robotMiddle(robot));
     sound(robot, "random.explode", 1, 1.2);
   } else {
     particle(robot.dimension, "minecraft:large_explosion", at);
@@ -513,9 +520,13 @@ function wave(player, robot, index) {
 function volley(player, robot, index) {
   const r = ROBOTS[index];
   const a = r.attack;
-  const info = robotInfo(index);
-  const from = fromRobot(robot, info.mouth, info.front);
-  for (const dir of fan(player.getViewDirection(), a.count, a.spread)) {
+  const body = r.body;
+  const from = fromRobot(robot, body.mouth, body.front);
+  // Aim from the robot at whatever is under the pilot's crosshair (the robot's mouth
+  // is a few blocks away from the pilot's eyes).
+  const aim = laserAim(player, a.range).point;
+  const toAim = { x: aim.x - from.x, y: aim.y - from.y, z: aim.z - from.z };
+  for (const dir of fan(toAim, a.count, a.spread)) {
     shots.push({ shot: newShot(index, from, dir), dimension: robot.dimension, playerId: player.id, robotId: robot.id, last: { ...from } });
   }
   const look = SHOT_LOOK[a.shot];
@@ -538,7 +549,8 @@ function megaPunch(player, robot, index) {
     particle(foe.dimension, "minecraft:critical_hit_emitter", center(foe));
   }
   for (const other of battleTargets(player, robot, at, a.reach).filter(inFront)) hitRobot(player, robot, other, a.damage);
-  const fist = { x: at.x + f.x * 2.2, y: at.y + 2.5, z: at.z + f.z * 2.2 };
+  const body = ROBOTS[index].body;
+  const fist = { x: at.x + f.x * (body.front + 2), y: at.y + body.mouth, z: at.z + f.z * (body.front + 2) };
   for (let i = 0; i < 8; i++) dot(robot.dimension, { x: fist.x + (Math.random() - 0.5), y: fist.y + (Math.random() - 0.5), z: fist.z + (Math.random() - 0.5) }, { red: 1, green: 0.6, blue: 0.2 }, 0.4);
   sound(robot, "mob.zombie.woodbreak", 0.8, 0.8);
   sound(robot, "mob.irongolem.throw", 1, 0.9);
@@ -566,11 +578,13 @@ function stepDashes(tick) {
       continue;
     }
     const enderman = ROBOTS[d.index].key === "enderman";
-    const at = center(robot, 1);
+    const at = robotMiddle(robot);
+    const reach = ROBOTS[d.index].body.size[0] / 2 + 1.5;
     dot(robot.dimension, at, enderman ? { red: 0.85, green: 0.4, blue: 1 } : { red: 0.9, green: 0.9, blue: 0.95 }, 0.6);
     if (enderman) particle(robot.dimension, "minecraft:portal_directional", at);
     const a = ROBOTS[d.index].attack;
-    for (const foe of nearby(robot.dimension, at, 2.8).filter(isFoe)) {
+    for (const foe of nearby(robot.dimension, at, reach + ROBOTS[d.index].body.size[1] / 2).filter(isFoe)) {
+      if (Math.hypot(foe.location.x - at.x, foe.location.z - at.z) > reach) continue;
       if (d.hit.has(foe.id)) continue;
       d.hit.add(foe.id);
       hurt(foe, a.damage, player);
@@ -581,7 +595,7 @@ function stepDashes(tick) {
       }
     }
     if (player?.isValid) {
-      for (const other of battleTargets(player, robot, at, 2)) {
+      for (const other of battleTargets(player, robot, at, reach)) {
         if (d.hit.has(other.id)) continue;
         d.hit.add(other.id);
         hitRobot(player, robot, other, a.damage);
@@ -627,8 +641,8 @@ function stepLasers(tick) {
       continue;
     }
     const a = ROBOTS[l.index].attack;
-    const info = robotInfo(l.index);
-    const from = fromRobot(robot, info.mouth, info.front);
+    const body = ROBOTS[l.index].body;
+    const from = fromRobot(robot, body.mouth, body.front);
     const { target, point } = laserAim(player, a.range);
     const firing = tick >= l.fireAt;
     const steps = Math.min(60, Math.ceil(dist(from, point) / (firing ? 0.4 : 0.8)));
@@ -665,7 +679,7 @@ function explodeShot(s, at, direct, player) {
       applyAttackEffects(foe, a);
       push(foe, at, 0.8, 0.3);
     }
-    if (robot?.isValid && player?.isValid) for (const other of battleTargets(player, robot, at, a.blast)) hitRobot(player, robot, other, waveDamage(s.shot.robot, Math.min(dist(center(other, 1), at), a.blast)));
+    if (robot?.isValid && player?.isValid) for (const other of battleTargets(player, robot, at, a.blast)) hitRobot(player, robot, other, waveDamage(s.shot.robot, Math.min(distToRobot(other, at), a.blast)));
     const look = SHOT_LOOK[a.shot];
     for (let i = 0; i < 10; i++) {
       dot(s.dimension, { x: at.x + (Math.random() - 0.5) * a.blast, y: at.y + (Math.random() - 0.5) * a.blast, z: at.z + (Math.random() - 0.5) * a.blast }, look.color, look.size);
@@ -712,15 +726,6 @@ function stepShots() {
     still.push(s);
   }
   shots = still;
-}
-
-/** Where shots and lasers come out of each robot (blocks up from its feet, blocks forward). */
-function robotInfo(index) {
-  return [
-    { mouth: 2.4, front: 0.8 }, { mouth: 3.0, front: 0.6 }, { mouth: 0.8, front: 1.3 }, { mouth: 3.4, front: 0.8 },
-    { mouth: 3.8, front: 0.6 }, { mouth: 2.3, front: 0.8 }, { mouth: 1.8, front: 1.2 }, { mouth: 3.4, front: 0.9 },
-    { mouth: 1.2, front: 1.0 }, { mouth: 3.0, front: 0.8 }, { mouth: 0.8, front: 1.0 }, { mouth: 1.5, front: 1.8 },
-  ][index];
 }
 
 // ------------------------------------------------------------ the main loop

@@ -27,8 +27,8 @@
             {
               "position": [
                 0,
-                2.95,
-                0.45
+                4.894,
+                -0.43
               ]
             }
           ]
@@ -43,17 +43,17 @@
         ]
       },
       "minecraft:collision_box": {
-        "width": 1.5,
-        "height": 3.6
+        "width": 2.4,
+        "height": 6.9
       },
       "minecraft:custom_hit_test": {
         "hitboxes": [
           {
-            "width": 1.9,
-            "height": 3.8,
+            "width": 2.8,
+            "height": 7.1,
             "pivot": [
               0,
-              1.9,
+              3.55,
               0
             ]
           }
@@ -86,7 +86,7 @@
       "minecraft:persistent": {},
       "minecraft:physics": {},
       "minecraft:movement": {
-        "value": 0.22
+        "value": 0.28
       },
       "minecraft:movement.basic": {},
       "minecraft:jump.static": {},
@@ -94,13 +94,13 @@
       "minecraft:can_power_jump": {},
       "minecraft:horse.jump_strength": {
         "value": {
-          "range_min": 0.7,
-          "range_max": 0.7
+          "range_min": 0.8,
+          "range_max": 0.8
         }
       },
       "minecraft:variable_max_auto_step": {
-        "base_value": 1.0625,
-        "controlled_value": 1.0625,
+        "base_value": 1.5625,
+        "controlled_value": 1.5625,
         "jump_prevented_value": 0.5625
       }
     },
