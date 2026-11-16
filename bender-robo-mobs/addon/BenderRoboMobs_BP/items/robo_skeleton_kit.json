@@ -1,0 +1,20 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:robo_skeleton_kit",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_robo_skeleton_kit",
+      "minecraft:display_name": {
+        "value": "§fRobo Skeleton"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:interact_button": "Place",
+      "bender:robo_kit": {}
+    }
+  }
+}

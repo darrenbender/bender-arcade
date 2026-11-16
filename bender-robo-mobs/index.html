@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bender Robo Mobs</title>
+<style>
+  :root {
+    --bg: #0e1424;
+    --bg2: #24345e;
+    --card: #18223d;
+    --card-edge: #3a4f86;
+    --text: #ffffff;
+    --soft: #d6e2ff;
+    --gold: #ffd166;
+    --gold-dark: #e09b1a;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--text);
+    background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg) 70%) fixed;
+    background-color: var(--bg);
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  img { max-width: 100%; height: auto; }
+  .hero { text-align: center; padding: 8px 0 24px; }
+  .hero .icon { width: 128px; height: 128px; border-radius: 14px; box-shadow: 0 8px 30px rgba(255, 209, 102, 0.35); }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); margin: 14px 0 4px; color: var(--gold); }
+  .tagline { font-size: clamp(1.1rem, 3.4vw, 1.4rem); color: var(--soft); margin: 0 0 24px; }
+  .btn {
+    display: inline-block; font: inherit; font-size: clamp(1.3rem, 4vw, 1.7rem); font-weight: 800;
+    padding: 22px 36px; min-height: 72px; border-radius: 22px; text-decoration: none; color: #2b1a00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 6px 0 #8a5a00, 0 12px 28px rgba(0,0,0,0.35); transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #8a5a00, 0 6px 14px rgba(0,0,0,0.35); }
+  .btn.secondary { color: #fff; background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 6px 0 #4c1d95, 0 12px 28px rgba(0,0,0,0.35); }
+  .small-print { color: var(--soft); font-size: 0.95rem; margin-top: 14px; }
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 40px 0 16px; text-align: center; }
+  .intro { text-align: center; color: var(--soft); margin: -6px 0 18px; }
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: step; }
+  .steps li { counter-increment: step; background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 18px 18px 18px 76px; position: relative; }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 16px; top: 16px; width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.4rem; background: var(--gold); color: #2b1a00;
+  }
+  .steps b { color: var(--gold); }
+  .robots { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (min-width: 700px) { .robots { grid-template-columns: 1fr 1fr 1fr; } }
+  .robot { background: var(--card); border: 2px solid var(--card-edge); border-top: 5px solid var(--c); border-radius: 18px; padding: 12px; text-align: center; }
+  .robot img { width: 100%; max-width: 170px; aspect-ratio: 1; object-fit: contain; }
+  .robot h3 { margin: 4px 0 6px; font-size: 1.2rem; color: var(--c); }
+  .robot p { margin: 4px 0; font-size: 0.95rem; }
+  .tags span { display: inline-block; background: rgba(255,255,255,0.1); border-radius: 999px; padding: 1px 10px; margin: 2px; font-size: 0.85rem; }
+  .attack { font-weight: 800; color: var(--gold); }
+  .about, .made { color: var(--soft); }
+  .craft { display: inline-grid; grid-template-columns: repeat(3, 44px); gap: 3px; background: #8b8b8b; padding: 5px; border-radius: 8px; border: 3px solid #555; }
+  .slot { width: 44px; height: 44px; border-radius: 4px; background: #6f6f6f; box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #a0a0a0; display: flex; align-items: center; justify-content: center; font-size: 25px; }
+  .recipes { display: grid; grid-template-columns: 1fr; gap: 14px; text-align: center; }
+  @media (min-width: 700px) { .recipes { grid-template-columns: 1fr 1fr; } }
+  .recipe { background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 14px; }
+  .recipe h3 { margin: 0 0 8px; font-size: 1.15rem; }
+  .recipe p { color: var(--soft); margin: 8px 0 0; font-size: 0.95rem; }
+  .battle { background: linear-gradient(180deg, #4a1424, #2a0d18); border: 2px solid #a33b55; border-radius: 20px; padding: 18px 20px; }
+  .battle h2 { margin-top: 0; }
+  .battle ul { margin: 0; padding-left: 22px; }
+  .battle li { margin: 6px 0; }
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .tips li { background: rgba(255,255,255,0.07); border-radius: 14px; padding: 14px 18px; }
+  .tips li::before { content: "⭐ "; }
+  .back { text-align: center; margin-top: 44px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="icon" src="addon/BenderRoboMobs_BP/pack_icon.png" alt="A robot golem, robot wolf and robot creeper at sunset">
+    <h1>Bender Robo Mobs</h1>
+    <p class="tagline">A Minecraft add-on: ride 12 giant robot mobs, each with its own special attack, and battle your brother in Battle Mode!</p>
+    <a class="btn" href="BenderRoboMobs.mcaddon" download>⬇️ Download for Minecraft</a>
+    <p class="small-print">For Minecraft Bedrock on iPad, iPhone, Android and Windows. Free, no ads.</p>
+  </header>
+
+  <section>
+    <h2>How to put it on the iPad</h2>
+    <ol class="steps">
+      <li>Tap <b>Download for Minecraft</b> above, then tap <b>Download</b> when Safari asks.</li>
+      <li>Open the <b>Files</b> app, go to <b>Downloads</b>, and tap <b>BenderRoboMobs.mcaddon</b>. Minecraft opens and says <b>Successfully imported</b>.<br>
+        If tapping the file doesn't open Minecraft, tap the <b>Share</b> button and choose <b>Minecraft</b>.</li>
+      <li>In Minecraft, tap <b>Create New World</b> (or the pencil next to an old world). Scroll to <b>Behavior Packs</b>, tap <b>Available</b>, tap <b>Bender Robo Mobs</b>, then <b>Activate</b>. It works alongside the other Bender add-ons.</li>
+      <li>Tap <b>Create</b> or <b>Play</b>. The first time you join, you <b>pick your first robot</b> and get a <b>Robo Remote</b>.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>How to ride</h2>
+    <ol class="steps">
+      <li><b>Tap the ground</b> with a robot kit to put the robot down, then <b>tap the robot</b> to climb on. <b>Sneak</b> to get off.</li>
+      <li><b>Walking robots</b> move like a horse. Hold <b>jump</b> to jump high.</li>
+      <li><b>Flying robots</b> (Blaze, Ghast, Wither): <b>look</b> where you want to go and push <b>forward</b>. Hold <b>jump</b> to climb. Look down to land. The <b>Robo Guardian</b> zooms underwater the same way.</li>
+      <li>Hold the <b>Robo Remote</b> and <b>tap</b> to use your robot's special attack. Hit monsters for a <b>robo punch</b>.</li>
+      <li>To pack a robot away, <b>hit it 3 times</b> when nobody is riding it. You get the kit back.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>The 12 robots</h2>
+    <p class="intro">Special attacks only hurt monsters. They never hurt players, pets or animals, and never break blocks.</p>
+    <div class="robots">
+      <div class="robot" style="--c:#7dff6a">
+        <img src="img/creeper.png" alt="Robo Creeper">
+        <h3>Robo Creeper</h3>
+        <p class="tags"><span>Walks</span></p>
+        <p class="attack">⚡ Boom Wave</p>
+        <p class="about">Boom! A shockwave that never breaks blocks</p>
+        <p class="made">Made with 💥 Gunpowder</p>
+      </div>
+      <div class="robot" style="--c:#f0f0f0">
+        <img src="img/skeleton.png" alt="Robo Skeleton">
+        <h3>Robo Skeleton</h3>
+        <p class="tags"><span>Walks</span></p>
+        <p class="attack">⚡ Arrow Storm</p>
+        <p class="about">Fires a fan of 5 laser arrows</p>
+        <p class="made">Made with 🏹 Arrow</p>
+      </div>
+      <div class="robot" style="--c:#b0b0b8">
+        <img src="img/spider.png" alt="Robo Spider">
+        <h3>Robo Spider</h3>
+        <p class="tags"><span>Walks</span><span>Climbs walls</span></p>
+        <p class="attack">⚡ Web Shot</p>
+        <p class="about">Climbs walls! Web Shot slows monsters down</p>
+        <p class="made">Made with 🧵 String</p>
+      </div>
+      <div class="robot" style="--c:#5fd06a">
+        <img src="img/zombie.png" alt="Robo Zombie">
+        <h3>Robo Zombie</h3>
+        <p class="tags"><span>Walks</span></p>
+        <p class="attack">⚡ Mega Punch</p>
+        <p class="about">Tough as nails, with a Mega Punch</p>
+        <p class="made">Made with 🥩 Rotten Flesh</p>
+      </div>
+      <div class="robot" style="--c:#d78bff">
+        <img src="img/enderman.png" alt="Robo Enderman">
+        <h3>Robo Enderman</h3>
+        <p class="tags"><span>Walks</span><span>Tallest</span></p>
+        <p class="attack">⚡ Warp Dash</p>
+        <p class="about">Super tall. Warp Dash zooms you forward</p>
+        <p class="made">Made with 🔮 Ender Pearl</p>
+      </div>
+      <div class="robot" style="--c:#ffc04a">
+        <img src="img/blaze.png" alt="Robo Blaze">
+        <h3>Robo Blaze</h3>
+        <p class="tags"><span>Flies</span></p>
+        <p class="attack">⚡ Fire Burst</p>
+        <p class="about">Flies! Fire Burst shoots 3 fireballs</p>
+        <p class="made">Made with 🔥 Blaze Rod</p>
+      </div>
+      <div class="robot" style="--c:#cfd3da">
+        <img src="img/ghast.png" alt="Robo Ghast">
+        <h3>Robo Ghast</h3>
+        <p class="tags"><span>Flies</span><span>Biggest</span></p>
+        <p class="attack">⚡ Mega Fireball</p>
+        <p class="about">A flying fortress with a Mega Fireball</p>
+        <p class="made">Made with 💧 Ghast Tear</p>
+      </div>
+      <div class="robot" style="--c:#f0f0f0">
+        <img src="img/golem.png" alt="Robo Golem">
+        <h3>Robo Golem</h3>
+        <p class="tags"><span>Walks</span><span>Toughest</span></p>
+        <p class="attack">⚡ Ground Slam</p>
+        <p class="about">The strongest. Ground Slam throws monsters up</p>
+        <p class="made">Made with 🧱 Block of Iron</p>
+      </div>
+      <div class="robot" style="--c:#7dff6a">
+        <img src="img/slime.png" alt="Robo Slime">
+        <h3>Robo Slime</h3>
+        <p class="tags"><span>Walks</span><span>Super bounce</span></p>
+        <p class="attack">⚡ Slime Ball</p>
+        <p class="about">Super bouncy! Land from high up to smash</p>
+        <p class="made">Made with 🟢 Slimeball</p>
+      </div>
+      <div class="robot" style="--c:#9aa0ff">
+        <img src="img/wither.png" alt="Robo Wither">
+        <h3>Robo Wither</h3>
+        <p class="tags"><span>Flies</span></p>
+        <p class="attack">⚡ Skull Volley</p>
+        <p class="about">Three heads, flies, Skull Volley</p>
+        <p class="made">Made with ⬛ Block of Coal</p>
+      </div>
+      <div class="robot" style="--c:#5ee0d0">
+        <img src="img/guardian.png" alt="Robo Guardian">
+        <h3>Robo Guardian</h3>
+        <p class="tags"><span>Swims</span></p>
+        <p class="attack">⚡ Laser</p>
+        <p class="about">Zooms underwater. Laser charges, then zaps</p>
+        <p class="made">Made with 🔷 Prismarine Shard</p>
+      </div>
+      <div class="robot" style="--c:#cfd3da">
+        <img src="img/wolf.png" alt="Robo Wolf">
+        <h3>Robo Wolf</h3>
+        <p class="tags"><span>Walks</span><span>Fastest</span></p>
+        <p class="attack">⚡ Pounce</p>
+        <p class="about">The fastest runner. Pounce leaps at monsters</p>
+        <p class="made">Made with 🦴 Bone</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="battle">
+    <h2>⚔️ Battle Mode</h2>
+    <ul>
+      <li>Get off your robot and tap the <b>Robo Remote</b>, then switch <b>Battle Mode</b> on. Both pilots have to switch it on.</li>
+      <li>Then your attacks and punches hit the other robot's <b>armor</b> (the bar at the bottom of the screen).</li>
+      <li>When a robot's armor runs out, it's <b>knocked out</b>: the pilot pops out safely and the robot repairs itself in 10 seconds.</li>
+      <li>Players never get hurt. The remote menu also shows how many knockouts everyone has.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>How to craft more</h2>
+    <div class="recipes">
+      <div class="recipe">
+        <h3>Any robot kit</h3>
+        <div class="craft" aria-label="Crafting recipe: iron, mob item, iron; iron, redstone, iron; iron, empty, iron">
+          <div class="slot">⬜</div><div class="slot">❓</div><div class="slot">⬜</div>
+          <div class="slot">⬜</div><div class="slot">🟥</div><div class="slot">⬜</div>
+          <div class="slot">⬜</div><div class="slot"></div><div class="slot">⬜</div>
+        </div>
+        <p>⬜ Iron Ingot × 6, 🟥 Redstone × 1, ❓ the robot's mob item (on each card above)</p>
+      </div>
+      <div class="recipe">
+        <h3>Robo Remote</h3>
+        <div class="craft" aria-label="Crafting recipe: redstone on top of two iron ingots">
+          <div class="slot"></div><div class="slot">🟥</div><div class="slot"></div>
+          <div class="slot"></div><div class="slot">⬜</div><div class="slot"></div>
+          <div class="slot"></div><div class="slot">⬜</div><div class="slot"></div>
+        </div>
+        <p>🟥 Redstone × 1, ⬜ Iron Ingot × 2</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Good to know</h2>
+    <ul class="tips">
+      <li>Your robot's armor protects you while you ride, so monsters hurt you a lot less.</li>
+      <li>The Robo Spider climbs walls: just walk straight into one. The Robo Slime smashes the ground when it lands from up high.</li>
+      <li>A flying robot you leave in the air floats gently down to the ground.</li>
+      <li>Each special attack takes a few seconds to recharge. The bar at the bottom shows when it's ready.</li>
+      <li>Worlds with add-ons don't earn Xbox achievements.</li>
+    </ul>
+  </section>
+
+  <div class="back">
+    <a class="btn secondary" href="/">← Back to Arcade</a>
+  </div>
+
+</div>
+</body>
+</html>

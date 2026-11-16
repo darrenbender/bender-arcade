@@ -1,0 +1,32 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:robo_zombie",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/robo_mobs/zombie"
+      },
+      "geometry": {
+        "default": "geometry.bender_robo_zombie"
+      },
+      "animations": {
+        "down": "animation.bender_robo.down",
+        "move": "animation.bender_robo.zombie.move"
+      },
+      "scripts": {
+        "animate": [
+          "move",
+          {
+            "down": "q.property('bender:down')"
+          }
+        ]
+      },
+      "render_controllers": [
+        "controller.render.bender_robo"
+      ]
+    }
+  }
+}

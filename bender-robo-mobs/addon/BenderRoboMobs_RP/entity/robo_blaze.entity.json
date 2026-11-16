@@ -1,0 +1,32 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:robo_blaze",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/robo_mobs/blaze"
+      },
+      "geometry": {
+        "default": "geometry.bender_robo_blaze"
+      },
+      "animations": {
+        "down": "animation.bender_robo.down",
+        "idle": "animation.bender_robo.blaze.idle"
+      },
+      "scripts": {
+        "animate": [
+          "idle",
+          {
+            "down": "q.property('bender:down')"
+          }
+        ]
+      },
+      "render_controllers": [
+        "controller.render.bender_robo"
+      ]
+    }
+  }
+}

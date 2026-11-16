@@ -1,0 +1,32 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:robo_golem",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/robo_mobs/golem"
+      },
+      "geometry": {
+        "default": "geometry.bender_robo_golem"
+      },
+      "animations": {
+        "down": "animation.bender_robo.down",
+        "move": "animation.bender_robo.golem.move"
+      },
+      "scripts": {
+        "animate": [
+          "move",
+          {
+            "down": "q.property('bender:down')"
+          }
+        ]
+      },
+      "render_controllers": [
+        "controller.render.bender_robo"
+      ]
+    }
+  }
+}

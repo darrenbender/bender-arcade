@@ -1,0 +1,45 @@
+{
+  "resource_pack_name": "bender_robo_mobs",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "bender_robo_remote": {
+      "textures": "textures/items/robo_mobs/robo_remote"
+    },
+    "bender_robo_creeper_kit": {
+      "textures": "textures/items/robo_mobs/creeper_kit"
+    },
+    "bender_robo_skeleton_kit": {
+      "textures": "textures/items/robo_mobs/skeleton_kit"
+    },
+    "bender_robo_spider_kit": {
+      "textures": "textures/items/robo_mobs/spider_kit"
+    },
+    "bender_robo_zombie_kit": {
+      "textures": "textures/items/robo_mobs/zombie_kit"
+    },
+    "bender_robo_enderman_kit": {
+      "textures": "textures/items/robo_mobs/enderman_kit"
+    },
+    "bender_robo_blaze_kit": {
+      "textures": "textures/items/robo_mobs/blaze_kit"
+    },
+    "bender_robo_ghast_kit": {
+      "textures": "textures/items/robo_mobs/ghast_kit"
+    },
+    "bender_robo_golem_kit": {
+      "textures": "textures/items/robo_mobs/golem_kit"
+    },
+    "bender_robo_slime_kit": {
+      "textures": "textures/items/robo_mobs/slime_kit"
+    },
+    "bender_robo_wither_kit": {
+      "textures": "textures/items/robo_mobs/wither_kit"
+    },
+    "bender_robo_guardian_kit": {
+      "textures": "textures/items/robo_mobs/guardian_kit"
+    },
+    "bender_robo_wolf_kit": {
+      "textures": "textures/items/robo_mobs/wolf_kit"
+    }
+  }
+}

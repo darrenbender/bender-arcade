@@ -1,0 +1,32 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:robo_slime",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/robo_mobs/slime"
+      },
+      "geometry": {
+        "default": "geometry.bender_robo_slime"
+      },
+      "animations": {
+        "down": "animation.bender_robo.down",
+        "move": "animation.bender_robo.slime.move"
+      },
+      "scripts": {
+        "animate": [
+          "move",
+          {
+            "down": "q.property('bender:down')"
+          }
+        ]
+      },
+      "render_controllers": [
+        "controller.render.bender_robo"
+      ]
+    }
+  }
+}

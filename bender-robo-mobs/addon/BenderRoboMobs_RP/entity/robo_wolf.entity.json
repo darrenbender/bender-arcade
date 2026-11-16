@@ -1,0 +1,32 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:robo_wolf",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/robo_mobs/wolf"
+      },
+      "geometry": {
+        "default": "geometry.bender_robo_wolf"
+      },
+      "animations": {
+        "down": "animation.bender_robo.down",
+        "move": "animation.bender_robo.wolf.move"
+      },
+      "scripts": {
+        "animate": [
+          "move",
+          {
+            "down": "q.property('bender:down')"
+          }
+        ]
+      },
+      "render_controllers": [
+        "controller.render.bender_robo"
+      ]
+    }
+  }
+}
