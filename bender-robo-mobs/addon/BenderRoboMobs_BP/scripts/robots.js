@@ -71,9 +71,10 @@ export const ROBOTS = [
     attack: { name: "Skull Volley", kind: "volley", shot: "skull", count: 3, spread: 9, damage: 7, blast: 2.5, speed: 1.3, gravity: 0, range: 40, effects: [fx("wither", 4)], cooldown: 40 },
   },
   {
-    key: "guardian", name: "Robo Guardian", color: "§3", move: "swim", speed: 0.14, swimSpeed: 0.6, armor: 60,
-    drop: "minecraft:prismarine_shard", about: "Zooms underwater. Laser charges, then zaps",
-    attack: { name: "Laser", kind: "laser", charge: 20, damage: 14, range: 28, cooldown: 40 },
+    key: "guardian", name: "Robo Guardian", color: "§3", move: "swim", speed: 0.4, swimSpeed: 0.65, armor: 70,
+    drop: "minecraft:prismarine_shard", about: "Hovers! Its laser zaps through monsters",
+    attack: { name: "Laser", kind: "laser", charge: 16, damage: 16, range: 32, cooldown: 40, pierce: true, width: 1.6 },
+    shield: { name: "Spike Shield", radius: 6, damage: 4, every: 40 }, // blocks from the robot's middle
   },
   {
     key: "wolf", name: "Robo Wolf", color: "§7", move: "walk", speed: 0.4, jump: 1.0, armor: 50,
@@ -96,7 +97,7 @@ const BODIES = {
   golem: { size: [7.34, 10.0], mouth: 6.88, front: 1.72 },
   slime: { size: [5.0, 5.16], mouth: 2.5, front: 2.34 },
   wither: { size: [8.12, 10.31], mouth: 9.06, front: 1.56 },
-  guardian: { size: [8.75, 5.0], mouth: 2.5, front: 2.19 },
+  guardian: { size: [10.59, 6.8], mouth: 3.12, front: 2.81 },
   wolf: { size: [9.45, 4.84], mouth: 3.44, front: 4.69 },
 };
 
@@ -254,15 +255,12 @@ export function steer(speed, vel, input, env) {
   return out;
 }
 
-/** Robo Guardian on land: a slow flop in the direction the pilot looks, with gravity. */
-export function landFlop(speed, vel, input, blocked) {
-  const look = lookVector(input?.yaw ?? 0, 0);
-  const f = input ? Math.max(-0.5, Math.min(1, input.forward)) : 0;
-  return {
-    x: look.x * f * speed,
-    y: blocked && f > 0.3 ? 0.42 : vel.y - 0.08,
-    z: look.z * f * speed,
-  };
+/** Is a point inside a beam from "from" along unit vector "dir", "range" long and "width" wide? */
+export function inBeam(from, dir, p, range, width) {
+  const c = { x: p.x - from.x, y: p.y - from.y, z: p.z - from.z };
+  const along = c.x * dir.x + c.y * dir.y + c.z * dir.z;
+  if (along < 0 || along > range) return false;
+  return Math.hypot(c.x - dir.x * along, c.y - dir.y * along, c.z - dir.z * along) <= width;
 }
 
 // ------------------------------------------------------------ what the pilot sees
@@ -283,6 +281,6 @@ export function hud(index, state, pilot, tick) {
 
 export function kitLore(index) {
   const r = ROBOTS[index];
-  const moves = { walk: "Walks", fly: "Flies: look where to go, hold jump to climb", swim: "Swims fast underwater" }[r.move];
+  const moves = { walk: "Walks", fly: "Flies: look where to go, hold jump to climb", swim: "Hovers on land, zooms underwater" }[r.move];
   return [`§7${r.about}`, `§7${moves}`, `§bRemote attack: ${r.attack.name}`, "§8Place it, then tap it to ride"];
 }

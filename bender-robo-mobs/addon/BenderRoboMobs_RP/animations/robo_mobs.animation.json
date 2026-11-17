@@ -393,6 +393,27 @@
   "animation.bender_robo.guardian.move": {
    "loop": true,
    "bones": {
+    "spikes": {
+     "scale": [
+      "1 + math.sin(q.life_time * 140) * 0.07",
+      "1 + math.sin(q.life_time * 140) * 0.07",
+      "1 + math.sin(q.life_time * 140) * 0.07"
+     ]
+    },
+    "fin_l": {
+     "rotation": [
+      0,
+      0,
+      "math.sin(q.life_time * 260) * 22"
+     ]
+    },
+    "fin_r": {
+     "rotation": [
+      0,
+      0,
+      "-math.sin(q.life_time * 260) * 22"
+     ]
+    },
     "tail": {
      "rotation": [
       0,

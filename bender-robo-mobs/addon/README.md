@@ -9,7 +9,7 @@
     menu, item descriptions and the welcome gift
   - `entities/robo_*.json`: one per robot. Walkers are ridden like horses
     (`input_ground_controlled`); the Blaze, Ghast and Wither have no gravity and are
-    flown by the script; the Guardian is steered by the script. Robots never take normal
+    flown by the script; the Guardian (also no gravity) hovers and swims, steered by the script. Robots never take normal
     damage. `bender:knock_out` removes the `bender:rideable` group and sets
     `bender:down`; `bender:repair` puts both back.
   - `items/`, `recipes/`: 12 robot kits and the Robo Remote
@@ -33,7 +33,7 @@
 | Robo Golem | walks | Ground Slam | Block of Iron |
 | Robo Slime | walks, super bounce | Slime Ball | Slimeball |
 | Robo Wither | flies | Skull Volley | Block of Coal |
-| Robo Guardian | swims | Laser (charges for 1 second) | Prismarine Shard |
+| Robo Guardian | hovers on land, faster underwater; Spike Shield zaps monsters within 6 blocks | Laser (charges, then zaps every monster along the beam) | Prismarine Shard |
 | Robo Wolf | walks, fastest | Pounce | Bone |
 
 Kits: 6 iron ingots, 1 redstone and the robot's item (`IXI / IRI / I I`). Remote:

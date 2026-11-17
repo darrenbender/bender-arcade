@@ -2,7 +2,7 @@
 // Robo Remote, and battle your friends' robots in Battle Mode.
 //
 // Walking robots are ridden like horses (the game moves them). Flying robots
-// (Blaze, Ghast, Wither) and the swimming Guardian are steered here every tick:
+// (Blaze, Ghast, Wither) and the hovering, swimming Guardian are steered here every tick:
 // look where you want to go and push forward; hold jump to climb.
 // Attacks only hurt monsters and bosses, plus other robots in Battle Mode
 // (both pilots have to switch it on). They never hurt players, pets or blocks.
@@ -13,7 +13,7 @@ import {
   ROBOTS, ROBOT_IDS, REMOTE_ID, PUNCH_DAMAGE, PUNCH_BATTLE, KO_TICKS,
   robotIndex, kitIndex, newRobotState, isDown, canBattle, battleHit, robotSecond,
   newPilot, useAttack, lookVector, fan, stepShot, newShot, waveDamage, bounceSmash,
-  steer, landFlop, hud, kitLore,
+  steer, inBeam, hud, kitLore,
 } from "./robots.js";
 
 const WELCOME_KEY = "bender:robo_welcomed";
@@ -345,7 +345,7 @@ function knockOut(robot, byPlayer, byRobot) {
 function boarded(player, robot) {
   const r = ROBOTS[robotIndex(robot.typeId)];
   const how = r.move === "fly" ? "Look where to go and push forward. Hold jump to climb."
-    : r.move === "swim" ? "Zoom around underwater: look where to go and push forward."
+    : r.move === "swim" ? "It hovers! Look where to go and push forward, hold jump to rise. Even faster underwater. Its spikes zap monsters that get close."
       : r.climb ? "Walk into a wall to climb it!" : r.bounce ? "Hold jump for a super bounce!" : "Hold jump to jump high.";
   title(player, `${r.color}§l${r.name}`, `§7${how}`);
   player.sendMessage(`${r.color}${r.name}§r: ${how} Hold the §bRobo Remote§r and tap for §e${r.attack.name}§r. Sneak to get off. §7Tip: first-person view puts you in the cockpit.`);
@@ -385,18 +385,12 @@ function drive(robot, index, player, tick) {
       m.vel = steer(spec.speed, m.vel, input, { onGround: robot.isOnGround });
       robot.clearVelocity();
       robot.applyImpulse(m.vel);
-    } else if (robot.isInWater) {
-      m.vel = steer(spec.swimSpeed, m.vel, input, { onGround: false });
-      robot.clearVelocity();
-      robot.applyImpulse({ x: m.vel.x, y: m.vel.y + 0.02, z: m.vel.z });
     } else {
-      const v = robot.getVelocity();
-      const yaw = input.yaw * (Math.PI / 180);
-      const ahead = { x: robot.location.x - Math.sin(yaw) * 1.9, y: robot.location.y + 0.5, z: robot.location.z + Math.cos(yaw) * 1.9 };
-      const blocked = robot.isOnGround && solidAt(robot.dimension, ahead);
-      const flop = landFlop(spec.speed, v, input, blocked);
-      robot.applyImpulse({ x: flop.x - v.x, y: flop.y > 0.4 ? flop.y - v.y : 0, z: flop.z - v.z });
-      m.vel = { x: flop.x, y: v.y, z: flop.z };
+      // The Robo Guardian hovers on land and zooms faster underwater.
+      const wet = robot.isInWater;
+      m.vel = steer(wet ? spec.swimSpeed : spec.speed, m.vel, input, { onGround: robot.isOnGround });
+      robot.clearVelocity();
+      robot.applyImpulse(m.vel);
     }
     robot.setRotation({ x: 0, y: input.yaw });
   } catch {
@@ -407,7 +401,7 @@ function drive(robot, index, player, tick) {
 /** Parked flying robots drift gently down to the ground. */
 function settle(m, tick) {
   const { robot } = m;
-  if (!robot.isValid || ROBOTS[m.index].move !== "fly") {
+  if (!robot.isValid || ROBOTS[m.index].move === "walk") {
     movers.delete(robot.id);
     return;
   }
@@ -645,27 +639,70 @@ function stepLasers(tick) {
     const from = fromRobot(robot, body.mouth, body.front);
     const { target, point } = laserAim(player, a.range);
     const firing = tick >= l.fireAt;
-    const steps = Math.min(60, Math.ceil(dist(from, point) / (firing ? 0.4 : 0.8)));
+    // A piercing laser keeps going past the first monster, all the way to its full range.
+    const len = dist(from, point) || 1;
+    const dir = { x: (point.x - from.x) / len, y: (point.y - from.y) / len, z: (point.z - from.z) / len };
+    const end = a.pierce && firing ? { x: from.x + dir.x * a.range, y: from.y + dir.y * a.range, z: from.z + dir.z * a.range } : point;
+    const steps = Math.min(80, Math.ceil(dist(from, end) / (firing ? 0.4 : 0.8)));
     if (tick % 2 === 0 || firing) {
       for (let i = 0; i <= steps; i++) {
         const t = i / Math.max(1, steps);
-        dot(robot.dimension, { x: from.x + (point.x - from.x) * t, y: from.y + (point.y - from.y) * t, z: from.z + (point.z - from.z) * t },
-          firing ? { red: 1, green: 0.95, blue: 0.4 } : { red: 0.75, green: 0.5, blue: 1 }, firing ? 0.45 : 0.15);
+        dot(robot.dimension, { x: from.x + (end.x - from.x) * t, y: from.y + (end.y - from.y) * t, z: from.z + (end.z - from.z) * t },
+          firing ? { red: 1, green: 0.95, blue: 0.4 } : { red: 0.75, green: 0.5, blue: 1 }, firing ? 0.7 : 0.15);
       }
     }
     if (!firing) continue;
     lasers.delete(id);
     sound(robot, "mob.shulker.shoot", 1, 0.8);
-    if (!target) continue;
-    if (ROBOT_IDS.has(target.typeId)) {
-      const me = sideOf(player, robot);
-      const pilot = pilotPlayerOf(target);
-      if (pilot && canBattle(me, sideOf(pilot, target))) hitRobot(player, robot, target, a.damage);
-    } else {
-      hurt(target, a.damage, player);
-      particle(target.dimension, "minecraft:critical_hit_emitter", center(target));
+    sound(robot, "beacon.deactivate", 0.6, 2);
+    const hitList = a.pierce ? [] : target ? [target] : [];
+    if (a.pierce) {
+      const mid = { x: from.x + dir.x * a.range / 2, y: from.y + dir.y * a.range / 2, z: from.z + dir.z * a.range / 2 };
+      for (const e of nearby(robot.dimension, mid, a.range / 2 + 8)) {
+        if (e.id === robot.id) continue;
+        if (isFoe(e) && inBeam(from, dir, center(e), a.range, a.width)) hitList.push(e);
+      }
+      const seen = new Set();
+      for (let d = 1; d <= a.range; d += 1.5) {
+        for (const other of battleTargets(player, robot, { x: from.x + dir.x * d, y: from.y + dir.y * d, z: from.z + dir.z * d }, a.width)) {
+          if (!seen.has(other.id)) hitList.push(other);
+          seen.add(other.id);
+        }
+      }
+    }
+    for (const t of hitList) {
+      if (ROBOT_IDS.has(t.typeId)) {
+        const pilot = pilotPlayerOf(t);
+        if (pilot && canBattle(sideOf(player, robot), sideOf(pilot, t))) hitRobot(player, robot, t, a.damage);
+      } else if (isFoe(t)) {
+        hurt(t, a.damage, player);
+        particle(t.dimension, "minecraft:critical_hit_emitter", center(t));
+      }
+    }
+    if (hitList.length > 1) actionBar(player, `§eLaser zapped ${hitList.length} at once!`);
+  }
+}
+
+/** Robo Guardian: its spikes zap monsters that come too close. */
+function spikeShield(player, robot, index, tick) {
+  const sh = ROBOTS[index].shield;
+  if (!sh || tick % sh.every !== 0) return;
+  const mid = robotMiddle(robot);
+  const foes = nearby(robot.dimension, mid, sh.radius + 2).filter((e) => isFoe(e) && dist(center(e), mid) <= sh.radius);
+  const others = battleTargets(player, robot, mid, sh.radius - 2);
+  if (!foes.length && !others.length) return;
+  for (const foe of foes) {
+    hurt(foe, sh.damage, player);
+    push(foe, mid, 1.2, 0.4);
+    const c = center(foe);
+    for (let i = 1; i <= 4; i++) {
+      const t = i / 5;
+      dot(robot.dimension, { x: mid.x + (c.x - mid.x) * t, y: mid.y + (c.y - mid.y) * t, z: mid.z + (c.z - mid.z) * t }, { red: 1, green: 0.6, blue: 0.2 }, 0.35);
     }
   }
+  for (const other of others) hitRobot(player, robot, other, 3);
+  sound(robot, "mob.guardian.hit", 0.8, 1.6);
+  actionBar(player, `§6${sh.name}!§r Zapped ${foes.length + others.length}`);
 }
 
 function explodeShot(s, at, direct, player) {
@@ -753,6 +790,7 @@ system.runInterval(() => {
     if (tick % 5 === 0) actionBar(player, hud(index, stateOf(robot), pilotState(player), tick));
     if (pilotPlayerOf(robot)?.id !== player.id) continue;
     if (spec.move === "fly" || spec.move === "swim") drive(robot, index, player, tick);
+    if (spec.shield) spikeShield(player, robot, index, tick);
     else {
       if (spec.climb) climb(robot, player);
       if (spec.bounce) bounce(robot, player, index);
@@ -801,7 +839,7 @@ system.runInterval(() => {
       const index = robotIndex(robot.typeId);
       if (index < 0) continue;
       stateOf(robot);
-      if (ROBOTS[index].move === "fly" && !movers.has(robot.id) && !robot.isOnGround && !ridersOf(robot).length) {
+      if (ROBOTS[index].move !== "walk" && !movers.has(robot.id) && !robot.isOnGround && !ridersOf(robot).length) {
         movers.set(robot.id, { robot, index, vel: { x: 0, y: 0, z: 0 }, drivenTick: system.currentTick });
       }
     }
