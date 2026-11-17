@@ -10,6 +10,20 @@
           "type": "bool",
           "default": false,
           "client_sync": true
+        },
+        "bender:pose": {
+          "type": "int",
+          "range": [
+            0,
+            3
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "bender:rage": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
         }
       }
     },

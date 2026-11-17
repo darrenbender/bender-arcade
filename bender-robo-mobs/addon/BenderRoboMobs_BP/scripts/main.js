@@ -7,17 +7,17 @@
 // Attacks only hurt monsters and bosses, plus other robots in Battle Mode
 // (both pilots have to switch it on). They never hurt players, pets or blocks.
 
-import { system, world, ButtonState, EntityDamageCause, GameMode, InputButton, ItemStack, MolangVariableMap } from "@minecraft/server";
+import { system, world, BlockPermutation, ButtonState, EntityDamageCause, GameMode, InputButton, ItemStack, MolangVariableMap } from "@minecraft/server";
 import { ActionFormData, FormCancelationReason } from "@minecraft/server-ui";
 import {
   ROBOTS, ROBOT_IDS, REMOTE_ID, PUNCH_DAMAGE, PUNCH_BATTLE, KO_TICKS,
   robotIndex, kitIndex, newRobotState, isDown, canBattle, battleHit, robotSecond,
   newPilot, useAttack, lookVector, fan, stepShot, newShot, waveDamage, bounceSmash,
-  steer, inBeam, hud, kitLore,
+  steer, inBeam, hud, kitLore, wardenPower, isRaging, addRage, useCooldown,
 } from "./robots.js";
 
 // Must match the version in both manifest.json files (checked by the tests).
-const PACK_VERSION = "1.0.4";
+const PACK_VERSION = "1.0.5";
 const WELCOME_KEY = "bender:robo_welcomed";
 const BATTLE_KEY = "bender:robo_battle";
 const KOS_KEY = "bender:robo_kos";
@@ -309,6 +309,10 @@ function hitRobot(player, myRobot, target, damage) {
   particle(target.dimension, "minecraft:critical_hit_emitter", center(target, 1.5));
   sound(target, "random.anvil_land", 0.35, 1.8);
   if (res.ko) knockOut(target, player, myRobot);
+  else if (ROBOTS[index].rage) {
+    const pilot = pilotPlayerOf(target);
+    if (pilot) feedRage(pilot, target, index, 0, system.currentTick);
+  }
 }
 
 function knockOut(robot, byPlayer, byRobot) {
@@ -360,6 +364,7 @@ function boarded(player, robot) {
   player.sendMessage(`${r.color}${r.name}§r: ${how} Hold the §bRobo Remote§r and tap for §e${r.attack.name}§r. Sneak to get off. §7Tip: first-person view puts you in the cockpit.`);
   sound(robot, "mob.irongolem.repair", 0.8, 0.8);
   if (r.key === "warden") {
+    player.sendMessage("§bRobo Warden powers:§r look §eahead§r and tap for Sonic Boom, look §edown§r for Ground Roar, look §eup§r for Mini Wardens. Hitting monsters fills its §cRage§r meter.");
     sound(robot, "mob.warden.roar", 1, 0.9);
     const at = fromRobot(robot, r.body.mouth, r.body.front);
     for (let i = 0; i < 4; i++) particle(robot.dimension, "minecraft:shriek_particle", { x: at.x, y: at.y + 1 + i * 0.8, z: at.z });
@@ -484,7 +489,13 @@ function attack(player, robot, index) {
   if (isDown(stateOf(robot), tick)) return;
   const pilot = pilotState(player);
   const r = ROBOTS[index];
+  if (r.roar) {
+    const power = wardenPower(player.getRotation().x);
+    if (power === "roar") return groundRoar(player, robot, index, tick);
+    if (power === "minis") return callMinis(player, robot, index, tick);
+  }
   const res = useAttack(pilot, index, tick);
+  if (res.ok && r.rage && isRaging(stateOf(robot), tick)) pilot.ready[r.key] = tick + Math.round(r.attack.cooldown * r.rage.recharge);
   if (!res.ok) {
     actionBar(player, `§7${r.attack.name} is recharging: ${res.wait}s`);
     return;
@@ -638,6 +649,7 @@ function startLaser(player, robot, index, tick) {
   const a = ROBOTS[index].attack;
   lasers.set(robot.id, { fireAt: tick + a.charge, index, playerId: player.id });
   if (a.style === "sonic") {
+    setPose(robot, 1);
     sound(robot, "mob.warden.sonic_charge", 1.2, 1);
     actionBar(player, "§bSonic Boom charging... keep aiming!");
   } else {
@@ -652,6 +664,7 @@ function stepLasers(tick) {
     const player = world.getEntity(l.playerId);
     if (!robot?.isValid || !player?.isValid || robotUnder(player)?.id !== id) {
       lasers.delete(id);
+      if (robot?.isValid) setPose(robot, 0);   // don't stay hunched if the pilot hops out mid-charge
       continue;
     }
     const a = ROBOTS[l.index].attack;
@@ -692,6 +705,9 @@ function stepLasers(tick) {
     lasers.delete(id);
     if (a.style === "sonic") {
       sound(robot, "mob.warden.sonic_boom", 1.5, 1);
+      setPose(robot, 2, 16);
+      sonicWave(robot.dimension, from, dir);
+      shake(player, 0.3, 0.4);
     } else {
       sound(robot, "mob.shulker.shoot", 1, 0.8);
       sound(robot, "beacon.deactivate", 0.6, 2);
@@ -712,24 +728,294 @@ function stepLasers(tick) {
         }
       }
     }
+    const damage = a.damage * rageBoost(robot, l.index, tick);
+    let foesHit = 0;
     for (const t of hitList) {
       if (ROBOT_IDS.has(t.typeId)) {
         const pilot = pilotPlayerOf(t);
-        if (pilot && canBattle(sideOf(player, robot), sideOf(pilot, t))) hitRobot(player, robot, t, a.damage);
+        if (pilot && canBattle(sideOf(player, robot), sideOf(pilot, t))) hitRobot(player, robot, t, damage);
       } else if (isFoe(t)) {
-        hurt(t, a.damage, player);
+        hurt(t, damage, player);
         particle(t.dimension, "minecraft:critical_hit_emitter", center(t));
+        foesHit++;
       }
     }
+    if (foesHit) feedRage(player, robot, l.index, foesHit, tick);
     if (hitList.length > 1) actionBar(player, `§e${a.name} hit ${hitList.length} at once!`);
   }
 }
+
+// ------------------------------------------------------------ Robo Warden powers
+
+const minis = new Map(); // player id -> [{ id, until }]
+const poseTimers = new Map(); // robot id -> tick to go back to the normal pose
+
+function setPose(robot, pose, ticks) {
+  try {
+    robot.setProperty("bender:pose", pose);
+  } catch {
+    // Not a warden, or gone.
+  }
+  if (ticks) poseTimers.set(robot.id, system.currentTick + ticks);
+  else poseTimers.delete(robot.id);
+}
+
+/** Shake the pilot's screen (a command, so it also works without cheats in scripts). */
+function shake(player, strength, seconds) {
+  try {
+    player.runCommand(`camerashake add @s ${strength} ${seconds} positional`);
+  } catch {
+    // Camera shake isn't available; carry on.
+  }
+}
+
+/** The blue wave out of the warden's mouth: rings that grow as they leave. */
+function sonicWave(dimension, from, dir) {
+  // two directions at right angles to the beam
+  const side = Math.hypot(dir.x, dir.z) > 0.01 ? { x: -dir.z, y: 0, z: dir.x } : { x: 1, y: 0, z: 0 };
+  const sl = Math.hypot(side.x, side.z) || 1;
+  const u = { x: side.x / sl, y: 0, z: side.z / sl };
+  const v = { x: dir.y * u.z - dir.z * u.y, y: dir.z * u.x - dir.x * u.z, z: dir.x * u.y - dir.y * u.x };
+  for (const [d, r] of [[1, 0.8], [3, 1.4], [5, 2]]) {
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      const c = Math.cos(a) * r;
+      const sn = Math.sin(a) * r;
+      dot(dimension, { x: from.x + dir.x * d + u.x * c + v.x * sn, y: from.y + dir.y * d + u.y * c + v.y * sn, z: from.z + dir.z * d + u.z * c + v.z * sn },
+        { red: 0.25, green: 0.85, blue: 1 }, 0.55);
+    }
+  }
+}
+
+function rageBoost(robot, index, tick) {
+  const rg = ROBOTS[index].rage;
+  return rg && isRaging(stateOf(robot), tick) ? rg.damage : 1;
+}
+
+function feedRage(player, robot, index, hits, tick) {
+  if (!ROBOTS[index].rage) return;
+  if (addRage(stateOf(robot), index, hits, tick) !== "start") return;
+  try {
+    robot.setProperty("bender:rage", true);
+  } catch {
+    // Gone.
+  }
+  sound(robot, "mob.warden.angry", 1.5, 0.8);
+  sound(robot, "mob.warden.roar", 1, 0.7);
+  title(player, "§c§lRAGE!", "§7Faster, harder Sonic Booms, and it glows red");
+  shake(player, 0.5, 0.6);
+}
+
+function endRage(robot) {
+  try {
+    robot.setProperty("bender:rage", false);
+  } catch {
+    // Gone.
+  }
+  sound(robot, "mob.warden.sniff", 1, 1);
+}
+
+function rageTick(robot, tick) {
+  if (!isRaging(stateOf(robot), tick)) return;
+  if (tick % 20 === 0) addEffect(robot, "speed", 40, 1);
+  if (tick % 4 === 0) {
+    const at = robotMiddle(robot);
+    dot(robot.dimension, { x: at.x + (Math.random() - 0.5) * 4, y: at.y + (Math.random() - 0.5) * 6, z: at.z + (Math.random() - 0.5) * 4 }, { red: 1, green: 0.2, blue: 0.15 }, 0.6);
+  }
+}
+
+function groundRoar(player, robot, index, tick) {
+  const r = ROBOTS[index];
+  const rr = r.roar;
+  const raging = isRaging(stateOf(robot), tick);
+  const cd = useCooldown(pilotState(player), "warden_roar", Math.round(rr.cooldown * (raging ? r.rage.recharge : 1)), tick);
+  if (!cd.ok) {
+    actionBar(player, `§7${rr.name} is recharging: ${cd.wait}s`);
+    return;
+  }
+  setPose(robot, 3, 30);
+  sound(robot, "mob.warden.roar", 2, 0.8);
+  shake(player, 0.7, 0.9);
+  const mouth = fromRobot(robot, r.body.mouth, r.body.front);
+  for (let i = 0; i < 5; i++) particle(robot.dimension, "minecraft:shriek_particle", { x: mouth.x, y: mouth.y + i * 0.8, z: mouth.z });
+  const at = robot.location;
+  for (let ring = 1; ring <= 3; ring++) {
+    const rad = (rr.radius * ring) / 3;
+    for (let i = 0; i < 12 * ring; i++) {
+      const a = (i / (12 * ring)) * Math.PI * 2;
+      dot(robot.dimension, { x: at.x + Math.cos(a) * rad, y: at.y + 0.4, z: at.z + Math.sin(a) * rad }, { red: 0.2, green: 0.9, blue: 0.95 }, 0.6);
+    }
+    particle(robot.dimension, "minecraft:sonic_explosion", { x: at.x + rad, y: at.y + 1, z: at.z });
+    particle(robot.dimension, "minecraft:sonic_explosion", { x: at.x - rad, y: at.y + 1, z: at.z });
+  }
+  const damage = rr.damage * rageBoost(robot, index, tick);
+  let hits = 0;
+  for (const foe of nearby(robot.dimension, at, rr.radius).filter(isFoe)) {
+    hurt(foe, damage, player);
+    push(foe, at, rr.knock, rr.lift);
+    for (const e of rr.effects) addEffect(foe, e.id, e.ticks, e.amp);
+    hits++;
+  }
+  for (const other of battleTargets(player, robot, at, rr.radius)) hitRobot(player, robot, other, damage);
+  if (hits) feedRage(player, robot, index, hits, tick);
+  actionBar(player, hits ? `§b${rr.name}!§r Threw ${hits} monster${hits === 1 ? "" : "s"}` : `§b${rr.name}!`);
+}
+
+function callMinis(player, robot, index, tick) {
+  const mm = ROBOTS[index].minis;
+  const cd = useCooldown(pilotState(player), "warden_minis", mm.cooldown, tick);
+  if (!cd.ok) {
+    actionBar(player, `§7${mm.name} are resting: ${cd.wait}s`);
+    return;
+  }
+  // only one pair at a time
+  for (const m of minis.get(player.id) ?? []) poof(world.getEntity(m.id));
+  const list = [];
+  const yaw = robot.getRotation().y;
+  const f = lookVector(yaw, 0);
+  for (let i = 0; i < mm.count; i++) {
+    const side = i % 2 === 0 ? 1 : -1;
+    const spot = { x: robot.location.x + f.x * 3 - f.z * 4 * side, y: robot.location.y + 0.2, z: robot.location.z + f.z * 3 + f.x * 4 * side };
+    let mini;
+    try {
+      mini = robot.dimension.spawnEntity(mm.id, spot);
+    } catch {
+      continue;
+    }
+    mini.nameTag = `${player.name}'s Mini Warden`;
+    list.push({ id: mini.id, until: tick + mm.seconds * 20 });
+    for (let k = 0; k < 4; k++) soulParticle(robot.dimension, "minecraft:sculk_soul_particle", { x: spot.x + (Math.random() - 0.5), y: spot.y + 0.5, z: spot.z + (Math.random() - 0.5) });
+  }
+  minis.set(player.id, list);
+  sound(robot, "mob.warden.emerge", 1, 1.4);
+  actionBar(player, `§b${mm.name}!§r They fight monsters for ${mm.seconds} seconds`);
+}
+
+function poof(mini) {
+  if (!mini?.isValid) return;
+  for (let k = 0; k < 4; k++) soulParticle(mini.dimension, "minecraft:sculk_soul_particle", { x: mini.location.x, y: mini.location.y + 1 + k * 0.4, z: mini.location.z });
+  try {
+    mini.remove();
+  } catch {
+    // Already gone.
+  }
+}
+
+/** Mini Wardens stay close to their warden and go poof when time is up. */
+function stepMinis(tick) {
+  for (const [playerId, list] of minis) {
+    const player = world.getEntity(playerId);
+    const robot = player ? robotUnder(player) : undefined;
+    const left = [];
+    for (const m of list) {
+      const mini = world.getEntity(m.id);
+      if (!mini?.isValid) continue;
+      if (tick >= m.until) {
+        poof(mini);
+        continue;
+      }
+      if (robot && dist(mini.location, robot.location) > 24) {
+        try {
+          mini.teleport({ x: robot.location.x + 2, y: robot.location.y, z: robot.location.z + 2 });
+        } catch {
+          // Try later.
+        }
+      }
+      left.push(m);
+    }
+    if (left.length) minis.set(playerId, left);
+    else minis.delete(playerId);
+  }
+}
+
+// --- the sculk trail: natural ground under its feet turns to glowing sculk for a while
+
+const TRAIL_KEY = "bender:robo_sculk";
+const NATURAL = new Set(["grass_block", "dirt", "coarse_dirt", "rooted_dirt", "podzol", "mycelium", "stone", "deepslate", "andesite", "diorite",
+  "granite", "tuff", "calcite", "sand", "red_sand", "gravel", "clay", "mud", "moss_block", "snow_block", "netherrack", "end_stone"].map((id) => `minecraft:${id}`));
+let trail = []; // { dim, x, y, z, id, states, until }
+let trailDirty = false;
+let trailLoaded = false;
+const trailSpots = new Map(); // robot id -> where it was last time
+let sculkPerm;
+
+function sculkTrail(robot, index, tick) {
+  const tr = ROBOTS[index].trail;
+  if (tick % tr.every !== 0 || !robot.isOnGround || trail.length >= tr.max) return;
+  const here = robot.location;
+  const last = trailSpots.get(robot.id);
+  trailSpots.set(robot.id, { ...here });
+  if (!last || Math.hypot(here.x - last.x, here.z - last.z) < 0.3) return;   // only while it walks
+  if (!sculkPerm) {
+    try {
+      sculkPerm = BlockPermutation.resolve("minecraft:sculk");
+    } catch {
+      return;
+    }
+  }
+  for (let i = 0; i < tr.perStep; i++) {
+    const pos = { x: Math.floor(here.x + (Math.random() - 0.5) * 3), y: Math.floor(here.y) - 1, z: Math.floor(here.z + (Math.random() - 0.5) * 3) };
+    try {
+      const block = robot.dimension.getBlock(pos);
+      const above = robot.dimension.getBlock({ x: pos.x, y: pos.y + 1, z: pos.z });
+      if (!block || !NATURAL.has(block.typeId) || !above?.isAir) continue;
+      trail.push({ dim: robot.dimension.id, x: pos.x, y: pos.y, z: pos.z, id: block.typeId, states: block.permutation.getAllStates(), until: tick + tr.seconds * 20 });
+      block.setPermutation(sculkPerm);
+      trailDirty = true;
+      soulParticle(robot.dimension, "minecraft:sculk_soul_particle", { x: pos.x + 0.5, y: pos.y + 1.1, z: pos.z + 0.5 });
+    } catch {
+      // Not loaded.
+    }
+  }
+}
+
+/** Put the ground back the way it was (also after the world was closed). */
+system.runInterval(() => {
+  const now = system.currentTick;
+  if (!trailLoaded) {
+    trailLoaded = true;
+    try {
+      const saved = JSON.parse(String(world.getDynamicProperty(TRAIL_KEY) ?? "[]"));
+      for (const b of saved) b.until = 0;
+      trail = saved.concat(trail);
+    } catch {
+      // Nothing saved.
+    }
+  }
+  const keep = [];
+  for (const b of trail) {
+    if (b.until > now) {
+      keep.push(b);
+      continue;
+    }
+    try {
+      const block = world.getDimension(b.dim).getBlock(b);
+      if (!block) throw new Error("not loaded");
+      if (block.typeId === "minecraft:sculk") block.setPermutation(BlockPermutation.resolve(b.id, b.states));
+      trailDirty = true;
+    } catch {
+      keep.push({ ...b, until: now + 100 });   // not loaded yet: try again later
+    }
+  }
+  trail = keep;
+  if (trailDirty) {
+    trailDirty = false;
+    world.setDynamicProperty(TRAIL_KEY, JSON.stringify(trail.map(({ dim, x, y, z, id, states }) => ({ dim, x, y, z, id, states }))));
+  }
+  if (now % 20 === 0) stepMinis(now);
+  for (const [id, at] of poseTimers) {
+    if (now < at) continue;
+    poseTimers.delete(id);
+    const robot = world.getEntity(id);
+    if (robot?.isValid) setPose(robot, 0);
+  }
+}, 10);
 
 /** Robo Warden: senses monsters nearby, even through walls, and its heart beats. */
 function monsterSense(player, robot, index, tick) {
   const sn = ROBOTS[index].sense;
   if (!sn) return;
-  if (tick % 24 === 0) sound(robot, "mob.warden.heartbeat", 0.5, 1);
+  if (tick % (isRaging(stateOf(robot), tick) ? 10 : 24) === 0) sound(robot, "mob.warden.heartbeat", 0.5, 1);
   if (tick % sn.every !== 0) return;
   const mid = robotMiddle(robot);
   const foes = nearby(robot.dimension, mid, sn.radius).filter(isFoe).sort((a, b) => dist(a.location, mid) - dist(b.location, mid));
@@ -851,6 +1137,8 @@ system.runInterval(() => {
     if (spec.move === "fly" || spec.move === "swim") drive(robot, index, player, tick);
     if (spec.shield) spikeShield(player, robot, index, tick);
     if (spec.sense) monsterSense(player, robot, index, tick);
+    if (spec.trail) sculkTrail(robot, index, tick);
+    if (spec.rage) rageTick(robot, tick);
     else {
       if (spec.climb) climb(robot, player);
       if (spec.bounce) bounce(robot, player, index);
@@ -869,7 +1157,9 @@ system.runInterval(() => {
         robotStates.delete(id);
         continue;
       }
-      if (robotSecond(state, robotIndex(robot.typeId), tick) === "repaired") {
+      const change = robotSecond(state, robotIndex(robot.typeId), tick);
+      if (change === "calm") endRage(robot);
+      if (change === "repaired") {
         try {
           robot.triggerEvent("bender:repair");
         } catch {

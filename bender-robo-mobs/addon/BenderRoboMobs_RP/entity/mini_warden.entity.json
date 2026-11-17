@@ -1,0 +1,28 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:mini_warden",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/robo_mobs/warden"
+      },
+      "geometry": {
+        "default": "geometry.bender_robo_mini_warden"
+      },
+      "animations": {
+        "move": "animation.bender_robo.warden.move"
+      },
+      "scripts": {
+        "animate": [
+          "move"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.bender_robo"
+      ]
+    }
+  }
+}

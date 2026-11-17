@@ -1,0 +1,75 @@
+{
+ "format_version": "1.10.0",
+ "animation_controllers": {
+  "controller.animation.bender_robo.warden_pose": {
+   "initial_state": "idle",
+   "states": {
+    "idle": {
+     "transitions": [
+      {
+       "hunch": "q.property('bender:pose') == 1"
+      },
+      {
+       "boom": "q.property('bender:pose') == 2"
+      },
+      {
+       "roar": "q.property('bender:pose') == 3"
+      }
+     ],
+     "blend_transition": 0.2
+    },
+    "hunch": {
+     "transitions": [
+      {
+       "idle": "q.property('bender:pose') == 0"
+      },
+      {
+       "boom": "q.property('bender:pose') == 2"
+      },
+      {
+       "roar": "q.property('bender:pose') == 3"
+      }
+     ],
+     "blend_transition": 0.2,
+     "animations": [
+      "hunch"
+     ]
+    },
+    "boom": {
+     "transitions": [
+      {
+       "idle": "q.property('bender:pose') == 0"
+      },
+      {
+       "hunch": "q.property('bender:pose') == 1"
+      },
+      {
+       "roar": "q.property('bender:pose') == 3"
+      }
+     ],
+     "blend_transition": 0.12,
+     "animations": [
+      "boom"
+     ]
+    },
+    "roar": {
+     "transitions": [
+      {
+       "idle": "q.property('bender:pose') == 0"
+      },
+      {
+       "hunch": "q.property('bender:pose') == 1"
+      },
+      {
+       "boom": "q.property('bender:pose') == 2"
+      }
+     ],
+     "blend_transition": 0.2,
+     "animations": [
+      "roar"
+     ]
+    }
+   }
+  }
+ }
+}

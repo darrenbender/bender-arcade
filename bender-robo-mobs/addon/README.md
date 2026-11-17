@@ -7,7 +7,7 @@
   - `scripts/main.js`: riding, flying/swimming each tick, wall climbing, the slime
     smash, all special attacks, Battle Mode, robo punches, packing up, the Robo Remote
     menu, item descriptions and the welcome gift
-  - `entities/robo_*.json`: one per robot (13). Walkers are ridden like horses
+  - `entities/robo_*.json`: one per robot (13), plus `mini_warden.json` (the Robo Warden's helpers: fight monsters, never hurt players, go poof after 32 s). Walkers are ridden like horses
     (`input_ground_controlled`); the Blaze, Ghast and Wither have no gravity and are
     flown by the script; the Guardian (also no gravity) hovers and swims, steered by the script. Robots never take normal
     damage. `bender:knock_out` removes the `bender:rideable` group and sets
@@ -17,7 +17,7 @@
   robot is a giant, 5-14 blocks, with a hollow cockpit in its chest where the pilot sits:
   the seat in each entity file is on the cockpit floor),
   textures (glowing pixels have alpha 0 for the `entity_emissive_alpha` material),
-  walk/idle/knocked-out animations, kit and remote icons, the `bender:robo_dot` particle
+  walk/idle/knocked-out animations, the Robo Warden's poses (hunch, boom, roar) blended by `animation_controllers/robo_mobs.animation_controllers.json` from its `bender:pose` property, its red Rage texture (`bender:rage`), kit and remote icons, the `bender:robo_dot` particle
 
 ## The robots
 
@@ -35,7 +35,7 @@
 | Robo Wither | flies | Skull Volley | Block of Coal |
 | Robo Guardian | hovers on land, faster underwater; Spike Shield zaps monsters within 6 blocks | Laser (charges, then zaps every monster along the beam) | Prismarine Shard |
 | Robo Wolf | walks, fastest | Pounce | Bone |
-| Robo Warden | walks, biggest (14 blocks) and toughest; Monster Sense shows monsters within 24 blocks | Sonic Boom (charges, then blasts through walls and every monster on the beam) | Echo Shard |
+| Robo Warden | walks, biggest (14 blocks) and toughest; Monster Sense; Rage mode (8 monster hits: red glow, faster, 1.5x damage, half recharge for 15 s); a sculk trail that turns back after 10 s | aim ahead: Sonic Boom from its mouth (hunch, then arms-spread pose); aim down: Ground Roar (camera shake, throws monsters); aim up: 2 Mini Wardens for 30 s | Echo Shard |
 
 Kits: 6 iron ingots, 1 redstone and the robot's item (`IXI / IRI / I I`). Remote:
 redstone over 2 iron ingots. Attacks only hurt monsters and bosses, plus other robots

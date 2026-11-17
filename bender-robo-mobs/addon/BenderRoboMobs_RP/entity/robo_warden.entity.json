@@ -7,25 +7,31 @@
         "default": "entity_emissive_alpha"
       },
       "textures": {
-        "default": "textures/entity/robo_mobs/warden"
+        "default": "textures/entity/robo_mobs/warden",
+        "rage": "textures/entity/robo_mobs/warden_rage"
       },
       "geometry": {
         "default": "geometry.bender_robo_warden"
       },
       "animations": {
         "down": "animation.bender_robo.down",
-        "move": "animation.bender_robo.warden.move"
+        "move": "animation.bender_robo.warden.move",
+        "hunch": "animation.bender_robo.warden.hunch",
+        "boom": "animation.bender_robo.warden.boom",
+        "roar": "animation.bender_robo.warden.roar",
+        "pose_ctrl": "controller.animation.bender_robo.warden_pose"
       },
       "scripts": {
         "animate": [
           "move",
           {
             "down": "q.property('bender:down')"
-          }
+          },
+          "pose_ctrl"
         ]
       },
       "render_controllers": [
-        "controller.render.bender_robo"
+        "controller.render.bender_robo_warden"
       ]
     }
   }

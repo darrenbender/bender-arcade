@@ -83,9 +83,16 @@ export const ROBOTS = [
   },
   {
     key: "warden", name: "Robo Warden", color: "§b", move: "walk", speed: 0.27, jump: 0.8, armor: 100,
-    drop: "minecraft:echo_shard", about: "The biggest! Its Sonic Boom blasts through walls",
+    drop: "minecraft:echo_shard", about: "The biggest! Aim up, ahead or down for powers",
     attack: { name: "Sonic Boom", kind: "laser", style: "sonic", charge: 20, damage: 18, range: 24, cooldown: 80, pierce: true, width: 2 },
     sense: { name: "Monster Sense", radius: 24, every: 40 },
+    // Look down and tap: the Ground Roar. Look up and tap: Mini Wardens.
+    roar: { name: "Ground Roar", radius: 10, damage: 8, knock: 2.2, lift: 1.1, cooldown: 120, effects: [fx("slowness", 4, 2)] },
+    minis: { name: "Mini Wardens", id: "bender:mini_warden", count: 2, seconds: 30, cooldown: 900 },
+    // Rage builds as its powers hit monsters (or when its armor gets low in Battle Mode).
+    rage: { name: "Rage", meter: 8, seconds: 15, armorBelow: 0.3, recharge: 0.5, damage: 1.5 },
+    // Glowing sculk spreads where it stomps, then turns back into the ground that was there.
+    trail: { every: 4, perStep: 3, seconds: 10, max: 300 },
   },
 ];
 
@@ -105,7 +112,7 @@ const BODIES = {
   wither: { size: [8.12, 10.31], mouth: 9.06, front: 1.56 },
   guardian: { size: [10.59, 6.8], mouth: 3.12, front: 2.81 },
   wolf: { size: [9.45, 4.84], mouth: 3.44, front: 4.69 },
-  warden: { size: [7.34, 14.06], mouth: 9.69, front: 1.72 },
+  warden: { size: [7.34, 14.06], mouth: 9.38, front: 1.8 },
 };
 
 for (const r of ROBOTS) {
@@ -127,7 +134,7 @@ export function kitIndex(typeId) {
 // ------------------------------------------------------------ armor and Battle Mode
 
 export function newRobotState(index) {
-  return { armor: ROBOTS[index].armor, downUntil: 0, lastHit: -100000 };
+  return { armor: ROBOTS[index].armor, downUntil: 0, lastHit: -100000, rage: 0, rageUntil: 0 };
 }
 
 export function isDown(state, tick) {
@@ -160,7 +167,47 @@ export function robotSecond(state, index, tick) {
   if (state.downUntil === 0 && tick - state.lastHit >= REGEN_DELAY && state.armor < max) {
     state.armor = Math.min(max, state.armor + REGEN_PER_SECOND);
   }
+  if (state.rageUntil > 0 && tick >= state.rageUntil) {
+    state.rageUntil = 0;
+    return "calm";
+  }
   return undefined;
+}
+
+// ------------------------------------------------------------ the Robo Warden's extra powers
+
+/** Where the pilot aims picks the Robo Warden's power: down = roar, up = Mini Wardens, else Sonic Boom. */
+export function wardenPower(pitch) {
+  if (pitch >= 45) return "roar";
+  if (pitch <= -35) return "minis";
+  return "boom";
+}
+
+export function isRaging(state, tick) {
+  return tick < (state.rageUntil ?? 0);
+}
+
+/**
+ * Fill the rage meter (hits = monsters a power just hit). Returns "start" when Rage mode begins.
+ * Low armor (Battle Mode) starts it too. No meter filling while already raging.
+ */
+export function addRage(state, index, hits, tick) {
+  const rg = ROBOTS[index].rage;
+  if (!rg || isRaging(state, tick)) return undefined;
+  state.rage = Math.min(rg.meter, (state.rage ?? 0) + Math.max(0, hits));
+  const low = state.armor > 0 && state.armor <= ROBOTS[index].armor * rg.armorBelow;
+  if (state.rage < rg.meter && !low) return undefined;
+  state.rage = 0;
+  state.rageUntil = tick + rg.seconds * 20;
+  return "start";
+}
+
+/** Any cooldown by name. Returns { ok } or { ok: false, wait } (seconds). */
+export function useCooldown(pilot, key, ticks, tick) {
+  const at = pilot.ready[key] ?? 0;
+  if (tick < at) return { ok: false, wait: Math.ceil((at - tick) / 20) };
+  pilot.ready[key] = tick + ticks;
+  return { ok: true };
 }
 
 // ------------------------------------------------------------ special attacks
@@ -284,11 +331,18 @@ export function hud(index, state, pilot, tick) {
   const attack = wait > 0 ? `§7${r.attack.name}: ${wait}s` : `§b${r.attack.name}: ready`;
   const battle = pilot.battle ? "  §c⚔ Battle ON" : "";
   const sense = r.sense && pilot.sensed !== undefined ? `  §3Senses ${pilot.sensed} monster${pilot.sensed === 1 ? "" : "s"}` : "";
-  return `${r.color}§l${r.name}§r  §fArmor ${bar(state.armor / r.armor)}  ${attack}${sense}${battle}`;
+  let rage = "";
+  if (r.rage) {
+    rage = isRaging(state, tick)
+      ? `  §c§lRAGE! ${Math.ceil((state.rageUntil - tick) / 20)}s§r`
+      : `  §cRage ${"▮".repeat(state.rage ?? 0)}§8${"▮".repeat(r.rage.meter - (state.rage ?? 0))}`;
+  }
+  return `${r.color}§l${r.name}§r  §fArmor ${bar(state.armor / r.armor)}  ${attack}${rage}${sense}${battle}`;
 }
 
 export function kitLore(index) {
   const r = ROBOTS[index];
   const moves = { walk: "Walks", fly: "Flies: look where to go, hold jump to climb", swim: "Hovers on land, zooms underwater" }[r.move];
-  return [`§7${r.about}`, `§7${moves}`, `§bRemote attack: ${r.attack.name}`, "§8Place it, then tap it to ride"];
+  const extra = r.roar ? ["§3Look down: Ground Roar. Look up: Mini Wardens"] : [];
+  return [`§7${r.about}`, `§7${moves}`, `§bRemote attack: ${r.attack.name}`, ...extra, "§8Place it, then tap it to ride"];
 }

@@ -11,6 +11,25 @@
       "textures": [
         "Texture.default"
       ]
+    },
+    "controller.render.bender_robo_warden": {
+      "arrays": {
+        "textures": {
+          "Array.glow": [
+            "Texture.default",
+            "Texture.rage"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.glow[q.property('bender:rage') ? 1 : 0]"
+      ]
     }
   }
 }

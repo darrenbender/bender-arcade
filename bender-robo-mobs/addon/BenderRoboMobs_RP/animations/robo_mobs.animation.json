@@ -18,6 +18,126 @@
     }
    }
   },
+  "animation.bender_robo.warden.hunch": {
+   "loop": true,
+   "bones": {
+    "body": {
+     "rotation": [
+      16,
+      0,
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      14,
+      0,
+      0
+     ]
+    },
+    "jaw": {
+     "rotation": [
+      6,
+      0,
+      0
+     ]
+    },
+    "arm_l": {
+     "rotation": [
+      -28,
+      0,
+      10
+     ]
+    },
+    "arm_r": {
+     "rotation": [
+      -28,
+      0,
+      -10
+     ]
+    }
+   }
+  },
+  "animation.bender_robo.warden.boom": {
+   "loop": true,
+   "bones": {
+    "body": {
+     "rotation": [
+      -8,
+      0,
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      -14,
+      0,
+      0
+     ]
+    },
+    "jaw": {
+     "rotation": [
+      28,
+      0,
+      0
+     ]
+    },
+    "arm_l": {
+     "rotation": [
+      -10,
+      0,
+      -70
+     ]
+    },
+    "arm_r": {
+     "rotation": [
+      -10,
+      0,
+      70
+     ]
+    }
+   }
+  },
+  "animation.bender_robo.warden.roar": {
+   "loop": true,
+   "bones": {
+    "body": {
+     "rotation": [
+      -6,
+      0,
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      -30,
+      0,
+      0
+     ]
+    },
+    "jaw": {
+     "rotation": [
+      40,
+      0,
+      0
+     ]
+    },
+    "arm_l": {
+     "rotation": [
+      -60,
+      0,
+      -35
+     ]
+    },
+    "arm_r": {
+     "rotation": [
+      -60,
+      0,
+      35
+     ]
+    }
+   }
+  },
   "animation.bender_robo.creeper.move": {
    "loop": true,
    "bones": {
