@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Village Cities Textures",
-    "description": "Textures for the Village Cities add-on.",
+    "name": "Village Cities Textures v1.0.2",
+    "description": "Version 1.0.2. Textures for the Village Cities add-on.",
     "uuid": "6bff62be-6c57-477a-84fc-7bde8020b00f",
     "version": [
       1,
       0,
-      1
+      2
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     }
   ],

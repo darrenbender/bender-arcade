@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Mechs Textures",
-    "description": "Models and textures for Bender Mechs.",
+    "name": "Bender Mechs Textures v1.0.2",
+    "description": "Version 1.0.2. Models and textures for Bender Mechs.",
     "uuid": "842f3e02-1aa9-4edb-97e1-dbf273d30e95",
     "version": [
       1,
       0,
-      1
+      2
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     }
   ],

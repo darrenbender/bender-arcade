@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Royal Castle",
-    "description": "Tap the Castle Kit and a whole castle builds itself. Sit on the throne and wear the Royal Crown. Made for Michael and James.",
+    "name": "Royal Castle v1.0.2",
+    "description": "Version 1.0.2. Tap the Castle Kit and a whole castle builds itself. Sit on the throne and wear the Royal Crown. Made for Michael and James.",
     "uuid": "7343f2db-8214-4c9d-919c-f772ec3ab2fe",
     "version": [
       1,
       0,
-      1
+      2
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     },
     {
@@ -33,7 +33,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     }
   ],
@@ -43,7 +43,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     },
     {

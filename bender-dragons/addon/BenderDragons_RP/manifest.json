@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Dragons Textures",
-    "description": "Models and textures for Bender Dragons.",
+    "name": "Bender Dragons Textures v1.0.2",
+    "description": "Version 1.0.2. Models and textures for Bender Dragons.",
     "uuid": "d9151709-873e-455b-9496-71b857dadc78",
     "version": [
       1,
       0,
-      1
+      2
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     }
   ],

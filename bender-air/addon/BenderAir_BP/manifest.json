@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Air",
-    "description": "Fly a stunt plane, a jet and a private jet, and paint them any way you like. Made for Michael and James.",
+    "name": "Bender Air v1.0.2",
+    "description": "Version 1.0.2. Fly a stunt plane, a jet and a private jet, and paint them any way you like. Made for Michael and James.",
     "uuid": "f71419b3-a5bb-42c9-88b5-e4f440e3b4be",
     "version": [
       1,
       0,
-      1
+      2
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     },
     {
@@ -33,7 +33,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     }
   ],
@@ -43,7 +43,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     },
     {

@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Dragons",
-    "description": "Fight the Ender Dragon in the Overworld, then hatch, raise and ride a dragon of your own. Made for Michael and James.",
+    "name": "Bender Dragons v1.0.2",
+    "description": "Version 1.0.2. Fight the Ender Dragon in the Overworld, then hatch, raise and ride a dragon of your own. Made for Michael and James.",
     "uuid": "69d2393c-e100-4044-ba6f-68c38d2465e0",
     "version": [
       1,
       0,
-      1
+      2
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     },
     {
@@ -33,7 +33,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     }
   ],
@@ -43,7 +43,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     },
     {

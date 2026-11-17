@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Elements",
-    "description": "Ten elements to master: staffs with 40 powers, guardian bosses, and element armor. Made for Michael and James.",
+    "name": "Bender Elements v1.0.3",
+    "description": "Version 1.0.3. Ten elements to master: staffs with 40 powers, guardian bosses, and element armor. Made for Michael and James.",
     "uuid": "0a368a30-1bb7-4507-92f8-507ef9af341d",
     "version": [
       1,
       0,
-      2
+      3
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        2
+        3
       ]
     },
     {
@@ -33,7 +33,7 @@
       "version": [
         1,
         0,
-        2
+        3
       ]
     }
   ],
@@ -43,7 +43,7 @@
       "version": [
         1,
         0,
-        2
+        3
       ]
     },
     {

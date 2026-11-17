@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Village Cities",
-    "description": "Tap the City Charter and a whole city builds itself. Made for Michael and James.",
+    "name": "Village Cities v1.0.2",
+    "description": "Version 1.0.2. Tap the City Charter and a whole city builds itself. Made for Michael and James.",
     "uuid": "84641722-6a7c-4bec-a3e3-3868bd19f3f8",
     "version": [
       1,
       0,
-      1
+      2
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     },
     {
@@ -33,7 +33,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     }
   ],
@@ -43,7 +43,7 @@
       "version": [
         1,
         0,
-        1
+        2
       ]
     },
     {
