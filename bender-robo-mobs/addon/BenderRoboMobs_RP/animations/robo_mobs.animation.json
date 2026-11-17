@@ -481,6 +481,60 @@
      ]
     }
    }
+  },
+  "animation.bender_robo.warden.move": {
+   "loop": true,
+   "bones": {
+    "leg_l": {
+     "rotation": [
+      "math.sin(q.modified_distance_moved * 9) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
+      0,
+      0
+     ]
+    },
+    "leg_r": {
+     "rotation": [
+      "math.sin(q.modified_distance_moved * 9 + 180) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
+      0,
+      0
+     ]
+    },
+    "arm_l": {
+     "rotation": [
+      "math.sin(q.modified_distance_moved * 9 + 180) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
+      0,
+      0
+     ]
+    },
+    "arm_r": {
+     "rotation": [
+      "math.sin(q.modified_distance_moved * 9) * 28 * math.min(q.modified_move_speed * 1.6, 1)",
+      0,
+      0
+     ]
+    },
+    "horn_l": {
+     "rotation": [
+      0,
+      0,
+      "-math.sin(q.life_time * 160) * 10"
+     ]
+    },
+    "horn_r": {
+     "rotation": [
+      0,
+      0,
+      "math.sin(q.life_time * 160) * 10"
+     ]
+    },
+    "heart": {
+     "scale": [
+      "1 + math.max(0, math.sin(q.life_time * 450)) * 0.25",
+      "1 + math.max(0, math.sin(q.life_time * 450)) * 0.25",
+      "1 + math.max(0, math.sin(q.life_time * 450)) * 0.25"
+     ]
+    }
+   }
   }
  }
 }

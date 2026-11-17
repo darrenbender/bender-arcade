@@ -7,14 +7,14 @@
   - `scripts/main.js`: riding, flying/swimming each tick, wall climbing, the slime
     smash, all special attacks, Battle Mode, robo punches, packing up, the Robo Remote
     menu, item descriptions and the welcome gift
-  - `entities/robo_*.json`: one per robot. Walkers are ridden like horses
+  - `entities/robo_*.json`: one per robot (13). Walkers are ridden like horses
     (`input_ground_controlled`); the Blaze, Ghast and Wither have no gravity and are
     flown by the script; the Guardian (also no gravity) hovers and swims, steered by the script. Robots never take normal
     damage. `bender:knock_out` removes the `bender:rideable` group and sets
     `bender:down`; `bender:repair` puts both back.
-  - `items/`, `recipes/`: 12 robot kits and the Robo Remote
+  - `items/`, `recipes/`: 13 robot kits and the Robo Remote
 - `BenderRoboMobs_RP/`: resource pack: models (`models/entity/robo_mobs.geo.json`; each
-  robot is a giant, 5-11 blocks, with a hollow cockpit in its chest where the pilot sits:
+  robot is a giant, 5-14 blocks, with a hollow cockpit in its chest where the pilot sits:
   the seat in each entity file is on the cockpit floor),
   textures (glowing pixels have alpha 0 for the `entity_emissive_alpha` material),
   walk/idle/knocked-out animations, kit and remote icons, the `bender:robo_dot` particle
@@ -35,6 +35,7 @@
 | Robo Wither | flies | Skull Volley | Block of Coal |
 | Robo Guardian | hovers on land, faster underwater; Spike Shield zaps monsters within 6 blocks | Laser (charges, then zaps every monster along the beam) | Prismarine Shard |
 | Robo Wolf | walks, fastest | Pounce | Bone |
+| Robo Warden | walks, biggest (14 blocks) and toughest; Monster Sense shows monsters within 24 blocks | Sonic Boom (charges, then blasts through walls and every monster on the beam) | Echo Shard |
 
 Kits: 6 iron ingots, 1 redstone and the robot's item (`IXI / IRI / I I`). Remote:
 redstone over 2 iron ingots. Attacks only hurt monsters and bosses, plus other robots

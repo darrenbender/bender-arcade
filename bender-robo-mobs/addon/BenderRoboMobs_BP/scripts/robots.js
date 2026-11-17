@@ -1,4 +1,4 @@
-// Bender Robo Mobs rules: the 12 robots, their special attacks, Battle Mode, and how
+// Bender Robo Mobs rules: the 13 robots, their special attacks, Battle Mode, and how
 // flying and swimming robots steer. No Minecraft imports, so all of this can be
 // tested outside the game.
 //
@@ -81,6 +81,12 @@ export const ROBOTS = [
     drop: "minecraft:bone", about: "The fastest runner. Pounce leaps at monsters",
     attack: { name: "Pounce", kind: "dash", power: 1.8, up: 0.5, damage: 9, ticks: 14, cooldown: 40 },
   },
+  {
+    key: "warden", name: "Robo Warden", color: "§b", move: "walk", speed: 0.27, jump: 0.8, armor: 100,
+    drop: "minecraft:echo_shard", about: "The biggest! Its Sonic Boom blasts through walls",
+    attack: { name: "Sonic Boom", kind: "laser", style: "sonic", charge: 20, damage: 18, range: 24, cooldown: 80, pierce: true, width: 2 },
+    sense: { name: "Monster Sense", radius: 24, every: 40 },
+  },
 ];
 
 
@@ -99,6 +105,7 @@ const BODIES = {
   wither: { size: [8.12, 10.31], mouth: 9.06, front: 1.56 },
   guardian: { size: [10.59, 6.8], mouth: 3.12, front: 2.81 },
   wolf: { size: [9.45, 4.84], mouth: 3.44, front: 4.69 },
+  warden: { size: [7.34, 14.06], mouth: 9.69, front: 1.72 },
 };
 
 for (const r of ROBOTS) {
@@ -276,7 +283,8 @@ export function hud(index, state, pilot, tick) {
   const wait = secondsLeft(pilot, index, tick);
   const attack = wait > 0 ? `§7${r.attack.name}: ${wait}s` : `§b${r.attack.name}: ready`;
   const battle = pilot.battle ? "  §c⚔ Battle ON" : "";
-  return `${r.color}§l${r.name}§r  §fArmor ${bar(state.armor / r.armor)}  ${attack}${battle}`;
+  const sense = r.sense && pilot.sensed !== undefined ? `  §3Senses ${pilot.sensed} monster${pilot.sensed === 1 ? "" : "s"}` : "";
+  return `${r.color}§l${r.name}§r  §fArmor ${bar(state.armor / r.armor)}  ${attack}${sense}${battle}`;
 }
 
 export function kitLore(index) {

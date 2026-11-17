@@ -40,6 +40,9 @@
     },
     "bender_robo_wolf_kit": {
       "textures": "textures/items/robo_mobs/wolf_kit"
+    },
+    "bender_robo_warden_kit": {
+      "textures": "textures/items/robo_mobs/warden_kit"
     }
   }
 }

@@ -84,6 +84,13 @@ function particle(dimension, id, location, vars) {
   }
 }
 
+/** Sculk particles drift along "variable.direction"; this sends them upward. */
+function soulParticle(dimension, id, location) {
+  const vars = new MolangVariableMap();
+  vars.setVector3("variable.direction", { x: 0, y: 1, z: 0 });
+  particle(dimension, id, location, vars);
+}
+
 function dot(dimension, location, color, size) {
   const vars = new MolangVariableMap();
   vars.setColorRGB("variable.color", color);
@@ -350,6 +357,11 @@ function boarded(player, robot) {
   title(player, `${r.color}§l${r.name}`, `§7${how}`);
   player.sendMessage(`${r.color}${r.name}§r: ${how} Hold the §bRobo Remote§r and tap for §e${r.attack.name}§r. Sneak to get off. §7Tip: first-person view puts you in the cockpit.`);
   sound(robot, "mob.irongolem.repair", 0.8, 0.8);
+  if (r.key === "warden") {
+    sound(robot, "mob.warden.roar", 1, 0.9);
+    const at = fromRobot(robot, r.body.mouth, r.body.front);
+    for (let i = 0; i < 4; i++) particle(robot.dimension, "minecraft:shriek_particle", { x: at.x, y: at.y + 1 + i * 0.8, z: at.z });
+  }
 }
 
 function leftRobot(player) {
@@ -621,9 +633,15 @@ function laserAim(player, range) {
 }
 
 function startLaser(player, robot, index, tick) {
-  lasers.set(robot.id, { fireAt: tick + ROBOTS[index].attack.charge, index, playerId: player.id });
-  sound(robot, "mob.guardian.attack_loop", 1, 1);
-  actionBar(player, "§eLaser charging... keep aiming!");
+  const a = ROBOTS[index].attack;
+  lasers.set(robot.id, { fireAt: tick + a.charge, index, playerId: player.id });
+  if (a.style === "sonic") {
+    sound(robot, "mob.warden.sonic_charge", 1.2, 1);
+    actionBar(player, "§bSonic Boom charging... keep aiming!");
+  } else {
+    sound(robot, "mob.guardian.attack_loop", 1, 1);
+    actionBar(player, "§eLaser charging... keep aiming!");
+  }
 }
 
 function stepLasers(tick) {
@@ -639,32 +657,54 @@ function stepLasers(tick) {
     const from = fromRobot(robot, body.mouth, body.front);
     const { target, point } = laserAim(player, a.range);
     const firing = tick >= l.fireAt;
-    // A piercing laser keeps going past the first monster, all the way to its full range.
+    // The beam goes from the robot to the spot under the pilot's crosshair. A piercing one then
+    // keeps going along the pilot's line of sight, to its full range (a giant's mouth is high
+    // up, so carrying on at the mouth's angle would dive into the ground).
     const len = dist(from, point) || 1;
     const dir = { x: (point.x - from.x) / len, y: (point.y - from.y) / len, z: (point.z - from.z) / len };
-    const end = a.pierce && firing ? { x: from.x + dir.x * a.range, y: from.y + dir.y * a.range, z: from.z + dir.z * a.range } : point;
-    const steps = Math.min(80, Math.ceil(dist(from, end) / (firing ? 0.4 : 0.8)));
-    if (tick % 2 === 0 || firing) {
-      for (let i = 0; i <= steps; i++) {
-        const t = i / Math.max(1, steps);
-        dot(robot.dimension, { x: from.x + (end.x - from.x) * t, y: from.y + (end.y - from.y) * t, z: from.z + (end.z - from.z) * t },
-          firing ? { red: 1, green: 0.95, blue: 0.4 } : { red: 0.75, green: 0.5, blue: 1 }, firing ? 0.7 : 0.15);
+    const eye = player.getHeadLocation();
+    const view = player.getViewDirection();
+    const far = { x: eye.x + view.x * a.range, y: eye.y + view.y * a.range, z: eye.z + view.z * a.range };
+    const beamPoints = (step) => {
+      const pts = [];
+      for (let d = 0; d <= len; d += step) pts.push({ x: from.x + dir.x * d, y: from.y + dir.y * d, z: from.z + dir.z * d });
+      if (a.pierce && firing) {
+        const rest = dist(point, far);
+        for (let d = step; d <= rest; d += step) pts.push({ x: point.x + (far.x - point.x) * d / rest, y: point.y + (far.y - point.y) * d / rest, z: point.z + (far.z - point.z) * d / rest });
+      }
+      return pts.slice(0, 120);
+    };
+    if (a.style === "sonic") {
+      // Charging: shrieks from its chest and a faint aiming line. Firing: the real sonic rings.
+      if (!firing && tick % 4 === 0) {
+        particle(robot.dimension, "minecraft:shriek_particle", { x: from.x, y: from.y + 0.5, z: from.z });
+        for (const p of beamPoints(1.6)) dot(robot.dimension, p, { red: 0.2, green: 0.9, blue: 0.95 }, 0.12);
+      }
+      if (firing) for (const p of beamPoints(1.5).slice(1)) particle(robot.dimension, "minecraft:sonic_explosion", p);
+    } else if (tick % 2 === 0 || firing) {
+      for (const p of beamPoints(firing ? 0.4 : 0.8)) {
+        dot(robot.dimension, p, firing ? { red: 1, green: 0.95, blue: 0.4 } : { red: 0.75, green: 0.5, blue: 1 }, firing ? 0.7 : 0.15);
       }
     }
     if (!firing) continue;
     lasers.delete(id);
-    sound(robot, "mob.shulker.shoot", 1, 0.8);
-    sound(robot, "beacon.deactivate", 0.6, 2);
+    if (a.style === "sonic") {
+      sound(robot, "mob.warden.sonic_boom", 1.5, 1);
+    } else {
+      sound(robot, "mob.shulker.shoot", 1, 0.8);
+      sound(robot, "beacon.deactivate", 0.6, 2);
+    }
     const hitList = a.pierce ? [] : target ? [target] : [];
     if (a.pierce) {
-      const mid = { x: from.x + dir.x * a.range / 2, y: from.y + dir.y * a.range / 2, z: from.z + dir.z * a.range / 2 };
-      for (const e of nearby(robot.dimension, mid, a.range / 2 + 8)) {
-        if (e.id === robot.id) continue;
-        if (isFoe(e) && inBeam(from, dir, center(e), a.range, a.width)) hitList.push(e);
+      // Everything along the beam: robot -> crosshair spot, then on along the pilot's sight line.
+      for (const e of nearby(robot.dimension, robotMiddle(robot), a.range + 10)) {
+        if (e.id === robot.id || !isFoe(e)) continue;
+        const c = center(e);
+        if (inBeam(from, dir, c, len + 0.5, a.width) || inBeam(eye, view, c, a.range, a.width)) hitList.push(e);
       }
       const seen = new Set();
-      for (let d = 1; d <= a.range; d += 1.5) {
-        for (const other of battleTargets(player, robot, { x: from.x + dir.x * d, y: from.y + dir.y * d, z: from.z + dir.z * d }, a.width)) {
+      for (const p of beamPoints(1.5)) {
+        for (const other of battleTargets(player, robot, p, a.width)) {
           if (!seen.has(other.id)) hitList.push(other);
           seen.add(other.id);
         }
@@ -679,8 +719,25 @@ function stepLasers(tick) {
         particle(t.dimension, "minecraft:critical_hit_emitter", center(t));
       }
     }
-    if (hitList.length > 1) actionBar(player, `§eLaser zapped ${hitList.length} at once!`);
+    if (hitList.length > 1) actionBar(player, `§e${a.name} hit ${hitList.length} at once!`);
   }
+}
+
+/** Robo Warden: senses monsters nearby, even through walls, and its heart beats. */
+function monsterSense(player, robot, index, tick) {
+  const sn = ROBOTS[index].sense;
+  if (!sn) return;
+  if (tick % 24 === 0) sound(robot, "mob.warden.heartbeat", 0.5, 1);
+  if (tick % sn.every !== 0) return;
+  const mid = robotMiddle(robot);
+  const foes = nearby(robot.dimension, mid, sn.radius).filter(isFoe).sort((a, b) => dist(a.location, mid) - dist(b.location, mid));
+  pilotState(player).sensed = foes.length;
+  for (const foe of foes.slice(0, 12)) {
+    const top = { x: foe.location.x, y: foe.location.y + 2.4, z: foe.location.z };
+    soulParticle(foe.dimension, "minecraft:sculk_soul_particle", top);
+    dot(foe.dimension, top, { red: 0.2, green: 0.9, blue: 0.95 }, 0.5);
+  }
+  if (foes.length && tick % (sn.every * 3) === 0) sound(robot, "mob.warden.listening", 0.6, 1);
 }
 
 /** Robo Guardian: its spikes zap monsters that come too close. */
@@ -791,6 +848,7 @@ system.runInterval(() => {
     if (pilotPlayerOf(robot)?.id !== player.id) continue;
     if (spec.move === "fly" || spec.move === "swim") drive(robot, index, player, tick);
     if (spec.shield) spikeShield(player, robot, index, tick);
+    if (spec.sense) monsterSense(player, robot, index, tick);
     else {
       if (spec.climb) climb(robot, player);
       if (spec.bounce) bounce(robot, player, index);
