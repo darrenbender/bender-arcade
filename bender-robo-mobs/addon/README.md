@@ -52,6 +52,9 @@ zip -qrX ../BenderRoboMobs.mcaddon BenderRoboMobs_BP BenderRoboMobs_RP -x '*.DS_
 
 When you ship a change, bump `version` in both `manifest.json` files (and the
 dependency version in the behavior pack manifest), or Minecraft will keep the old copy.
+The pack names end in the version (`Bender Robo Mobs v1.0.4`) and `PACK_VERSION` in
+`scripts/main.js` (announced in chat when you join) must match: Minecraft keeps old
+copies of a pack next to new ones, and this is how you tell them apart.
 
 Target: Minecraft Bedrock 1.21.120 or newer, Script API `@minecraft/server` 2.2.0 and
 `@minecraft/server-ui` 2.0.0 (both stable, no experiments needed).

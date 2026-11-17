@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Robo Mobs",
-    "description": "Ride 13 giant robot mobs, each with its own special attack, and battle your friends in Battle Mode. Made for Michael and James.",
+    "name": "Bender Robo Mobs v1.0.4",
+    "description": "Version 1.0.4. Ride 13 giant robot mobs, each with its own special attack, and battle your friends in Battle Mode. Made for Michael and James.",
     "uuid": "4234fb73-04fa-476a-8e5a-9e890630c3a0",
     "version": [
       1,
       0,
-      3
+      4
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        3
+        4
       ]
     },
     {
@@ -33,7 +33,7 @@
       "version": [
         1,
         0,
-        3
+        4
       ]
     }
   ],
@@ -43,7 +43,7 @@
       "version": [
         1,
         0,
-        3
+        4
       ]
     },
     {

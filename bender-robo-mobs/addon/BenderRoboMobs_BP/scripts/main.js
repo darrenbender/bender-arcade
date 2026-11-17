@@ -16,6 +16,8 @@ import {
   steer, inBeam, hud, kitLore,
 } from "./robots.js";
 
+// Must match the version in both manifest.json files (checked by the tests).
+const PACK_VERSION = "1.0.4";
 const WELCOME_KEY = "bender:robo_welcomed";
 const BATTLE_KEY = "bender:robo_battle";
 const KOS_KEY = "bender:robo_kos";
@@ -1140,7 +1142,12 @@ function starterForm(player, tries) {
 }
 
 world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
-  if (!initialSpawn || player.getDynamicProperty(WELCOME_KEY)) return;
+  if (!initialSpawn) return;
+  // Say which version is running, so an old copy of the add-on is easy to spot.
+  system.runTimeout(() => {
+    if (player.isValid) player.sendMessage(`§7Bender Robo Mobs §fv${PACK_VERSION}§7 is on.`);
+  }, 40);
+  if (player.getDynamicProperty(WELCOME_KEY)) return;
   system.runTimeout(() => starterForm(player, 0), 80);
 });
 
