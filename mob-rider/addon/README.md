@@ -8,6 +8,11 @@ mob to the seat every tick. Walking mobs are steered by Minecraft's own controls
 (`minecraft:input_ground_controlled`). Flying and swimming mobs are steered by the
 script using the rider's movement input.
 
+Riding a Warden adds extras (in the warden section of `scripts/main.js`): it roars when
+you climb on, has a heartbeat with sculk souls and sculk sparks under its feet, and
+tapping the Magic Saddle while riding it fires a Sonic Boom along your view (20 blocks,
+12 damage, through walls, monsters and bosses only, 3 second recharge).
+
 The seat heights in `entities/ride_seat.json` (`bender:seat_0` to `bender:seat_9`) must
 match `SEAT_HEIGHTS` in `scripts/main.js`.
 

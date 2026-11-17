@@ -4,7 +4,7 @@
 // steer, and the mob is moved to the seat every tick, so it looks like the
 // player is riding the mob. While ridden, the mob is calm and can't be hurt.
 
-import { system, world, ButtonState, InputButton, ItemStack } from "@minecraft/server";
+import { system, world, ButtonState, EntityDamageCause, InputButton, ItemStack, MolangVariableMap } from "@minecraft/server";
 
 const SEAT_ID = "bender:ride_seat";
 const SADDLE_ID = "bender:magic_saddle";
@@ -142,6 +142,11 @@ function protectMob(mob) {
 // ------------------------------------------------------------ getting on
 
 function startRide(player) {
+  const current = rides.get(player.id);
+  if (current?.mob.isValid && current.mob.typeId === WARDEN) {
+    sonicBoom(player, current);
+    return;
+  }
   if (rides.has(player.id) || player.getComponent("minecraft:riding")) {
     actionBar(player, "Sneak to get off first!");
     return;
@@ -195,6 +200,7 @@ function startRide(player) {
           ? " Swim where you look. Jump to go up."
           : "";
     actionBar(player, { rawtext: [{ text: "§aRiding " }, mobName(mob), { text: `!§r${how}` }] });
+    if (mob.typeId === WARDEN) wardenRoar(player, mob);
   }, 2);
 }
 
@@ -285,7 +291,8 @@ system.runInterval(() => {
       }
     }
     if (ride.tick % 20 === 1) protectMob(mob);
-    if (ride.tick % 80 === 40) actionBar(player, "§7Sneak to get off");
+    if (mob.typeId === WARDEN) wardenTick(ride);
+    else if (ride.tick % 80 === 40) actionBar(player, "§7Sneak to get off");
   }
 }, 1);
 
@@ -337,6 +344,132 @@ world.afterEvents.entityHurt.subscribe(({ hurtEntity, damage, damageSource }) =>
 world.beforeEvents.explosion.subscribe((event) => {
   if (event.source && ridden.has(event.source.id)) event.cancel = true;
 });
+
+// ------------------------------------------------------------ the warden
+
+const WARDEN = "minecraft:warden";
+const BOOM_RANGE = 20; // blocks
+const BOOM_WIDTH = 1.8; // how close to the beam a monster has to be
+const BOOM_DAMAGE = 12;
+const BOOM_CHARGE = 12; // ticks of charging before the boom
+const BOOM_COOLDOWN = 60; // ticks
+const BOSSES = new Set(["bender:element_guardian", "bender:ender_dragon", "minecraft:ender_dragon"]);
+
+function particle(dimension, id, location, upward = false) {
+  try {
+    if (upward) {
+      // The sculk particles drift along "variable.direction".
+      const vars = new MolangVariableMap();
+      vars.setVector3("variable.direction", { x: 0, y: 1, z: 0 });
+      dimension.spawnParticle(id, location, vars);
+    } else {
+      dimension.spawnParticle(id, location);
+    }
+  } catch {
+    // Not loaded.
+  }
+}
+
+/** Only monsters and bosses: never players, pets, animals or the warden you ride. */
+function isFoe(entity, ridingId) {
+  if (!entity?.isValid || entity.id === ridingId || entity.typeId === "minecraft:player" || entity.typeId === SEAT_ID) return false;
+  if (BOSSES.has(entity.typeId)) return true;
+  try {
+    return entity.matches({ families: ["monster"] });
+  } catch {
+    return false;
+  }
+}
+
+function chestOf(mob) {
+  return { x: mob.location.x, y: mob.location.y + 1.9, z: mob.location.z };
+}
+
+function wardenRoar(player, mob) {
+  sound(mob.dimension, "mob.warden.roar", mob.location, 1, 1);
+  const at = chestOf(mob);
+  for (let i = 0; i < 3; i++) particle(mob.dimension, "minecraft:shriek_particle", { x: at.x, y: at.y + 1 + i * 0.6, z: at.z });
+  player.sendMessage("§3§lThe Warden!§r Tap the §6Magic Saddle§r to fire a §bSonic Boom§r (it only hurts monsters). Sneak to get off.");
+}
+
+function wardenTick(ride) {
+  const { player, mob, tick } = ride;
+  const at = chestOf(mob);
+  // A heartbeat you can hear, with souls drifting out of its chest.
+  if (tick % 24 === 0) {
+    sound(mob.dimension, "mob.warden.heartbeat", at, 0.6, 1);
+    for (let i = 0; i < 2; i++) {
+      particle(mob.dimension, "minecraft:sculk_soul_particle", {
+        x: at.x + (Math.random() - 0.5) * 1.2, y: at.y + Math.random() * 0.6, z: at.z + (Math.random() - 0.5) * 1.2,
+      }, true);
+    }
+  }
+  // Sculk sparks where it walks.
+  if (tick % 6 === 0) {
+    const last = ride.lastSpot;
+    const here = mob.location;
+    if (last && Math.hypot(here.x - last.x, here.z - last.z) > 0.25) {
+      particle(mob.dimension, "minecraft:sculk_charge_pop_particle", { x: here.x + (Math.random() - 0.5), y: here.y + 0.1, z: here.z + (Math.random() - 0.5) }, true);
+    }
+    ride.lastSpot = { ...here };
+  }
+  if (tick % 10 === 0) {
+    const wait = Math.ceil(((ride.boomReady ?? 0) - system.currentTick) / 20);
+    actionBar(player, wait > 0 ? `§3Warden§r  §7Sonic Boom: ${wait}s` : "§3Warden§r  §bSonic Boom: ready§7 (tap the saddle)");
+  }
+}
+
+function sonicBoom(player, ride) {
+  const now = system.currentTick;
+  if (now < (ride.boomReady ?? 0) || ride.charging) {
+    actionBar(player, `§7Sonic Boom is recharging: ${Math.max(1, Math.ceil(((ride.boomReady ?? 0) - now) / 20))}s`);
+    return;
+  }
+  ride.boomReady = now + BOOM_CHARGE + BOOM_COOLDOWN;
+  ride.charging = true;
+  const mob = ride.mob;
+  sound(mob.dimension, "mob.warden.sonic_charge", mob.location, 1, 1);
+  system.runTimeout(() => {
+    ride.charging = false;
+    if (!mob.isValid || !player.isValid || rides.get(player.id) !== ride) return;
+    fireBoom(player, mob);
+  }, BOOM_CHARGE);
+}
+
+function fireBoom(player, mob) {
+  const from = chestOf(mob);
+  const dir = player.getViewDirection();
+  const dim = mob.dimension;
+  sound(dim, "mob.warden.sonic_boom", from, 1.5, 1);
+  for (let d = 1.5; d <= BOOM_RANGE; d += 1.5) {
+    particle(dim, "minecraft:sonic_explosion", { x: from.x + dir.x * d, y: from.y + dir.y * d, z: from.z + dir.z * d });
+  }
+  // Like the real one, it goes through walls. It hits every monster close to the beam.
+  const mid = { x: from.x + dir.x * BOOM_RANGE / 2, y: from.y + dir.y * BOOM_RANGE / 2, z: from.z + dir.z * BOOM_RANGE / 2 };
+  let near = [];
+  try {
+    near = dim.getEntities({ location: mid, maxDistance: BOOM_RANGE / 2 + BOOM_WIDTH + 1 });
+  } catch {
+    near = [];
+  }
+  let hits = 0;
+  for (const e of near) {
+    if (!isFoe(e, mob.id)) continue;
+    const c = { x: e.location.x - from.x, y: e.location.y + 0.9 - from.y, z: e.location.z - from.z };
+    const along = c.x * dir.x + c.y * dir.y + c.z * dir.z;
+    if (along < 0 || along > BOOM_RANGE + 1) continue;
+    const off = Math.hypot(c.x - dir.x * along, c.y - dir.y * along, c.z - dir.z * along);
+    if (off > BOOM_WIDTH) continue;
+    try {
+      e.applyDamage(BOOM_DAMAGE, { cause: EntityDamageCause.entityAttack, damagingEntity: player });
+      e.applyKnockback({ x: dir.x * 2.5, z: dir.z * 2.5 }, 0.5);
+    } catch {
+      // Couldn't be hurt.
+    }
+    hits++;
+  }
+  if (hits) actionBar(player, `§bSonic Boom!§r Hit ${hits} monster${hits === 1 ? "" : "s"}`);
+}
 
 // ------------------------------------------------------------ the saddle
 
