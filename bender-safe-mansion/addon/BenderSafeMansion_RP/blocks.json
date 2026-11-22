@@ -1,0 +1,28 @@
+{
+  "format_version": [
+    1,
+    1,
+    0
+  ],
+  "bender:security_door": {
+    "sound": "metal"
+  },
+  "bender:secret_bookshelf": {
+    "sound": "wood"
+  },
+  "bender:security_camera": {
+    "sound": "metal"
+  },
+  "bender:security_monitor": {
+    "sound": "metal"
+  },
+  "bender:laser_post": {
+    "sound": "metal"
+  },
+  "bender:motion_sensor": {
+    "sound": "metal"
+  },
+  "bender:trap_pad": {
+    "sound": "metal"
+  }
+}

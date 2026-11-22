@@ -1,0 +1,35 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:security_remote"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "R",
+      "G",
+      "I"
+    ],
+    "key": {
+      "R": {
+        "item": "minecraft:redstone"
+      },
+      "G": {
+        "item": "minecraft:glass_pane"
+      },
+      "I": {
+        "item": "minecraft:iron_ingot"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:security_remote"
+    }
+  }
+}

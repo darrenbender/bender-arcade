@@ -1,0 +1,32 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:mansion_kit"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "QQQ",
+      "QDQ",
+      "QQQ"
+    ],
+    "key": {
+      "Q": {
+        "item": "minecraft:quartz_block"
+      },
+      "D": {
+        "item": "minecraft:diamond"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:mansion_kit"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:block": {
+    "description": {
+      "identifier": "bender:laser_post",
+      "menu_category": {
+        "category": "construction"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "Laser Post",
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 30
+      },
+      "minecraft:map_color": "#9aa0a6",
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "bender_mansion_laser_post",
+          "render_method": "opaque"
+        },
+        "up": {
+          "texture": "bender_mansion_metal",
+          "render_method": "opaque"
+        },
+        "down": {
+          "texture": "bender_mansion_metal",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:light_emission": 4,
+      "minecraft:tick": {
+        "interval_range": [
+          10,
+          10
+        ],
+        "looping": true
+      },
+      "bender:mansion_laser": {}
+    }
+  }
+}

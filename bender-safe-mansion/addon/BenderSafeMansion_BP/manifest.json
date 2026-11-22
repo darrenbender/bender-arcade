@@ -1,0 +1,58 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Bender Safe Mansion v1.0.0",
+    "description": "Version 1.0.0. Build a safe mansion with cameras, lasers, traps, turrets, a secret vault and police vehicles. Made for Michael.",
+    "uuid": "bf95eeb2-d5f7-42aa-9b6a-2458d8797c4a",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      120
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "dec1b441-e842-4626-9084-eba7bc00534e",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "45665d5a-0365-41b0-8d60-8c0725501781",
+      "entry": "scripts/main.js",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "29c70cc9-a914-47ba-b13e-782b2b2460b8",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.2.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "2.0.0"
+    }
+  ]
+}

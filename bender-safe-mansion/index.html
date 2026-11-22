@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bender Safe Mansion</title>
+<style>
+  :root {
+    --bg: #0d1626;
+    --bg2: #1f3d63;
+    --card: #162337;
+    --card-edge: #36557f;
+    --text: #ffffff;
+    --soft: #d4e2f7;
+    --gold: #ffd166;
+    --gold-dark: #e09b1a;
+    --red: #ff6b6b;
+    --blue: #6cc6ff;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--text);
+    background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg) 70%) fixed;
+    background-color: var(--bg);
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  img { max-width: 100%; height: auto; }
+  .hero { text-align: center; padding: 8px 0 24px; }
+  .hero .icon { width: 128px; height: 128px; border-radius: 14px; box-shadow: 0 8px 30px rgba(108, 198, 255, 0.35); }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); margin: 14px 0 4px; color: var(--gold); }
+  .tagline { font-size: clamp(1.1rem, 3.4vw, 1.4rem); color: var(--soft); margin: 0 0 24px; }
+  .btn {
+    display: inline-block; font: inherit; font-size: clamp(1.3rem, 4vw, 1.7rem); font-weight: 800;
+    padding: 22px 36px; min-height: 72px; border-radius: 22px; text-decoration: none; color: #2b1a00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 6px 0 #8a5a00, 0 12px 28px rgba(0,0,0,0.35); transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #8a5a00, 0 6px 14px rgba(0,0,0,0.35); }
+  .btn.secondary { color: #fff; background: linear-gradient(180deg, #60a5fa, #2563eb); box-shadow: 0 6px 0 #1e3a8a, 0 12px 28px rgba(0,0,0,0.35); }
+  .small-print { color: var(--soft); font-size: 0.95rem; margin-top: 14px; }
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 40px 0 16px; text-align: center; }
+  .intro { text-align: center; color: var(--soft); margin: -6px 0 18px; }
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: step; }
+  .steps li { min-width: 0; overflow-wrap: anywhere; counter-increment: step; background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 18px 18px 18px 76px; position: relative; }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 16px; top: 16px; width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.4rem; background: var(--gold); color: #2b1a00;
+  }
+  .steps b, .tour b { color: var(--gold); }
+  .mansion { text-align: center; margin: 0 0 16px; }
+  .mansion img { width: 100%; max-width: 640px; }
+  .tour { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 700px) { .tour { grid-template-columns: 1fr 1fr; } }
+  .tour div { background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 14px 18px; }
+  .tour h3 { margin: 0 0 6px; font-size: 1.2rem; }
+  .tour ul { margin: 0; padding-left: 20px; color: var(--soft); }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (min-width: 700px) { .cards { grid-template-columns: 1fr 1fr 1fr; } }
+  .card { background: var(--card); border: 2px solid var(--card-edge); border-top: 5px solid var(--c, var(--blue)); border-radius: 18px; padding: 12px; text-align: center; }
+  .card img { width: 100%; max-width: 170px; aspect-ratio: 1; object-fit: contain; }
+  .card img.pixel { max-width: 96px; image-rendering: pixelated; margin: 12px 0; border-radius: 6px; }
+  .card h3 { margin: 4px 0 6px; font-size: 1.15rem; color: var(--c, var(--blue)); }
+  .card p { margin: 4px 0; font-size: 0.95rem; color: var(--soft); }
+  .card .how { font-weight: 800; color: var(--gold); }
+  .remote { background: linear-gradient(180deg, #13335a, #0d2140); border: 2px solid #3d7cc9; border-radius: 20px; padding: 18px 20px; }
+  .remote h2 { margin-top: 0; }
+  .remote ul { margin: 0; padding-left: 22px; }
+  .remote li { margin: 6px 0; }
+  .recipes { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 700px) { .recipes { grid-template-columns: 1fr 1fr; } }
+  .recipes li { background: var(--card); border: 2px solid var(--card-edge); border-radius: 14px; padding: 12px 16px; }
+  .recipes b { color: var(--gold); }
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .tips li { background: rgba(255,255,255,0.07); border-radius: 14px; padding: 14px 18px; }
+  .tips li::before { content: "⭐ "; }
+  .back { text-align: center; margin-top: 44px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="icon" src="addon/BenderSafeMansion_BP/pack_icon.png" alt="A white mansion with a helipad on the roof and a police helicopter flying over it">
+    <h1>Bender Safe Mansion</h1>
+    <p class="tagline">A Minecraft add-on: build a giant safe mansion with one tap! Security cameras, laser gates, roof turrets, launch-pad traps, a secret vault, and a police car, helicopter and drone to keep the monsters out.</p>
+    <a class="btn" href="BenderSafeMansion.mcaddon" download>⬇️ Download for Minecraft</a>
+    <p class="small-print">Version <b>1.0.0</b>. Made for Michael. For Minecraft Bedrock on iPad, iPhone, Android and Windows. Free, no ads.</p>
+  </header>
+
+  <section>
+    <h2>How to put it on the iPad</h2>
+    <ol class="steps">
+      <li>Tap <b>Download for Minecraft</b> above, then tap <b>Download</b> when Safari asks.</li>
+      <li>Open the <b>Files</b> app, go to <b>Downloads</b>, and tap <b>BenderSafeMansion.mcaddon</b>. Minecraft opens and says <b>Successfully imported</b>.<br>
+        If tapping the file doesn't open Minecraft, tap the <b>Share</b> button and choose <b>Minecraft</b>.</li>
+      <li>In Minecraft, tap <b>Create New World</b> (or the pencil next to an old world). Scroll to <b>Behavior Packs</b>, tap <b>Available</b>, tap <b>Bender Safe Mansion v1.0.0</b>, then <b>Activate</b>. It works alongside the other Bender add-ons.</li>
+      <li>Tap <b>Create</b> or <b>Play</b>. The first time you join, you get a <b>Mansion Kit</b>, a <b>Security Remote</b>, 4 <b>cameras</b> and a <b>monitor</b>.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Updating from an older version?</h2>
+    <p class="intro">Minecraft keeps old copies next to new ones. The new one has its version in the name: <b>Bender Safe Mansion v1.0.0</b>.</p>
+    <ol class="steps">
+      <li>Download and import the new version as above.</li>
+      <li>In Minecraft, go to <b>Settings</b> → <b>Storage</b>. Under <b>Behavior Packs</b>, delete the old <b>Bender Safe Mansion</b> copies (the ones without <b>v1.0.0</b>). Under <b>Resource Packs</b>, delete the old <b>Bender Safe Mansion Textures</b> copies.</li>
+      <li>Open each world's settings and check <b>Behavior Packs</b> → <b>Active</b>. If it still shows an old copy, remove it and activate <b>v1.0.0</b>. When you join the world, the chat says which version is on.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>How to build your mansion</h2>
+    <ol class="steps">
+      <li>Find some <b>open, flat land</b> (a big field is perfect) and stand where you want the middle of the mansion.</li>
+      <li>Hold the <b>Mansion Kit</b> and <b>tap</b>. A <b>sparkly square</b> shows where it will go (41 by 41 blocks). Everything inside gets replaced.</li>
+      <li><b>Tap again</b> to build. In a few seconds the whole mansion appears, with its vehicles and turrets.</li>
+      <li>Changed your mind? Stand in the mansion, <b>sneak</b> and tap the kit <b>twice</b>. The land goes back exactly how it was.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>A tour of the mansion</h2>
+    <div class="mansion"><img src="img/mansion.png" alt="The mansion from above: a white two-floor house with a helipad on the roof, a pool, a driveway, and a wall with a laser gate"></div>
+    <div class="tour">
+      <div><h3>🏠 Downstairs</h3><ul>
+        <li>Kitchen, dining room and a living room with a big TV</li>
+        <li>The <b>security room</b>: tap a monitor to watch the cameras</li>
+        <li>The <b>garage</b> with the police car</li>
+      </ul></div>
+      <div><h3>🛏️ Upstairs</h3><ul>
+        <li>Michael's room (blue) and James's room (orange)</li>
+        <li>A library. One bookshelf has a <b>red book</b>...</li>
+        <li>...and behind it, the <b>secret vault</b> full of treasure</li>
+      </ul></div>
+      <div><h3>🚁 The roof</h3><ul>
+        <li>A <b>helipad</b> with the police helicopter</li>
+        <li>The <b>security drone</b></li>
+        <li>Four <b>laser turrets</b> that zap monsters</li>
+      </ul></div>
+      <div><h3>🌳 The yard</h3><ul>
+        <li>A pool, a driveway and garden lights</li>
+        <li>A wall with <b>motion sensors</b> and a <b>laser gate</b></li>
+        <li><b>Launch pads</b> hidden in the lawn</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The security system</h2>
+    <p class="intro">Everything here only zaps monsters. It never hurts players, pets or animals, and never breaks blocks.</p>
+    <div class="cards">
+      <div class="card" style="--c:#6cc6ff">
+        <img class="pixel" src="img/monitor_front.png" alt="A monitor screen showing four camera views">
+        <h3>Cameras &amp; Monitors</h3>
+        <p class="how">Tap a monitor</p>
+        <p>Look through any camera. Jump for the next one, sneak to stop. It tells you when a camera can see a monster.</p>
+      </div>
+      <div class="card" style="--c:#ff6b6b">
+        <img class="pixel" src="img/laser_post.png" alt="A metal post with red lights">
+        <h3>Laser Posts</h3>
+        <p class="how">Two posts make a laser</p>
+        <p>Red beams between two posts up to 8 blocks apart zap monsters and push them back. Players walk right through.</p>
+      </div>
+      <div class="card" style="--c:#ffa94d">
+        <img class="pixel" src="img/sensor_top.png" alt="A white sensor with an orange eye">
+        <h3>Motion Sensors</h3>
+        <p class="how">Watch the yard</p>
+        <p>When a monster gets in, the siren goes wee-woo, the sensors flash red and you get a message saying where it is.</p>
+      </div>
+      <div class="card" style="--c:#ffd166">
+        <img class="pixel" src="img/trap_top.png" alt="A pad with yellow and black hazard stripes">
+        <h3>Launch Pad Traps</h3>
+        <p class="how">Boing!</p>
+        <p>A monster that steps on one gets flung up and right out of the yard.</p>
+      </div>
+      <div class="card" style="--c:#ff6b6b">
+        <img src="img/laser_turret.png" alt="A white laser turret with a red lens">
+        <h3>Laser Turrets</h3>
+        <p class="how">Zaps up to 20 blocks</p>
+        <p>They turn to face the nearest monster and zap it. Put more anywhere you like.</p>
+      </div>
+      <div class="card" style="--c:#a5d8ff">
+        <img class="pixel" src="img/security_door_closed.png" alt="A glass security door with a blue light strip">
+        <h3>Security Doors</h3>
+        <p class="how">Only for players</p>
+        <p>They slide open when you walk up, and stay shut for monsters.</p>
+      </div>
+      <div class="card" style="--c:#d4a373">
+        <img class="pixel" src="img/secret_bookshelf.png" alt="A bookshelf with one red book">
+        <h3>Secret Bookshelf</h3>
+        <p class="how">Tap the red book</p>
+        <p>It swings open for 5 seconds, and never closes while you're standing in it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Police vehicles</h2>
+    <p class="intro">Tap a vehicle to get in. Sneak to get out. Hit an empty one 3 times to pack it into a kit.</p>
+    <div class="cards">
+      <div class="card" style="--c:#6cc6ff">
+        <img src="img/police_car.png" alt="A black and white police car with red and blue lights">
+        <h3>Police Car</h3>
+        <p class="how">Drives like a horse</p>
+        <p>Room for two. Tap the Security Remote for the siren and flashing lights.</p>
+      </div>
+      <div class="card" style="--c:#6cc6ff">
+        <img src="img/police_helicopter.png" alt="A dark blue police helicopter">
+        <h3>Police Helicopter</h3>
+        <p class="how">Look and push forward to fly</p>
+        <p>Hold jump to climb. The remote zaps monsters. Look straight up and tap for the siren.</p>
+      </div>
+      <div class="card" style="--c:#6cc6ff">
+        <img src="img/security_drone.png" alt="A white four-rotor drone with a red camera eye">
+        <h3>Security Drone</h3>
+        <p class="how">Fly it like the helicopter</p>
+        <p>Small and fast. The radar shows how many monsters are near and where the closest one is.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="remote">
+    <h2>📡 The Security Remote</h2>
+    <ul>
+      <li><b>Walking around:</b> tap it to see if any monsters are inside your walls, watch the cameras from anywhere, or switch the alarm sounds off and on.</li>
+      <li><b>Flying the drone or helicopter:</b> tap to fire a laser where you're looking. It zaps every monster in a line.</li>
+      <li><b>Driving the police car:</b> tap for the siren.</li>
+      <li>It also has a <b>How to play</b> page, in case you forget.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>How to craft more</h2>
+    <p class="intro">All the recipes are in the crafting table's recipe book.</p>
+    <ul class="recipes">
+      <li><b>Security Camera</b> (×2): iron ingot, observer, iron ingot in a row</li>
+      <li><b>Security Monitor</b>: 7 iron ingots around a glass pane, redstone at the bottom</li>
+      <li><b>Laser Post</b> (×2): redstone torch on top of 2 iron blocks</li>
+      <li><b>Motion Sensor</b> (×2): observer on top of a quartz block</li>
+      <li><b>Launch Pad Trap</b> (×2): slime block on top of a piston</li>
+      <li><b>Security Door</b> (×6): iron ingots down the left, glass down the right</li>
+      <li><b>Secret Bookshelf</b>: bookshelf on top of redstone</li>
+      <li><b>Laser Turret</b>: glowstone on top, 5 iron ingots and a block of redstone below</li>
+      <li><b>Security Drone</b>: 4 iron ingots in the corners, observer in the middle</li>
+      <li><b>Police Car</b>: redstone lamp, 3 white concrete, 2 blocks of coal for wheels</li>
+      <li><b>Police Helicopter</b>: 3 iron ingots, a redstone lamp, 3 blue concrete</li>
+      <li><b>Security Remote</b>: redstone, glass pane and iron ingot in a column</li>
+      <li><b>Mansion Kit</b>: 8 quartz blocks around a diamond</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Good to know</h2>
+    <ul class="tips">
+      <li>Garden lights in the lawn and on the roof keep monsters from appearing inside the walls. If the alarm goes off, something really did get in!</li>
+      <li>Cameras you put up yourself show up in the camera list too. Place one facing the way you want it to look.</li>
+      <li>If something hurts you while you're watching a camera, you go straight back to your own eyes.</li>
+      <li>Laser turrets, sensors, lasers and launch pads work anywhere, not just at the mansion. Build your own security!</li>
+      <li>A helicopter or drone you leave in the air floats gently down to the ground. Jumping out gives you slow falling.</li>
+      <li>The Mansion Kit only builds in the Overworld, and not on water.</li>
+      <li>Worlds with add-ons don't earn Xbox achievements.</li>
+    </ul>
+  </section>
+
+  <div class="back">
+    <a class="btn secondary" href="/">← Back to Arcade</a>
+  </div>
+
+</div>
+</body>
+</html>

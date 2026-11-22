@@ -1,0 +1,28 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:security_drone",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/mansion/security_drone"
+      },
+      "geometry": {
+        "default": "geometry.bender_mansion_security_drone"
+      },
+      "render_controllers": [
+        "controller.render.bender_mansion"
+      ],
+      "animations": {
+        "props": "animation.bender_mansion.security_drone.props"
+      },
+      "scripts": {
+        "animate": [
+          "props"
+        ]
+      }
+    }
+  }
+}

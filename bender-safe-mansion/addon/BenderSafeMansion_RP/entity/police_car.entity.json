@@ -1,0 +1,32 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:police_car",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/mansion/police_car"
+      },
+      "geometry": {
+        "default": "geometry.bender_mansion_police_car"
+      },
+      "render_controllers": [
+        "controller.render.bender_mansion"
+      ],
+      "animations": {
+        "siren": "animation.bender_mansion.police_car.siren",
+        "wheels": "animation.bender_mansion.police_car.wheels"
+      },
+      "scripts": {
+        "animate": [
+          {
+            "siren": "q.property('bender:siren')"
+          },
+          "wheels"
+        ]
+      }
+    }
+  }
+}

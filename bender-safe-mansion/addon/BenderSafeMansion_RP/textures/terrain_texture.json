@@ -1,0 +1,41 @@
+{
+  "resource_pack_name": "bender_safe_mansion",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "bender_mansion_door_closed": {
+      "textures": "textures/blocks/mansion/security_door_closed"
+    },
+    "bender_mansion_door_open": {
+      "textures": "textures/blocks/mansion/security_door_open"
+    },
+    "bender_mansion_secret": {
+      "textures": "textures/blocks/mansion/secret_bookshelf"
+    },
+    "bender_mansion_secret_open": {
+      "textures": "textures/blocks/mansion/secret_bookshelf_open"
+    },
+    "bender_mansion_planks": {
+      "textures": "textures/blocks/planks_oak"
+    },
+    "bender_mansion_camera": {
+      "textures": "textures/blocks/mansion/camera"
+    },
+    "bender_mansion_monitor": {
+      "textures": "textures/blocks/mansion/monitor_front"
+    },
+    "bender_mansion_metal": {
+      "textures": "textures/blocks/mansion/metal_side"
+    },
+    "bender_mansion_laser_post": {
+      "textures": "textures/blocks/mansion/laser_post"
+    },
+    "bender_mansion_sensor": {
+      "textures": "textures/blocks/mansion/sensor_top"
+    },
+    "bender_mansion_trap": {
+      "textures": "textures/blocks/mansion/trap_top"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:block": {
+    "description": {
+      "identifier": "bender:security_door",
+      "menu_category": {
+        "category": "construction"
+      },
+      "states": {
+        "bender:open": [
+          false,
+          true
+        ]
+      }
+    },
+    "components": {
+      "minecraft:display_name": "Security Door",
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.0
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 30
+      },
+      "minecraft:map_color": "#7fa8c9",
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "bender_mansion_door_closed",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:tick": {
+        "interval_range": [
+          4,
+          4
+        ],
+        "looping": true
+      },
+      "bender:mansion_door": {}
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('bender:open')",
+        "components": {
+          "minecraft:collision_box": false,
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "bender_mansion_door_open",
+              "render_method": "alpha_test"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

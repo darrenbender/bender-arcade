@@ -1,0 +1,119 @@
+{
+ "format_version": "1.8.0",
+ "animations": {
+  "animation.bender_mansion.police_car.wheels": {
+   "loop": true,
+   "bones": {
+    "wheel_fl": {
+     "rotation": [
+      "q.modified_distance_moved * -120",
+      0,
+      0
+     ]
+    },
+    "wheel_fr": {
+     "rotation": [
+      "q.modified_distance_moved * -120",
+      0,
+      0
+     ]
+    },
+    "wheel_bl": {
+     "rotation": [
+      "q.modified_distance_moved * -120",
+      0,
+      0
+     ]
+    },
+    "wheel_br": {
+     "rotation": [
+      "q.modified_distance_moved * -120",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.bender_mansion.police_car.siren": {
+   "loop": true,
+   "bones": {
+    "light_red": {
+     "scale": "math.mod(q.life_time * 4, 2) < 1 ? 1.2 : 0.0"
+    },
+    "light_blue": {
+     "scale": "math.mod(q.life_time * 4, 2) < 1 ? 0.0 : 1.2"
+    }
+   }
+  },
+  "animation.bender_mansion.police_helicopter.rotors": {
+   "loop": true,
+   "bones": {
+    "rotor": {
+     "rotation": [
+      0,
+      "q.property('bender:siren') ? q.life_time * 900 : 0",
+      0
+     ]
+    },
+    "tail_rotor": {
+     "rotation": [
+      "q.property('bender:siren') ? q.life_time * 1400 : 0",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.bender_mansion.police_helicopter.siren": {
+   "loop": true,
+   "bones": {
+    "light_red": {
+     "scale": "math.mod(q.life_time * 4, 2) < 1 ? 1.2 : 0.0"
+    },
+    "light_blue": {
+     "scale": "math.mod(q.life_time * 4, 2) < 1 ? 0.0 : 1.2"
+    }
+   }
+  },
+  "animation.bender_mansion.security_drone.props": {
+   "loop": true,
+   "bones": {
+    "prop0": {
+     "rotation": [
+      0,
+      "q.property('bender:active') ? q.life_time * 1100 : 0",
+      0
+     ]
+    },
+    "prop1": {
+     "rotation": [
+      0,
+      "q.property('bender:active') ? q.life_time * 1137 : 0",
+      0
+     ]
+    },
+    "prop2": {
+     "rotation": [
+      0,
+      "q.property('bender:active') ? q.life_time * 1174 : 0",
+      0
+     ]
+    },
+    "prop3": {
+     "rotation": [
+      0,
+      "q.property('bender:active') ? q.life_time * 1211 : 0",
+      0
+     ]
+    },
+    "root": {
+     "position": [
+      0,
+      "q.property('bender:active') ? math.sin(q.life_time * 200) * 0.6 : 0",
+      0
+     ]
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,35 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:police_car_kit"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      " L ",
+      "WWW",
+      "C C"
+    ],
+    "key": {
+      "L": {
+        "item": "minecraft:redstone_lamp"
+      },
+      "W": {
+        "item": "minecraft:white_concrete"
+      },
+      "C": {
+        "item": "minecraft:coal_block"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:police_car_kit"
+    }
+  }
+}

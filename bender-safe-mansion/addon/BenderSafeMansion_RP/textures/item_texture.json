@@ -1,0 +1,24 @@
+{
+  "resource_pack_name": "bender_safe_mansion",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "bender_mansion_police_car_kit": {
+      "textures": "textures/items/mansion/police_car_kit"
+    },
+    "bender_mansion_police_helicopter_kit": {
+      "textures": "textures/items/mansion/police_helicopter_kit"
+    },
+    "bender_mansion_security_drone_kit": {
+      "textures": "textures/items/mansion/security_drone_kit"
+    },
+    "bender_mansion_laser_turret_kit": {
+      "textures": "textures/items/mansion/laser_turret_kit"
+    },
+    "bender_mansion_kit": {
+      "textures": "textures/items/mansion/mansion_kit"
+    },
+    "bender_mansion_remote": {
+      "textures": "textures/items/mansion/security_remote"
+    }
+  }
+}

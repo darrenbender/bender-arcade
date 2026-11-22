@@ -1,0 +1,32 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:police_helicopter",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/mansion/police_helicopter"
+      },
+      "geometry": {
+        "default": "geometry.bender_mansion_police_helicopter"
+      },
+      "render_controllers": [
+        "controller.render.bender_mansion"
+      ],
+      "animations": {
+        "rotors": "animation.bender_mansion.police_helicopter.rotors",
+        "siren": "animation.bender_mansion.police_helicopter.siren"
+      },
+      "scripts": {
+        "animate": [
+          "rotors",
+          {
+            "siren": "q.property('bender:siren')"
+          }
+        ]
+      }
+    }
+  }
+}
