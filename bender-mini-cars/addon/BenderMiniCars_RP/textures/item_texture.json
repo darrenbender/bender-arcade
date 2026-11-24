@@ -1,0 +1,36 @@
+{
+  "resource_pack_name": "bender_mini_cars",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "bender_minicars_go_kart_kit": {
+      "textures": "textures/items/minicars/go_kart_kit"
+    },
+    "bender_minicars_race_car_kit": {
+      "textures": "textures/items/minicars/race_car_kit"
+    },
+    "bender_minicars_monster_truck_kit": {
+      "textures": "textures/items/minicars/monster_truck_kit"
+    },
+    "bender_minicars_jeep_kit": {
+      "textures": "textures/items/minicars/jeep_kit"
+    },
+    "bender_minicars_police_car_kit": {
+      "textures": "textures/items/minicars/police_car_kit"
+    },
+    "bender_minicars_fire_truck_kit": {
+      "textures": "textures/items/minicars/fire_truck_kit"
+    },
+    "bender_minicars_ice_cream_truck_kit": {
+      "textures": "textures/items/minicars/ice_cream_truck_kit"
+    },
+    "bender_minicars_taxi_kit": {
+      "textures": "textures/items/minicars/taxi_kit"
+    },
+    "bender_minicars_car_key": {
+      "textures": "textures/items/minicars/car_key"
+    },
+    "bender_minicars_track_kit": {
+      "textures": "textures/items/minicars/track_kit"
+    }
+  }
+}

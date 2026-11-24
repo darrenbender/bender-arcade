@@ -1,0 +1,58 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Bender Mini Cars v1.0.0",
+    "description": "Version 1.0.0. 8 kinds of little cars in 16 colors (128 cars!), and a Race Track Kit with countdown lights, laps and trophies. Made for Michael and James.",
+    "uuid": "7766af6d-cf21-4c22-b612-16d479f5dbec",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      120
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "ce5e509f-7c10-409d-969f-ba91d87bfe75",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "f2b92747-7526-4754-9e8f-4f8ea62379fd",
+      "entry": "scripts/main.js",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "c7261973-7162-49c9-98b8-29a33090b6df",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.2.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "2.0.0"
+    }
+  ]
+}

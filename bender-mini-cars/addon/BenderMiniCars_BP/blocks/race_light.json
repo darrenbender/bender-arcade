@@ -1,0 +1,58 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:block": {
+    "description": {
+      "identifier": "bender:race_light",
+      "menu_category": {
+        "category": "construction"
+      },
+      "states": {
+        "bender:light": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "components": {
+      "minecraft:display_name": "Race Light",
+      "minecraft:map_color": "#202024",
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.0
+      },
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "bender_minicars_light_off",
+          "render_method": "opaque"
+        }
+      }
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('bender:light') == 1",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "bender_minicars_light_red",
+              "render_method": "opaque"
+            }
+          },
+          "minecraft:light_emission": 10
+        }
+      },
+      {
+        "condition": "q.block_state('bender:light') == 2",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "bender_minicars_light_green",
+              "render_method": "opaque"
+            }
+          },
+          "minecraft:light_emission": 12
+        }
+      }
+    ]
+  }
+}

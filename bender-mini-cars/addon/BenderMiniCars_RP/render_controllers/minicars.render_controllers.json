@@ -1,0 +1,38 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.bender_minicar": {
+      "arrays": {
+        "textures": {
+          "Array.paint": [
+            "Texture.p0",
+            "Texture.p1",
+            "Texture.p2",
+            "Texture.p3",
+            "Texture.p4",
+            "Texture.p5",
+            "Texture.p6",
+            "Texture.p7",
+            "Texture.p8",
+            "Texture.p9",
+            "Texture.p10",
+            "Texture.p11",
+            "Texture.p12",
+            "Texture.p13",
+            "Texture.p14",
+            "Texture.p15"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.paint[q.property('bender:paint')]"
+      ]
+    }
+  }
+}

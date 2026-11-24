@@ -1,0 +1,35 @@
+{
+  "resource_pack_name": "bender_mini_cars",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "bender_minicars_light_off": {
+      "textures": "textures/blocks/minicars/light_off"
+    },
+    "bender_minicars_light_red": {
+      "textures": "textures/blocks/minicars/light_red"
+    },
+    "bender_minicars_light_green": {
+      "textures": "textures/blocks/minicars/light_green"
+    },
+    "bender_minicars_control_top": {
+      "textures": "textures/blocks/minicars/control_top"
+    },
+    "bender_minicars_control_front": {
+      "textures": "textures/blocks/minicars/control_front"
+    },
+    "bender_minicars_control_side": {
+      "textures": "textures/blocks/minicars/control_side"
+    },
+    "bender_minicars_trophy_gold": {
+      "textures": "textures/blocks/minicars/trophy_gold"
+    },
+    "bender_minicars_trophy_silver": {
+      "textures": "textures/blocks/minicars/trophy_silver"
+    },
+    "bender_minicars_trophy_bronze": {
+      "textures": "textures/blocks/minicars/trophy_bronze"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:race_light"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "R",
+      "L"
+    ],
+    "key": {
+      "R": {
+        "item": "minecraft:redstone"
+      },
+      "L": {
+        "item": "minecraft:redstone_lamp"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:race_light",
+      "count": 2
+    }
+  }
+}

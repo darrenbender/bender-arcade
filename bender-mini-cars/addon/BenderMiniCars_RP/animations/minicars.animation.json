@@ -1,0 +1,291 @@
+{
+ "format_version": "1.8.0",
+ "animations": {
+  "animation.bender_minicars.go_kart.wheels": {
+   "loop": true,
+   "bones": {
+    "wheel_fl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_fr": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_bl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_br": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.bender_minicars.race_car.wheels": {
+   "loop": true,
+   "bones": {
+    "wheel_fl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_fr": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_bl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_br": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.bender_minicars.monster_truck.wheels": {
+   "loop": true,
+   "bones": {
+    "wheel_fl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_fr": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_bl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_br": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.bender_minicars.jeep.wheels": {
+   "loop": true,
+   "bones": {
+    "wheel_fl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_fr": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_bl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_br": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.bender_minicars.police_car.wheels": {
+   "loop": true,
+   "bones": {
+    "wheel_fl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_fr": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_bl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_br": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.bender_minicars.police_car.siren": {
+   "loop": true,
+   "bones": {
+    "light_red": {
+     "scale": "math.mod(q.life_time * 4, 2) < 1 ? 1.2 : 0.0"
+    },
+    "light_blue": {
+     "scale": "math.mod(q.life_time * 4, 2) < 1 ? 0.0 : 1.2"
+    }
+   }
+  },
+  "animation.bender_minicars.fire_truck.wheels": {
+   "loop": true,
+   "bones": {
+    "wheel_fl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_fr": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_bl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_br": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.bender_minicars.fire_truck.siren": {
+   "loop": true,
+   "bones": {
+    "light_red": {
+     "scale": "math.mod(q.life_time * 4, 2) < 1 ? 1.2 : 0.0"
+    },
+    "light_blue": {
+     "scale": "math.mod(q.life_time * 4, 2) < 1 ? 0.0 : 1.2"
+    }
+   }
+  },
+  "animation.bender_minicars.ice_cream_truck.wheels": {
+   "loop": true,
+   "bones": {
+    "wheel_fl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_fr": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_bl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_br": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.bender_minicars.taxi.wheels": {
+   "loop": true,
+   "bones": {
+    "wheel_fl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_fr": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_bl": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    },
+    "wheel_br": {
+     "rotation": [
+      "q.modified_distance_moved * -70",
+      0,
+      0
+     ]
+    }
+   }
+  }
+ }
+}

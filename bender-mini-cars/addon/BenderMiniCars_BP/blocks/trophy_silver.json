@@ -1,0 +1,50 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:block": {
+    "description": {
+      "identifier": "bender:trophy_silver",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "§7Silver Trophy",
+      "minecraft:map_color": "#d8dde3",
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 1.0
+      },
+      "minecraft:geometry": "geometry.bender_trophy",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "bender_minicars_trophy_silver",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:collision_box": {
+        "origin": [
+          -4,
+          0,
+          -4
+        ],
+        "size": [
+          8,
+          14,
+          8
+        ]
+      },
+      "minecraft:selection_box": {
+        "origin": [
+          -4,
+          0,
+          -4
+        ],
+        "size": [
+          8,
+          14,
+          8
+        ]
+      },
+      "minecraft:light_dampening": 0
+    }
+  }
+}

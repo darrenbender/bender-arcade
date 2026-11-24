@@ -1,0 +1,22 @@
+{
+  "format_version": [
+    1,
+    1,
+    0
+  ],
+  "bender:race_light": {
+    "sound": "metal"
+  },
+  "bender:race_control": {
+    "sound": "metal"
+  },
+  "bender:trophy_gold": {
+    "sound": "metal"
+  },
+  "bender:trophy_silver": {
+    "sound": "metal"
+  },
+  "bender:trophy_bronze": {
+    "sound": "metal"
+  }
+}
