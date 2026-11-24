@@ -1,0 +1,78 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "bender:blaster_bolt",
+      "is_spawnable": false,
+      "is_summonable": true
+    },
+    "component_groups": {
+      "bender:fizzle": {
+        "minecraft:instant_despawn": {}
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "blaster_bolt",
+          "projectile"
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 0.25,
+        "height": 0.25
+      },
+      "minecraft:projectile": {
+        "on_hit": {
+          "impact_damage": {
+            "damage": {
+              "min": 2,
+              "max": 2
+            },
+            "knockback": true,
+            "destroy_on_hit": true
+          },
+          "remove_on_hit": {}
+        },
+        "power": 1.2,
+        "gravity": 0.0,
+        "inertia": 1.0,
+        "liquid_inertia": 1.0,
+        "anchor": "eye_height",
+        "offset": [
+          0,
+          -0.1,
+          0
+        ],
+        "uncertainty_base": 6,
+        "uncertainty_multiplier": 2,
+        "hit_sound": "random.fizz"
+      },
+      "minecraft:physics": {},
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": false
+      },
+      "minecraft:timer": {
+        "looping": false,
+        "time": [
+          6,
+          6
+        ],
+        "time_down_event": {
+          "event": "bender:fizzle",
+          "target": "self"
+        }
+      }
+    },
+    "events": {
+      "bender:fizzle": {
+        "add": {
+          "component_groups": [
+            "bender:fizzle"
+          ]
+        }
+      }
+    }
+  }
+}

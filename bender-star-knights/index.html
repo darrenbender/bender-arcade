@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bender Star Knights</title>
+<style>
+  :root {
+    --bg: #0b0f22;
+    --bg2: #2a2466;
+    --card: #161a38;
+    --card-edge: #3b3f86;
+    --text: #ffffff;
+    --soft: #d4e2f7;
+    --gold: #ffd166;
+    --gold-dark: #e09b1a;
+    --red: #ff6b6b;
+    --blue: #6cc6ff;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--text);
+    background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg) 70%) fixed;
+    background-color: var(--bg);
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  img { max-width: 100%; height: auto; }
+  .hero { text-align: center; padding: 8px 0 24px; }
+  .hero .icon { width: 128px; height: 128px; border-radius: 14px; box-shadow: 0 8px 30px rgba(108, 198, 255, 0.35); }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); margin: 14px 0 4px; color: var(--gold); }
+  .tagline { font-size: clamp(1.1rem, 3.4vw, 1.4rem); color: var(--soft); margin: 0 0 24px; }
+  .btn {
+    display: inline-block; font: inherit; font-size: clamp(1.3rem, 4vw, 1.7rem); font-weight: 800;
+    padding: 22px 36px; min-height: 72px; border-radius: 22px; text-decoration: none; color: #2b1a00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 6px 0 #8a5a00, 0 12px 28px rgba(0,0,0,0.35); transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #8a5a00, 0 6px 14px rgba(0,0,0,0.35); }
+  .btn.secondary { color: #fff; background: linear-gradient(180deg, #60a5fa, #2563eb); box-shadow: 0 6px 0 #1e3a8a, 0 12px 28px rgba(0,0,0,0.35); }
+  .small-print { color: var(--soft); font-size: 0.95rem; margin-top: 14px; }
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 40px 0 16px; text-align: center; }
+  .intro { text-align: center; color: var(--soft); margin: -6px 0 18px; }
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: step; }
+  .steps li { min-width: 0; overflow-wrap: anywhere; counter-increment: step; background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 18px 18px 18px 76px; position: relative; }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 16px; top: 16px; width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.4rem; background: var(--gold); color: #2b1a00;
+  }
+  .steps b, .tour b { color: var(--gold); }
+  .mansion { text-align: center; margin: 0 0 16px; }
+  .mansion img { width: 100%; max-width: 640px; }
+  .tour { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 700px) { .tour { grid-template-columns: 1fr 1fr; } }
+  .tour div { background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 14px 18px; }
+  .tour h3 { margin: 0 0 6px; font-size: 1.2rem; }
+  .tour ul { margin: 0; padding-left: 20px; color: var(--soft); }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (min-width: 700px) { .cards { grid-template-columns: 1fr 1fr 1fr; } }
+  .card { background: var(--card); border: 2px solid var(--card-edge); border-top: 5px solid var(--c, var(--blue)); border-radius: 18px; padding: 12px; text-align: center; }
+  .card img { width: 100%; max-width: 170px; aspect-ratio: 1; object-fit: contain; }
+  .card img.pixel { max-width: 96px; image-rendering: pixelated; margin: 12px 0; border-radius: 6px; }
+  .card h3 { margin: 4px 0 6px; font-size: 1.15rem; color: var(--c, var(--blue)); }
+  .card p { margin: 4px 0; font-size: 0.95rem; color: var(--soft); }
+  .card .how { font-weight: 800; color: var(--gold); }
+  .remote { background: linear-gradient(180deg, #13335a, #0d2140); border: 2px solid #3d7cc9; border-radius: 20px; padding: 18px 20px; }
+  .remote h2 { margin-top: 0; }
+  .remote ul { margin: 0; padding-left: 22px; }
+  .remote li { margin: 6px 0; }
+  .recipes { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 700px) { .recipes { grid-template-columns: 1fr 1fr; } }
+  .recipes li { background: var(--card); border: 2px solid var(--card-edge); border-radius: 14px; padding: 12px 16px; }
+  .recipes b { color: var(--gold); }
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .tips li { background: rgba(255,255,255,0.07); border-radius: 14px; padding: 14px 18px; }
+  .tips li::before { content: "⭐ "; }
+  .back { text-align: center; margin-top: 44px; }
+  .blades { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (min-width: 700px) { .blades { grid-template-columns: repeat(5, 1fr); } }
+  .blade { background: var(--card); border: 2px solid var(--card-edge); border-radius: 16px; padding: 8px; text-align: center; }
+  .blade img { width: 100%; max-width: 110px; aspect-ratio: 1 / 1.6; object-fit: contain; }
+  .blade p { margin: 2px 0 0; font-weight: 800; font-size: 0.95rem; }
+  .rainbow-text { background: linear-gradient(90deg, #ff3535, #ff8a1a, #ffe23d, #3dff5a, #3d8bff, #c44dff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .powers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .power { background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 14px; text-align: center; }
+  .power .big { font-size: 2.4rem; }
+  .power h3 { margin: 4px 0; color: var(--gold); font-size: 1.15rem; }
+  .power p { margin: 2px 0; color: var(--soft); font-size: 0.95rem; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 8px; }
+  .swatches span { width: 26px; height: 26px; border-radius: 7px; border: 2px solid rgba(255,255,255,0.4); }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="icon" src="addon/BenderStarKnights_BP/pack_icon.png" alt="A blue and a rainbow glowing blade crossed under a starfighter, in a starry sky">
+    <h1>Bender Star Knights</h1>
+    <p class="tagline">A Minecraft add-on: build your own glowing <b>Star Blade</b> (rainbow ones too!), use Star Powers, bounce robots' blaster bolts back at them, fly the <b>Star Dart</b>, and duel your brother!</p>
+    <a class="btn" href="BenderStarKnights.mcaddon" download>⬇️ Download for Minecraft</a>
+    <p class="small-print">Version <b>1.0.0</b>. Made for Michael and James. For Minecraft Bedrock on iPad, iPhone, Android and Windows. Free, no ads.</p>
+  </header>
+
+  <section>
+    <h2>How to put it on the iPad</h2>
+    <ol class="steps">
+      <li>Tap <b>Download for Minecraft</b> above, then tap <b>Download</b> when Safari asks.</li>
+      <li>Open the <b>Files</b> app, go to <b>Downloads</b>, and tap <b>BenderStarKnights.mcaddon</b>. Minecraft opens and says <b>Successfully imported</b>.<br>
+        If tapping the file doesn't open Minecraft, tap the <b>Share</b> button and choose <b>Minecraft</b>.</li>
+      <li>In Minecraft, tap <b>Create New World</b> (or the pencil next to an old world). Scroll to <b>Behavior Packs</b>, tap <b>Available</b>, tap <b>Bender Star Knights v1.0.0</b>, then <b>Activate</b>. It works alongside the other Bender add-ons.</li>
+      <li>Tap <b>Create</b> or <b>Play</b>. The first time you join, you <b>pick your first Star Blade</b> and get a <b>Knight Comm</b>, a <b>Temple Kit</b>, a <b>Droid Buddy</b> and a <b>Star Dart</b>.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Updating from an older version?</h2>
+    <p class="intro">Minecraft keeps old copies next to new ones. The new one has its version in the name: <b>Bender Star Knights v1.0.0</b>.</p>
+    <ol class="steps">
+      <li>Download and import the new version as above.</li>
+      <li>In Minecraft, go to <b>Settings</b> → <b>Storage</b>. Under <b>Behavior Packs</b>, delete the old <b>Bender Star Knights</b> copies (the ones without <b>v1.0.0</b>). Under <b>Resource Packs</b>, delete the old <b>Bender Star Knights Textures</b> copies.</li>
+      <li>Open each world's settings and check <b>Behavior Packs</b> → <b>Active</b>. If it still shows an old copy, remove it and activate <b>v1.0.0</b>. When you join the world, the chat says which version is on.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>The Star Blades</h2>
+    <p class="intro">Seven colors and two rainbows. The <span class="rainbow-text"><b>Rainbow</b></span> blade keeps changing color; the <span class="rainbow-text"><b>Rainbow Stripes</b></span> blade shows every color at once. Hold one and it lights up with a hum.</p>
+    <div class="blades">
+      <div class="blade"><img src="img/blade_blue.png" alt="A blue glowing Star Blade"><p style="color:#3d8bff">Blue</p></div>
+      <div class="blade"><img src="img/blade_green.png" alt="A green glowing Star Blade"><p style="color:#3dff5a">Green</p></div>
+      <div class="blade"><img src="img/blade_red.png" alt="A red glowing Star Blade"><p style="color:#ff3535">Red</p></div>
+      <div class="blade"><img src="img/blade_purple.png" alt="A purple glowing Star Blade"><p style="color:#b44dff">Purple</p></div>
+      <div class="blade"><img src="img/blade_yellow.png" alt="A yellow glowing Star Blade"><p style="color:#ffe23d">Yellow</p></div>
+      <div class="blade"><img src="img/blade_orange.png" alt="A orange glowing Star Blade"><p style="color:#ff8a1a">Orange</p></div>
+      <div class="blade"><img src="img/blade_white.png" alt="A white glowing Star Blade"><p style="color:#f2f6ff">White</p></div>
+      <div class="blade"><img src="img/blade_rainbow.gif" alt="The rainbow Star Blade, glowing red, orange, yellow, green, blue and purple in turn"><p class="rainbow-text">Rainbow</p></div>
+      <div class="blade"><img src="img/blade_stripes.png" alt="The Rainbow Stripes Star Blade, with bands of every color"><p class="rainbow-text">Rainbow Stripes</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How to build a blade</h2>
+    <ol class="steps">
+      <li>Build the <b>Star Knight Temple</b> (below) and go to the <b>crystal cave</b> at the back.</li>
+      <li><b>Tap a crystal</b> to pick a <b>Star Crystal</b> of that color. Each crystal grows back after 10 seconds.</li>
+      <li>Hold the crystal and <b>tap the Blade Workbench</b> in the middle of the temple. You get a Star Blade that color!</li>
+      <li>No temple? Put a Star Crystal on top of 2 iron ingots in a crafting table. Make crystals from an amethyst shard and a dye (look in the recipe book).</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Star Powers</h2>
+    <p class="intro">Hold your Star Blade and tap. Where you look picks the power. Each one recharges in a few seconds.</p>
+    <div class="powers">
+      <div class="power"><div class="big">💨</div><h3>Star Push</h3><p><b>Look ahead</b> and tap</p><p>Monsters in front go flying.</p></div>
+      <div class="power"><div class="big">🪶</div><h3>Star Lift</h3><p><b>Look up</b> and tap</p><p>Monsters in front float up into the air.</p></div>
+      <div class="power"><div class="big">🦘</div><h3>Star Leap</h3><p><b>Look down</b> and tap</p><p>A giant jump, with a soft landing.</p></div>
+      <div class="power"><div class="big">🧲</div><h3>Star Pull</h3><p><b>Sneak</b> and tap</p><p>Pulls monsters toward you, and grabs dropped things.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The Star Knight Temple</h2>
+    <div class="mansion"><img src="img/temple.png" alt="A white and gold temple with a crystal spire, a sandy training arena with red robot pads, and a landing pad"></div>
+    <ol class="steps">
+      <li>Find some <b>open, flat land</b> and stand where you want the middle of the temple.</li>
+      <li>Hold the <b>Temple Kit</b> and <b>tap</b>. A <b>sparkly square</b> shows where it goes. <b>Tap again</b> to build it.</li>
+      <li>Inside: the great hall with the <b>Blade Workbench</b>, the <b>crystal cave</b> at the back and a <b>droid bay</b>. Outside: the <b>training arena</b> and a landing pad with a <b>Star Dart</b>.</li>
+      <li>Changed your mind? Stand in the temple, <b>sneak</b> and tap the kit <b>twice</b>. The land goes back how it was.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Robot training</h2>
+    <div class="cards">
+      <div class="card" style="--c:#ff8a1a"><img src="img/clank_trooper.png" alt="A white and orange boxy robot with one big round eye and a blaster"><h3>Clank Trooper</h3><p class="how">Shoots blaster bolts</p><p>Silly robots that clank around. They fall apart in a shower of sparks.</p></div>
+      <div class="card" style="--c:#ff4a4a"><img src="img/clank_captain.png" alt="A bigger red and gold robot"><h3>Clank Captain</h3><p class="how">Bigger and tougher</p><p>Shoots three bolts at a time. It's in the last wave.</p></div>
+    </div>
+    <ol class="steps" style="margin-top:14px">
+      <li>Tap the <b>Training Console</b> at the top of the arena and choose <b>Start training</b>.</li>
+      <li>Robots appear on the red pads: 3 waves, each bigger than the last.</li>
+      <li><b>Bounce their bolts back!</b> Hold your Star Blade and look at the robots: bolts flying at you bounce straight back at whoever shot them.</li>
+      <li>Beat all 3 waves for a prize: a Star Crystal for a new blade.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Droid Buddy and Star Dart</h2>
+    <div class="cards">
+      <div class="card" style="--c:#5ad8ff"><img src="img/droid_buddy.png" alt="A little cube robot with a big blue eye and two antennae"><h3>Droid Buddy</h3><p class="how">Follows you and zaps monsters</p><p>Paint it 8 colors or call it to you with the Knight Comm. It beeps!</p><div class="swatches"><span style="background:#eef1f5"></span><span style="background:#3d7bff"></span><span style="background:#ff4040"></span><span style="background:#38d45a"></span><span style="background:#ff8a1a"></span><span style="background:#9b4dff"></span><span style="background:#ffd23d"></span><span style="background:#30343c"></span></div></div>
+      <div class="card" style="--c:#18b6c4"><img src="img/star_dart.png" alt="A white starfighter with teal stripes, swept wings and two glowing engines"><h3>Star Dart</h3><p class="how">Look and push forward to fly</p><p>Hold jump to climb. Tap your blade or the Knight Comm to fire lasers at monsters.</p></div>
+    </div>
+  </section>
+
+  <section class="remote">
+    <h2>⚔️ Duel Mode</h2>
+    <ul>
+      <li>Tap the <b>Knight Comm</b> and switch <b>Duel Mode</b> on. Both knights have to switch it on.</li>
+      <li>Then every blade hit on the other knight scores a point and knocks them back. <b>First to 5 wins!</b></li>
+      <li>While you duel, nobody gets hurt. Switch it off any time in the Knight Comm.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>How to craft more</h2>
+    <p class="intro">All the recipes are in the crafting table's recipe book.</p>
+    <ul class="recipes">
+      <li><b>Star Blade</b>: a Star Crystal on top of 2 iron ingots</li>
+      <li><b>Star Crystal</b>: a dye on top of an amethyst shard (rainbow: red, yellow and blue dye; stripes: green, orange and purple dye, over a shard)</li>
+      <li><b>Knight Comm</b>: glass pane on top, iron, redstone, iron below</li>
+      <li><b>Droid Buddy</b>: redstone torch, then iron-observer-iron, then iron</li>
+      <li><b>Star Dart</b>: iron, then white concrete-redstone block-white concrete, then 2 iron</li>
+      <li><b>Blade Workbench</b>: gold, amethyst shard, gold over 3 quartz blocks</li>
+      <li><b>Training Console</b>: glass pane, redstone, glass pane over 3 iron ingots</li>
+      <li><b>Temple Kit</b>: 8 quartz blocks around a block of amethyst</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Good to know</h2>
+    <ul class="tips">
+      <li>Blades, powers, the droid and the Star Dart only hurt monsters and robots. They never hurt players, pets or animals.</li>
+      <li>A Training Console you put down anywhere works too: robots come from 4 spots around it.</li>
+      <li>Sneak and hit your Droid Buddy 3 times to pack it into a kit. Hit an empty Star Dart 3 times to pack it up.</li>
+      <li>Beating a Clank Captain always drops a Star Crystal.</li>
+      <li>A Star Dart left in the air floats gently down. Jumping out gives you slow falling.</li>
+      <li>The Temple Kit only builds in the Overworld, and not on water.</li>
+      <li>Worlds with add-ons don't earn Xbox achievements.</li>
+    </ul>
+  </section>
+
+  <div class="back">
+    <a class="btn secondary" href="/">← Back to Arcade</a>
+  </div>
+
+</div>
+</body>
+</html>

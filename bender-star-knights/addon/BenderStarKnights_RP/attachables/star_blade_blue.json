@@ -1,0 +1,37 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:attachable": {
+    "description": {
+      "identifier": "bender:star_blade_blue",
+      "materials": {
+        "default": "entity_emissive_alpha",
+        "halo": "entity_beam_additive"
+      },
+      "textures": {
+        "default": "textures/entity/star_knights/blades/blue"
+      },
+      "geometry": {
+        "default": "geometry.bender_star_blade"
+      },
+      "animations": {
+        "third_person": "animation.bender_star_blade.third_person",
+        "first_person": "animation.bender_star_blade.first_person",
+        "hum": "animation.bender_star_blade.hum"
+      },
+      "scripts": {
+        "animate": [
+          {
+            "third_person": "c.is_first_person == 0.0"
+          },
+          {
+            "first_person": "c.is_first_person == 1.0"
+          },
+          "hum"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.bender_star_blade"
+      ]
+    }
+  }
+}

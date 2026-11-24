@@ -1,0 +1,18 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:star_crystal_blue",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_knights_crystal_blue",
+      "minecraft:display_name": {
+        "value": "§9Blue Star Crystal"
+      },
+      "minecraft:max_stack_size": 16
+    }
+  }
+}

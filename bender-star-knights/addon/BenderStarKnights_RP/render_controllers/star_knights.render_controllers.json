@@ -1,0 +1,87 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.bender_knights": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ]
+    },
+    "controller.render.bender_droid_buddy": {
+      "arrays": {
+        "textures": {
+          "Array.paint": [
+            "Texture.c0",
+            "Texture.c1",
+            "Texture.c2",
+            "Texture.c3",
+            "Texture.c4",
+            "Texture.c5",
+            "Texture.c6",
+            "Texture.c7"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.paint[q.property('bender:color')]"
+      ]
+    },
+    "controller.render.bender_star_blade": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        },
+        {
+          "halo": "Material.halo"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ]
+    },
+    "controller.render.bender_star_blade_rainbow": {
+      "arrays": {
+        "textures": {
+          "Array.hues": [
+            "Texture.h0",
+            "Texture.h1",
+            "Texture.h2",
+            "Texture.h3",
+            "Texture.h4",
+            "Texture.h5",
+            "Texture.h6",
+            "Texture.h7",
+            "Texture.h8",
+            "Texture.h9",
+            "Texture.h10",
+            "Texture.h11"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        },
+        {
+          "halo": "Material.halo"
+        }
+      ],
+      "textures": [
+        "Array.hues[math.mod(math.floor(q.life_time * 8), 12)]"
+      ]
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:attachable": {
+    "description": {
+      "identifier": "bender:star_blade_rainbow",
+      "materials": {
+        "default": "entity_emissive_alpha",
+        "halo": "entity_beam_additive"
+      },
+      "textures": {
+        "default": "textures/entity/star_knights/blades/rainbow_0",
+        "h0": "textures/entity/star_knights/blades/rainbow_0",
+        "h1": "textures/entity/star_knights/blades/rainbow_1",
+        "h2": "textures/entity/star_knights/blades/rainbow_2",
+        "h3": "textures/entity/star_knights/blades/rainbow_3",
+        "h4": "textures/entity/star_knights/blades/rainbow_4",
+        "h5": "textures/entity/star_knights/blades/rainbow_5",
+        "h6": "textures/entity/star_knights/blades/rainbow_6",
+        "h7": "textures/entity/star_knights/blades/rainbow_7",
+        "h8": "textures/entity/star_knights/blades/rainbow_8",
+        "h9": "textures/entity/star_knights/blades/rainbow_9",
+        "h10": "textures/entity/star_knights/blades/rainbow_10",
+        "h11": "textures/entity/star_knights/blades/rainbow_11"
+      },
+      "geometry": {
+        "default": "geometry.bender_star_blade"
+      },
+      "animations": {
+        "third_person": "animation.bender_star_blade.third_person",
+        "first_person": "animation.bender_star_blade.first_person",
+        "hum": "animation.bender_star_blade.hum"
+      },
+      "scripts": {
+        "animate": [
+          {
+            "third_person": "c.is_first_person == 0.0"
+          },
+          {
+            "first_person": "c.is_first_person == 1.0"
+          },
+          "hum"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.bender_star_blade_rainbow"
+      ]
+    }
+  }
+}

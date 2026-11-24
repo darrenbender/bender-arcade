@@ -1,0 +1,7 @@
+entity.bender:clank_trooper.name=Clank Trooper
+entity.bender:clank_captain.name=Clank Captain
+entity.bender:blaster_bolt.name=Blaster Bolt
+entity.bender:droid_buddy.name=Droid Buddy
+entity.bender:star_dart.name=Star Dart
+item.spawn_egg.entity.bender:clank_trooper.name=Clank Trooper Spawn Egg
+item.spawn_egg.entity.bender:clank_captain.name=Clank Captain Spawn Egg

@@ -1,0 +1,18 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:star_crystal_rainbow",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_knights_crystal_rainbow",
+      "minecraft:display_name": {
+        "value": "§cR§6a§ei§an§9b§5o§dw §6S§et§aa§9r §dC§cr§6y§es§at§9a§5l§r"
+      },
+      "minecraft:max_stack_size": 16
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:droid_buddy",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "c0": "textures/entity/star_knights/droid/droid_0",
+        "c1": "textures/entity/star_knights/droid/droid_1",
+        "c2": "textures/entity/star_knights/droid/droid_2",
+        "c3": "textures/entity/star_knights/droid/droid_3",
+        "c4": "textures/entity/star_knights/droid/droid_4",
+        "c5": "textures/entity/star_knights/droid/droid_5",
+        "c6": "textures/entity/star_knights/droid/droid_6",
+        "c7": "textures/entity/star_knights/droid/droid_7",
+        "default": "textures/entity/star_knights/droid/droid_0"
+      },
+      "geometry": {
+        "default": "geometry.bender_droid_buddy"
+      },
+      "render_controllers": [
+        "controller.render.bender_droid_buddy"
+      ],
+      "animations": {
+        "hover": "animation.bender_knights.droid.hover"
+      },
+      "scripts": {
+        "animate": [
+          "hover"
+        ]
+      }
+    }
+  }
+}

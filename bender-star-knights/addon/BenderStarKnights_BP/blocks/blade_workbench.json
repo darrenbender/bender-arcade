@@ -1,0 +1,35 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:block": {
+    "description": {
+      "identifier": "bender:blade_workbench",
+      "menu_category": {
+        "category": "construction"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "Blade Workbench",
+      "minecraft:map_color": "#4ab0ff",
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "bender_knights_workbench_side",
+          "render_method": "opaque"
+        },
+        "up": {
+          "texture": "bender_knights_workbench_top",
+          "render_method": "opaque"
+        },
+        "down": {
+          "texture": "bender_knights_metal",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:light_emission": 7,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 2
+      },
+      "bender:knights_workbench": {}
+    }
+  }
+}

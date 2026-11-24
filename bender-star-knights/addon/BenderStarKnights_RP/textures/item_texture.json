@@ -1,0 +1,72 @@
+{
+  "resource_pack_name": "bender_star_knights",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "bender_knights_blade_blue": {
+      "textures": "textures/items/star_knights/blade_blue"
+    },
+    "bender_knights_crystal_blue": {
+      "textures": "textures/items/star_knights/crystal_blue"
+    },
+    "bender_knights_blade_green": {
+      "textures": "textures/items/star_knights/blade_green"
+    },
+    "bender_knights_crystal_green": {
+      "textures": "textures/items/star_knights/crystal_green"
+    },
+    "bender_knights_blade_red": {
+      "textures": "textures/items/star_knights/blade_red"
+    },
+    "bender_knights_crystal_red": {
+      "textures": "textures/items/star_knights/crystal_red"
+    },
+    "bender_knights_blade_purple": {
+      "textures": "textures/items/star_knights/blade_purple"
+    },
+    "bender_knights_crystal_purple": {
+      "textures": "textures/items/star_knights/crystal_purple"
+    },
+    "bender_knights_blade_yellow": {
+      "textures": "textures/items/star_knights/blade_yellow"
+    },
+    "bender_knights_crystal_yellow": {
+      "textures": "textures/items/star_knights/crystal_yellow"
+    },
+    "bender_knights_blade_orange": {
+      "textures": "textures/items/star_knights/blade_orange"
+    },
+    "bender_knights_crystal_orange": {
+      "textures": "textures/items/star_knights/crystal_orange"
+    },
+    "bender_knights_blade_white": {
+      "textures": "textures/items/star_knights/blade_white"
+    },
+    "bender_knights_crystal_white": {
+      "textures": "textures/items/star_knights/crystal_white"
+    },
+    "bender_knights_blade_rainbow": {
+      "textures": "textures/items/star_knights/blade_rainbow"
+    },
+    "bender_knights_crystal_rainbow": {
+      "textures": "textures/items/star_knights/crystal_rainbow"
+    },
+    "bender_knights_blade_stripes": {
+      "textures": "textures/items/star_knights/blade_stripes"
+    },
+    "bender_knights_crystal_stripes": {
+      "textures": "textures/items/star_knights/crystal_stripes"
+    },
+    "bender_knights_knight_comm": {
+      "textures": "textures/items/star_knights/knight_comm"
+    },
+    "bender_knights_temple_kit": {
+      "textures": "textures/items/star_knights/temple_kit"
+    },
+    "bender_knights_droid_buddy_kit": {
+      "textures": "textures/items/star_knights/droid_buddy_kit"
+    },
+    "bender_knights_star_dart_kit": {
+      "textures": "textures/items/star_knights/star_dart_kit"
+    }
+  }
+}

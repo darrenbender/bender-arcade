@@ -1,0 +1,32 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:clank_trooper",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/star_knights/clank_trooper"
+      },
+      "geometry": {
+        "default": "geometry.bender_clank_trooper"
+      },
+      "render_controllers": [
+        "controller.render.bender_knights"
+      ],
+      "animations": {
+        "move": "animation.bender_knights.trooper.move"
+      },
+      "scripts": {
+        "animate": [
+          "move"
+        ]
+      },
+      "spawn_egg": {
+        "base_color": "#e8eaee",
+        "overlay_color": "#ff8a1a"
+      }
+    }
+  }
+}

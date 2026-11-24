@@ -1,0 +1,21 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:temple_kit",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_knights_temple_kit",
+      "minecraft:display_name": {
+        "value": "§eStar Knight Temple Kit"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:glint": true,
+      "minecraft:interact_button": "Build Temple!",
+      "bender:knights_temple_kit": {}
+    }
+  }
+}

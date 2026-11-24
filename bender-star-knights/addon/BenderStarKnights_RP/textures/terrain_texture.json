@@ -1,0 +1,47 @@
+{
+  "resource_pack_name": "bender_star_knights",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "bender_knights_crystal_blue": {
+      "textures": "textures/blocks/star_knights/crystal_blue"
+    },
+    "bender_knights_crystal_green": {
+      "textures": "textures/blocks/star_knights/crystal_green"
+    },
+    "bender_knights_crystal_red": {
+      "textures": "textures/blocks/star_knights/crystal_red"
+    },
+    "bender_knights_crystal_purple": {
+      "textures": "textures/blocks/star_knights/crystal_purple"
+    },
+    "bender_knights_crystal_yellow": {
+      "textures": "textures/blocks/star_knights/crystal_yellow"
+    },
+    "bender_knights_crystal_orange": {
+      "textures": "textures/blocks/star_knights/crystal_orange"
+    },
+    "bender_knights_crystal_white": {
+      "textures": "textures/blocks/star_knights/crystal_white"
+    },
+    "bender_knights_crystal_rainbow": {
+      "textures": "textures/blocks/star_knights/crystal_rainbow"
+    },
+    "bender_knights_crystal_stripes": {
+      "textures": "textures/blocks/star_knights/crystal_stripes"
+    },
+    "bender_knights_metal": {
+      "textures": "textures/blocks/star_knights/metal"
+    },
+    "bender_knights_workbench_top": {
+      "textures": "textures/blocks/star_knights/workbench_top"
+    },
+    "bender_knights_workbench_side": {
+      "textures": "textures/blocks/star_knights/workbench_side"
+    },
+    "bender_knights_console_front": {
+      "textures": "textures/blocks/star_knights/console_front"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:knight_comm",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_knights_knight_comm",
+      "minecraft:display_name": {
+        "value": "§bKnight Comm"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:interact_button": "Use",
+      "bender:knight_comm": {}
+    }
+  }
+}

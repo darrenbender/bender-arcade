@@ -1,0 +1,82 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "bender:star_dart",
+      "is_spawnable": false,
+      "is_summonable": true
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "bender_knights_vehicle",
+          "inanimate"
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 2.2,
+        "height": 1.2
+      },
+      "minecraft:health": {
+        "value": 20,
+        "max": 20
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "all",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": false
+      },
+      "minecraft:knockback_resistance": {
+        "value": 1.0
+      },
+      "minecraft:fire_immune": true,
+      "minecraft:breathable": {
+        "breathes_air": true,
+        "breathes_water": true
+      },
+      "minecraft:persistent": {},
+      "minecraft:rideable": {
+        "seat_count": 1,
+        "family_types": [
+          "player"
+        ],
+        "interact_text": "Fly",
+        "crouching_skip_interact": true,
+        "pull_in_entities": false,
+        "seats": [
+          {
+            "position": [
+              0,
+              0.65,
+              0.5
+            ]
+          }
+        ]
+      },
+      "minecraft:physics": {
+        "has_gravity": false,
+        "has_collision": true
+      },
+      "minecraft:custom_hit_test": {
+        "hitboxes": [
+          {
+            "width": 2.8,
+            "height": 1.4,
+            "pivot": [
+              0,
+              0.7,
+              0
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

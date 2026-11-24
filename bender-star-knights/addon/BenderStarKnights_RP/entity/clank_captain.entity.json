@@ -1,0 +1,32 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:clank_captain",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/star_knights/clank_captain"
+      },
+      "geometry": {
+        "default": "geometry.bender_clank_trooper"
+      },
+      "render_controllers": [
+        "controller.render.bender_knights"
+      ],
+      "animations": {
+        "move": "animation.bender_knights.trooper.move"
+      },
+      "scripts": {
+        "animate": [
+          "move"
+        ]
+      },
+      "spawn_egg": {
+        "base_color": "#c8343a",
+        "overlay_color": "#ffd23d"
+      }
+    }
+  }
+}

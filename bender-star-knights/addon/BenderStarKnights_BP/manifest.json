@@ -1,0 +1,58 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Bender Star Knights v1.0.0",
+    "description": "Version 1.0.0. Glowing Star Blades (rainbow ones too), Star Powers, robot troopers to train against, a Droid Buddy, the Star Dart starfighter and Duel Mode. Made for Michael and James.",
+    "uuid": "e22b6db6-dd01-4501-b745-b85b1edfe01f",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      120
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "f53bcae3-3a6f-4398-8a1c-4a3c13a9dbd2",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "a104ac3c-28b4-4ed1-892e-22ad05ae3620",
+      "entry": "scripts/main.js",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "55c52e4e-f851-4075-a0f3-bf8e35db9268",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.2.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "2.0.0"
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:block": {
+    "description": {
+      "identifier": "bender:star_crystal_block",
+      "menu_category": {
+        "category": "construction"
+      },
+      "states": {
+        "bender:color": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
+      }
+    },
+    "components": {
+      "minecraft:display_name": "Star Crystal",
+      "minecraft:map_color": "#9a6bff",
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "bender_knights_crystal_blue",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:light_emission": 10,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 30
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 1200
+      },
+      "bender:knights_crystal": {}
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('bender:color') == 0",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "bender_knights_crystal_blue",
+              "render_method": "opaque"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('bender:color') == 1",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "bender_knights_crystal_green",
+              "render_method": "opaque"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('bender:color') == 2",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "bender_knights_crystal_red",
+              "render_method": "opaque"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('bender:color') == 3",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "bender_knights_crystal_purple",
+              "render_method": "opaque"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('bender:color') == 4",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "bender_knights_crystal_yellow",
+              "render_method": "opaque"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('bender:color') == 5",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "bender_knights_crystal_orange",
+              "render_method": "opaque"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('bender:color') == 6",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "bender_knights_crystal_white",
+              "render_method": "opaque"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('bender:color') == 7",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "bender_knights_crystal_rainbow",
+              "render_method": "opaque"
+            }
+          }
+        }
+      },
+      {
+        "condition": "q.block_state('bender:color') == 8",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "bender_knights_crystal_stripes",
+              "render_method": "opaque"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
