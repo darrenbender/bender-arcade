@@ -258,6 +258,28 @@ function inputOf(player) {
 
 // ------------------------------------------------------------ flying
 
+const POSE_CONTROLLER = "bender_suits_fly";
+// the pose also ends by itself the moment you land, splash down, ride something or open an elytra
+const POSE_STOP = "q.is_on_ground || q.is_in_water || q.is_riding || q.is_gliding";
+
+/**
+ * The flying pose (animations/flight.animation.json): the body leans over to follow where
+ * you look and the legs flutter, like elytra gliding. Everyone nearby sees it.
+ */
+function setFlyPose(player, pilot, on) {
+  if (!!pilot.posed === on) return;
+  pilot.posed = on;
+  try {
+    player.playAnimation(on ? "animation.bender_suits.fly" : "animation.bender_suits.land", {
+      controller: POSE_CONTROLLER,
+      stopExpression: on ? POSE_STOP : "q.any_animation_finished",
+      blendOutTime: 0.25,
+    });
+  } catch {
+    // Just no pose this time.
+  }
+}
+
 system.runInterval(() => {
   const tick = system.currentTick;
   for (const player of world.getAllPlayers()) {
@@ -276,6 +298,7 @@ system.runInterval(() => {
         removeEffect(player, "levitation");
         addEffect(player, "slow_falling", 100);
       }
+      setFlyPose(player, pilot, false);
       continue;
     }
     const s = SUITS[suit];
@@ -289,6 +312,8 @@ system.runInterval(() => {
       onGround = false;
     }
     const out = flightStep(pilot, suit, { onGround, inWater, jump, sneak: player.isSneaking, forward, sunny: sunny(player), tick });
+    if (onGround || inWater) pilot.posed = false; // the pose already ended by itself
+    else setFlyPose(player, pilot, pilot.flying);
     const feet = player.location;
     if (out.levitate) {
       addEffect(player, "levitation", 6, out.levitate - 1);

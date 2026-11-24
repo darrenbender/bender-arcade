@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Power Suits Textures v1.0.3",
-    "description": "Version 1.0.3. Suit textures, icons and the hologram for Bender Power Suits.",
+    "name": "Bender Power Suits Textures v1.0.4",
+    "description": "Version 1.0.4. Suit textures, icons and the hologram for Bender Power Suits.",
     "uuid": "7648523d-97b9-449a-b4f6-ab1e63b61f83",
     "version": [
       1,
       0,
-      3
+      4
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        3
+        4
       ]
     }
   ],

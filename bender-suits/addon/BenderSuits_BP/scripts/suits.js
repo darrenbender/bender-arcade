@@ -104,7 +104,7 @@ export function gadgetIndex(typeId) {
 // ------------------------------------------------------------ Suit Power and flying
 
 export function newPilot() {
-  return { power: MAX_POWER, flying: false, lastBoost: -100, ready: {} };
+  return { power: MAX_POWER, flying: false, posed: false, lastBoost: -100, ready: {} };
 }
 
 /**
