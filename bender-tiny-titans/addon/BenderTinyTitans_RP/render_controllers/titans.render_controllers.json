@@ -1,0 +1,27 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.bender_titans": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ]
+    },
+    "controller.render.bender_firefly_wings": {
+      "geometry": "Geometry.wings",
+      "materials": [
+        {
+          "*": "Material.wings"
+        }
+      ],
+      "textures": [
+        "Texture.wings"
+      ]
+    }
+  }
+}

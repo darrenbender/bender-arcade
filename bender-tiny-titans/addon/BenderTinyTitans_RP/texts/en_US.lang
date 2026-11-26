@@ -1,0 +1,6 @@
+entity.bender:worker_ant.name=Worker Ant
+item.spawn_egg.entity.bender:worker_ant.name=Worker Ant Spawn Egg
+entity.bender:flying_ant.name=Flying Ant
+item.spawn_egg.entity.bender:flying_ant.name=Flying Ant Spawn Egg
+entity.bender:shrink_disc_shot.name=Shrink Disc
+entity.bender:grow_disc_shot.name=Grow Disc

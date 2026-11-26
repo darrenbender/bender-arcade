@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bender Tiny Titans</title>
+<style>
+  :root {
+    --bg: #120f2e;
+    --bg2: #3a2a7a;
+    --card: #1d1840;
+    --card-edge: #4a3c94;
+    --text: #ffffff;
+    --soft: #d9d4f5;
+    --gold: #ffd166;
+    --gold-dark: #e09b1a;
+    --blue: #6cb4ff;
+    --green: #5fe39a;
+    --red: #ff7a7a;
+    --cyan: #6ff2e0;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", sans-serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--text);
+    background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg) 70%) fixed;
+    background-color: var(--bg);
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  img { max-width: 100%; height: auto; }
+  .hero { text-align: center; padding: 8px 0 24px; }
+  .hero .icon { width: 128px; height: 128px; border-radius: 14px; box-shadow: 0 8px 30px rgba(111, 242, 224, 0.35); }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); margin: 14px 0 4px; color: var(--gold); }
+  .tagline { font-size: clamp(1.1rem, 3.4vw, 1.4rem); color: var(--soft); margin: 0 0 24px; }
+  .btn {
+    display: inline-block; font: inherit; font-size: clamp(1.3rem, 4vw, 1.7rem); font-weight: 800;
+    padding: 22px 36px; min-height: 72px; border-radius: 22px; text-decoration: none; color: #2b1a00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow: 0 6px 0 #8a5a00, 0 12px 28px rgba(0,0,0,0.35); transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #8a5a00, 0 6px 14px rgba(0,0,0,0.35); }
+  .btn.secondary { color: #fff; background: linear-gradient(180deg, #60a5fa, #2563eb); box-shadow: 0 6px 0 #1e3a8a, 0 12px 28px rgba(0,0,0,0.35); }
+  .small-print { color: var(--soft); font-size: 0.95rem; margin-top: 14px; }
+  .needs { display: inline-block; margin-top: 10px; padding: 8px 14px; border-radius: 12px; background: rgba(255, 209, 102, 0.12); border: 2px solid rgba(255, 209, 102, 0.5); font-size: 0.95rem; }
+  h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 40px 0 16px; text-align: center; }
+  .intro { text-align: center; color: var(--soft); margin: -6px 0 18px; }
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; counter-reset: step; }
+  .steps li { min-width: 0; overflow-wrap: anywhere; counter-increment: step; background: var(--card); border: 2px solid var(--card-edge); border-radius: 18px; padding: 18px 18px 18px 76px; position: relative; }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 16px; top: 16px; width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.4rem; background: var(--gold); color: #2b1a00;
+  }
+  .steps b, .tips b, .recipes b { color: var(--gold); }
+  .picture { text-align: center; margin: 0 0 16px; }
+  .picture img { width: 100%; max-width: 600px; }
+  .cards { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 640px) { .cards { grid-template-columns: 1fr 1fr 1fr; } }
+  .cards.two { grid-template-columns: 1fr 1fr; }
+  .card { min-width: 0; background: var(--card); border: 2px solid var(--card-edge); border-top: 5px solid var(--c, var(--blue)); border-radius: 18px; padding: 12px; text-align: center; }
+  .card img { width: 100%; max-width: 160px; aspect-ratio: 1; object-fit: contain; }
+  .card h3 { margin: 4px 0 6px; font-size: 1.2rem; color: var(--c, var(--blue)); }
+  .card p { margin: 4px 0; font-size: 0.95rem; color: var(--soft); }
+  .card .how { font-weight: 800; color: var(--gold); }
+  .sizes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; text-align: center; font-size: 0.85rem; color: var(--soft); margin-top: 8px; }
+  .sizes b { display: block; font-size: 1.05rem; color: var(--text); }
+  .controls { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 640px) { .controls { grid-template-columns: 1fr 1fr; } }
+  .controls div { min-width: 0; background: var(--card); border: 2px solid var(--card-edge); border-radius: 16px; padding: 14px 16px; }
+  .controls .look { font-size: 1.7rem; float: left; margin: 0 12px 4px 0; line-height: 1; }
+  .controls b { color: var(--gold); }
+  .recipes { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 700px) { .recipes { grid-template-columns: 1fr 1fr; } }
+  .recipes li { min-width: 0; background: var(--card); border: 2px solid var(--card-edge); border-radius: 14px; padding: 12px 16px; }
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .tips li { background: rgba(255,255,255,0.07); border-radius: 14px; padding: 14px 18px; }
+  .tips li::before { content: "⭐ "; }
+  .back { text-align: center; margin-top: 44px; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="icon" src="addon/BenderTinyTitans_BP/pack_icon.png" alt="A giant red Mega Suit hero, a blue Pocket Suit hero and a tiny green Firefly hero riding an ant">
+    <h1>Bender Tiny Titans</h1>
+    <p class="tagline">A Minecraft add-on with 3 size suits. Shrink <b>tiny</b> to ride ants and squeeze through cracks, grow <b>giant</b> to throw monsters and <b>STOMP</b>, and dive into the glowing <b>Micro Realm</b>.</p>
+    <a class="btn" href="BenderTinyTitans.mcaddon" download>⬇️ Download for Minecraft</a>
+    <p class="small-print">Version <b>1.0.0</b>. Made for Michael and James. For Minecraft Bedrock on iPad, iPhone, Android and Windows. Free, no ads.</p>
+    <p class="needs">Needs Minecraft <b>1.26.60</b> or newer. Update Minecraft first if it won't load.</p>
+  </header>
+
+  <section>
+    <h2>How to put it on the iPad</h2>
+    <ol class="steps">
+      <li>Tap <b>Download for Minecraft</b> above, then tap <b>Download</b> when Safari asks.</li>
+      <li>Open the <b>Files</b> app, go to <b>Downloads</b>, and tap <b>BenderTinyTitans.mcaddon</b>. Minecraft opens and says <b>Successfully imported</b>.<br>
+        If tapping the file doesn't open Minecraft, tap the <b>Share</b> button and choose <b>Minecraft</b>.</li>
+      <li>In Minecraft, tap <b>Create New World</b> (or the pencil next to an old world). Scroll to <b>Behavior Packs</b>, tap <b>Available</b>, tap <b>Bender Tiny Titans v1.0.0</b>, then <b>Activate</b>. It works alongside the other Bender add-ons.</li>
+      <li>Tap <b>Create</b> or <b>Play</b>. The first time you join, you <b>pick your size suit</b>. You're wearing it straight away, and you also get a <b>Size Switch</b>, <b>Size Discs</b> and an <b>Ant Colony</b>.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Updating from an older version?</h2>
+    <p class="intro">Minecraft keeps old copies next to new ones. The new one has its version in the name: <b>Bender Tiny Titans v1.0.0</b>.</p>
+    <ol class="steps">
+      <li>Download and import the new version as above.</li>
+      <li>In Minecraft, go to <b>Settings</b> → <b>Storage</b>. Under <b>Behavior Packs</b>, delete the old <b>Bender Tiny Titans</b> copies (the ones without <b>v1.0.0</b>). Under <b>Resource Packs</b>, delete the old <b>Bender Tiny Titans Textures</b> copies.</li>
+      <li>Open each world's settings and check <b>Behavior Packs</b> → <b>Active</b>. If it still shows an old copy, remove it and activate <b>v1.0.0</b>. When you join the world, the chat says which version is on.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>The 3 size suits</h2>
+    <p class="intro">Wear all 4 pieces of one suit, then use the <b>Size Switch</b>. You can swap suits any time in the Size Switch menu.</p>
+    <div class="cards">
+      <div class="card" style="--c:var(--blue)"><img src="img/suit_pocket.png" alt="A blue and orange armored hero"><h3>Pocket Suit</h3><p class="how">Tiny punches hit like a giant</p><p>Shrink and grow. Super fast when tiny.</p>
+        <div class="sizes"><span><b>¼</b>tiny</span><span><b>1</b>normal</span><span><b>2½×</b>giant</span></div></div>
+      <div class="card" style="--c:var(--green)"><img src="img/suit_firefly.png" alt="A green and purple armored hero with see-through wings"><h3>Firefly Suit</h3><p class="how">Flies when tiny!</p><p>Its punches zap a sting that jumps to the next monsters.</p>
+        <div class="sizes"><span><b>⅕</b>tiny</span><span><b>1</b>normal</span><span><b>1½×</b>giant</span></div></div>
+      <div class="card" style="--c:var(--red)"><img src="img/suit_mega.png" alt="A red and gold armored hero"><h3>Mega Suit</h3><p class="how">The biggest giant</p><p>Huge stomps and the farthest throws.</p>
+        <div class="sizes"><span><b>½</b>tiny</span><span><b>1</b>normal</span><span><b>4×</b>giant</span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The Size Switch</h2>
+    <p class="intro">Hold it and tap. Where you look picks what happens.</p>
+    <div class="controls">
+      <div><span class="look">👀</span><b>Look ahead + tap</b>: shrink tiny. Tap again to go back to normal size.</div>
+      <div><span class="look">⬆️</span><b>Look up + tap</b>: grow giant. Look up and tap again to go back to normal.</div>
+      <div><span class="look">⬇️</span><b>Look down + tap</b> (when you're tiny): dive into the <b>Micro Realm</b>.</div>
+      <div><span class="look">🕹️</span><b>Sneak + tap</b>: the menu. Pick a size, the camera, call your ants, swap suits, or read how to play.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tiny and giant powers</h2>
+    <ol class="steps">
+      <li><b>Tiny</b>: you're quick and you fit through tiny gaps. When you're tiny or giant, the camera follows you from just behind so you can see yourself. Prefer your own eyes? Change it in the menu.</li>
+      <li><b>Firefly wings</b> (tiny Firefly Suit): hold <b>jump</b> to fly up, push <b>forward</b> to zoom, let go to glide down, <b>sneak</b> to dive.</li>
+      <li><b>Giant</b>: <b>punch a monster</b> to grab it, lift it up... and THROW it where you're looking. Look up to throw it higher!</li>
+      <li><b>STOMP</b>: giants jump high. Land from a jump and the ground shakes, knocking monsters flying. Giants never get hurt by falling.</li>
+      <li>Grow back from tiny only where there's room. Under a low roof, walk out into the open first.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Size Discs</h2>
+    <p class="intro">Throw them like snowballs. Each one makes a mob one size smaller or bigger: tiny, normal, giant.</p>
+    <ol class="steps">
+      <li>A <b>Shrink Disc</b> (blue) shrinks it. A <b>Grow Disc</b> (red) grows it. Two Grow Discs make a normal mob giant... a giant chicken!</li>
+      <li>They work on <b>zombies, skeletons, creepers, spiders, pigs, cows, sheep, chickens</b> and <b>ants</b>. Never on players or babies.</li>
+      <li>A disc that misses lands on the ground: pick it up and throw it again.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Ants to ride</h2>
+    <div class="cards two">
+      <div class="card" style="--c:#e0703a"><img src="img/worker_ant.png" alt="A big red-brown worker ant"><h3>Worker Ant</h3><p class="how">Ride it on the ground</p><p>Follows you and bites monsters.</p></div>
+      <div class="card" style="--c:#b9c7d6"><img src="img/flying_ant.png" alt="A black flying ant with silver wings"><h3>Flying Ant</h3><p class="how">Ride it in the sky</p><p>Look where to go and push forward. Hold jump to climb.</p></div>
+    </div>
+    <ol class="steps" style="margin-top:14px">
+      <li>Tap the <b>Ant Colony</b> and out come <b>2 worker ants and a flying ant</b>. They're yours and follow you. (After a minute, tap again for more, up to 6.)</li>
+      <li><b>Shrink tiny</b>, then tap an ant to climb on. <b>Sneak</b> to get off.</li>
+      <li>Too big? Throw a <b>Grow Disc</b> at an ant to make it giant, and anyone can ride it, even a normal-size player.</li>
+      <li>Ants far away? <b>Sneak + tap</b> the Ant Colony and they come to you.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>The Micro Realm</h2>
+    <div class="picture"><img src="img/realm.png" alt="Glowing floating islands in rainbow colors, joined by light bridges to a round platform with a swirling portal, with see-through bubbles floating above"></div>
+    <ol class="steps">
+      <li>Shrink <b>tiny</b>, look <b>down</b> and tap the Size Switch. You dive into a glowing world of floating islands.</li>
+      <li>Hop along the light bridges to the islands. Tap the shiny <b>Micro Crystal</b> clusters to collect crystals. They grow back.</li>
+      <li>You float gently in there, and if you fall off, the realm catches you.</li>
+      <li>To go home, tap the Size Switch again, or step on the swirling <b>portal</b> in the middle. You go back to exactly where you left.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>How to craft more</h2>
+    <p class="intro">All the recipes are in the crafting table's recipe book.</p>
+    <ul class="recipes">
+      <li><b>Suit pieces</b>: shaped like iron armor, with the suit's item in the middle and a gold nugget in a corner. Pocket: lapis lazuli. Firefly: feather. Mega: redstone.</li>
+      <li><b>Size Switch</b>: redstone on top, iron, lapis, iron in the middle, iron at the bottom</li>
+      <li><b>Shrink Discs</b> (×4): 4 iron nuggets around lapis lazuli</li>
+      <li><b>Grow Discs</b> (×4): 4 iron nuggets around redstone</li>
+      <li><b>8 discs from a Micro Crystal</b>: a crystal on top of lapis (shrink) or redstone (grow)</li>
+      <li><b>Ant Colony</b>: sugar on top of 3 dirt</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Good to know</h2>
+    <ul class="tips">
+      <li>Powers only hurt monsters: never players, pets, animals or your ants.</li>
+      <li>This add-on gives the player and 8 mobs (zombie, skeleton, creeper, spider, pig, cow, sheep, chicken) their sizes. Another add-on that also changes the player or those mobs can clash with it. The other Bender add-ons are fine.</li>
+      <li>Take the suit off and you go back to normal size, as soon as there's room.</li>
+      <li>Ants never get hurt by players or by falling. Feed them <b>sugar</b> to heal them.</li>
+      <li>Worlds with add-ons don't earn Xbox achievements.</li>
+    </ul>
+  </section>
+
+  <div class="back">
+    <a class="btn secondary" href="/">← Back to Arcade</a>
+  </div>
+
+</div>
+</body>
+</html>

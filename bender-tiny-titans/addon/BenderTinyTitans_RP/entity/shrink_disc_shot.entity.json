@@ -1,0 +1,28 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:shrink_disc_shot",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/titans/shrink_disc"
+      },
+      "geometry": {
+        "default": "geometry.bender_shrink_disc"
+      },
+      "render_controllers": [
+        "controller.render.bender_titans"
+      ],
+      "animations": {
+        "spin": "animation.bender_titans.disc.spin"
+      },
+      "scripts": {
+        "animate": [
+          "spin"
+        ]
+      }
+    }
+  }
+}

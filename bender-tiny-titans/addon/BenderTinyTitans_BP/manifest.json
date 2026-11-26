@@ -1,0 +1,58 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Bender Tiny Titans v1.0.0",
+    "description": "Version 1.0.0. Three size suits: shrink tiny, grow giant, throw monsters, stomp, ride ants, throw Size Discs at mobs and visit the Micro Realm. Made for Michael and James.",
+    "uuid": "821bd4a4-a531-4513-a815-ef9a928f8039",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      26,
+      60
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "44871679-4bad-442b-a263-4aadf1c63df2",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "5aa04d00-e7f6-4f0b-a066-69f879582db1",
+      "entry": "scripts/main.js",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "e915f538-c65a-47c7-b40c-2a2009b68bdb",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.2.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "2.0.0"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:shrink_disc",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_titans_shrink_disc",
+      "minecraft:display_name": {
+        "value": "§9Shrink Disc"
+      },
+      "minecraft:max_stack_size": 16,
+      "minecraft:throwable": {
+        "do_swing_animation": true,
+        "launch_power_scale": 1.0,
+        "max_launch_power": 1.0
+      },
+      "minecraft:projectile": {
+        "projectile_entity": "bender:shrink_disc_shot",
+        "minimum_critical_power": 1.0
+      }
+    }
+  }
+}

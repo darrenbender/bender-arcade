@@ -1,0 +1,284 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "bender:worker_ant",
+      "is_spawnable": true,
+      "is_summonable": true
+    },
+    "component_groups": {
+      "bender:size_tiny": {
+        "minecraft:rideable": {
+          "seat_count": 1,
+          "family_types": [
+            "player"
+          ],
+          "interact_text": "Ride",
+          "crouching_skip_interact": true,
+          "pull_in_entities": false,
+          "seats": [
+            {
+              "position": [
+                0.0,
+                0.182,
+                0.022
+              ]
+            }
+          ]
+        },
+        "minecraft:scale": {
+          "value": 0.35
+        }
+      },
+      "bender:size_normal": {
+        "minecraft:rideable": {
+          "seat_count": 1,
+          "family_types": [
+            "player"
+          ],
+          "interact_text": "Ride",
+          "crouching_skip_interact": true,
+          "pull_in_entities": false,
+          "seats": [
+            {
+              "position": [
+                0.0,
+                0.52,
+                0.062
+              ]
+            }
+          ]
+        }
+      },
+      "bender:size_giant": {
+        "minecraft:rideable": {
+          "seat_count": 1,
+          "family_types": [
+            "player"
+          ],
+          "interact_text": "Ride",
+          "crouching_skip_interact": true,
+          "pull_in_entities": false,
+          "seats": [
+            {
+              "position": [
+                0.0,
+                1.3,
+                0.155
+              ]
+            }
+          ]
+        },
+        "minecraft:scale": {
+          "value": 2.5
+        }
+      },
+      "bender:tamed": {
+        "minecraft:is_tamed": {},
+        "minecraft:behavior.follow_owner": {
+          "priority": 4,
+          "speed_multiplier": 1.2,
+          "start_distance": 8,
+          "stop_distance": 3,
+          "can_teleport": true
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 2,
+          "must_see": true,
+          "reselect_targets": true,
+          "within_radius": 12,
+          "entity_types": [
+            {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "monster"
+                  },
+                  {
+                    "test": "rider_count",
+                    "subject": "self",
+                    "operator": "==",
+                    "value": 0
+                  }
+                ]
+              },
+              "max_dist": 12
+            }
+          ]
+        },
+        "minecraft:behavior.melee_attack": {
+          "priority": 3,
+          "speed_multiplier": 1.3,
+          "track_target": true
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "bender_ant",
+          "mob"
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 0.8,
+        "height": 0.6
+      },
+      "minecraft:health": {
+        "value": 24,
+        "max": 24
+      },
+      "minecraft:movement": {
+        "value": 0.36
+      },
+      "minecraft:physics": {},
+      "minecraft:pushable": {
+        "is_pushable": true,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0,
+        "breathes_water": true
+      },
+      "minecraft:nameable": {},
+      "minecraft:persistent": {},
+      "minecraft:healable": {
+        "items": [
+          {
+            "item": "minecraft:sugar",
+            "heal_amount": 8
+          }
+        ]
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          },
+          {
+            "on_damage": {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "player"
+              }
+            },
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:tameable": {
+        "probability": 0.34,
+        "tame_items": [
+          "minecraft:sugar"
+        ],
+        "tame_event": {
+          "event": "bender:on_tame",
+          "target": "self"
+        }
+      },
+      "minecraft:behavior.float": {
+        "priority": 0
+      },
+      "minecraft:behavior.hurt_by_target": {
+        "priority": 1,
+        "entity_types": [
+          {
+            "filters": {
+              "test": "is_family",
+              "subject": "other",
+              "operator": "!=",
+              "value": "player"
+            }
+          }
+        ]
+      },
+      "minecraft:behavior.look_at_player": {
+        "priority": 8,
+        "look_distance": 8
+      },
+      "minecraft:behavior.random_look_around": {
+        "priority": 9
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:navigation.walk": {
+        "can_path_over_water": true,
+        "avoid_water": true,
+        "avoid_damage_blocks": true
+      },
+      "minecraft:jump.static": {},
+      "minecraft:input_ground_controlled": {},
+      "minecraft:variable_max_auto_step": {
+        "base_value": 1.0625,
+        "controlled_value": 1.0625,
+        "jump_prevented_value": 0.5625
+      },
+      "minecraft:attack": {
+        "damage": 4
+      },
+      "minecraft:behavior.random_stroll": {
+        "priority": 7,
+        "speed_multiplier": 0.8
+      }
+    },
+    "events": {
+      "bender:size_tiny": {
+        "remove": {
+          "component_groups": [
+            "bender:size_normal",
+            "bender:size_giant"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "bender:size_tiny"
+          ]
+        }
+      },
+      "bender:size_normal": {
+        "remove": {
+          "component_groups": [
+            "bender:size_tiny",
+            "bender:size_giant"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "bender:size_normal"
+          ]
+        }
+      },
+      "bender:size_giant": {
+        "remove": {
+          "component_groups": [
+            "bender:size_tiny",
+            "bender:size_normal"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "bender:size_giant"
+          ]
+        }
+      },
+      "bender:on_tame": {
+        "add": {
+          "component_groups": [
+            "bender:tamed"
+          ]
+        }
+      },
+      "minecraft:entity_spawned": {
+        "add": {
+          "component_groups": [
+            "bender:size_normal"
+          ]
+        }
+      }
+    }
+  }
+}

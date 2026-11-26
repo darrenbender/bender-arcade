@@ -1,0 +1,21 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "bender:ant_colony",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "bender_titans_ant_colony",
+      "minecraft:display_name": {
+        "value": "§6Ant Colony"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:glint": true,
+      "minecraft:interact_button": "Call Ants!",
+      "bender:ant_colony": {}
+    }
+  }
+}

@@ -1,0 +1,7 @@
+[
+  {
+    "flipbook_texture": "textures/blocks/titans/micro_portal",
+    "atlas_tile": "bender_titans_portal",
+    "ticks_per_frame": 3
+  }
+]

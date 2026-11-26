@@ -1,0 +1,57 @@
+{
+  "resource_pack_name": "bender_tiny_titans",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "bender_titans_pocket_helmet": {
+      "textures": "textures/items/titans/pocket_helmet"
+    },
+    "bender_titans_pocket_chestplate": {
+      "textures": "textures/items/titans/pocket_chestplate"
+    },
+    "bender_titans_pocket_leggings": {
+      "textures": "textures/items/titans/pocket_leggings"
+    },
+    "bender_titans_pocket_boots": {
+      "textures": "textures/items/titans/pocket_boots"
+    },
+    "bender_titans_firefly_helmet": {
+      "textures": "textures/items/titans/firefly_helmet"
+    },
+    "bender_titans_firefly_chestplate": {
+      "textures": "textures/items/titans/firefly_chestplate"
+    },
+    "bender_titans_firefly_leggings": {
+      "textures": "textures/items/titans/firefly_leggings"
+    },
+    "bender_titans_firefly_boots": {
+      "textures": "textures/items/titans/firefly_boots"
+    },
+    "bender_titans_mega_helmet": {
+      "textures": "textures/items/titans/mega_helmet"
+    },
+    "bender_titans_mega_chestplate": {
+      "textures": "textures/items/titans/mega_chestplate"
+    },
+    "bender_titans_mega_leggings": {
+      "textures": "textures/items/titans/mega_leggings"
+    },
+    "bender_titans_mega_boots": {
+      "textures": "textures/items/titans/mega_boots"
+    },
+    "bender_titans_size_switch": {
+      "textures": "textures/items/titans/size_switch"
+    },
+    "bender_titans_ant_colony": {
+      "textures": "textures/items/titans/ant_colony"
+    },
+    "bender_titans_micro_crystal": {
+      "textures": "textures/items/titans/micro_crystal"
+    },
+    "bender_titans_shrink_disc": {
+      "textures": "textures/items/titans/shrink_disc"
+    },
+    "bender_titans_grow_disc": {
+      "textures": "textures/items/titans/grow_disc"
+    }
+  }
+}

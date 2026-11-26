@@ -1,0 +1,42 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "bender:shrink_disc_shot",
+      "is_spawnable": false,
+      "is_summonable": true
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "bender_size_disc",
+          "projectile"
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 0.3,
+        "height": 0.2
+      },
+      "minecraft:projectile": {
+        "on_hit": {
+          "remove_on_hit": {}
+        },
+        "power": 1.4,
+        "gravity": 0.03,
+        "angle_offset": 0.0,
+        "anchor": "eye_height",
+        "offset": [
+          0,
+          -0.1,
+          0
+        ],
+        "hit_sound": "bubble.pop"
+      },
+      "minecraft:physics": {},
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": false
+      }
+    }
+  }
+}

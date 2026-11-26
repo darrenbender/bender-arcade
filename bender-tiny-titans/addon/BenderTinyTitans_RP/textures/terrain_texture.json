@@ -1,0 +1,14 @@
+{
+  "resource_pack_name": "bender_tiny_titans",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "bender_titans_portal": {
+      "textures": "textures/blocks/titans/micro_portal"
+    },
+    "bender_titans_crystal": {
+      "textures": "textures/blocks/titans/micro_crystal"
+    }
+  }
+}

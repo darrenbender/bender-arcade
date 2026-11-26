@@ -1,0 +1,32 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "bender:worker_ant",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/titans/worker_ant"
+      },
+      "geometry": {
+        "default": "geometry.bender_worker_ant"
+      },
+      "render_controllers": [
+        "controller.render.bender_titans"
+      ],
+      "animations": {
+        "walk": "animation.bender_titans.worker_ant.walk"
+      },
+      "scripts": {
+        "animate": [
+          "walk"
+        ]
+      },
+      "spawn_egg": {
+        "base_color": "#96321a",
+        "overlay_color": "#3c1a0c"
+      }
+    }
+  }
+}

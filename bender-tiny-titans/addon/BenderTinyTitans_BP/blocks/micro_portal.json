@@ -1,0 +1,26 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:block": {
+    "description": {
+      "identifier": "bender:micro_portal",
+      "menu_category": {
+        "category": "none"
+      }
+    },
+    "components": {
+      "minecraft:display_name": "Micro Portal",
+      "minecraft:map_color": "#5a3cc8",
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:destructible_by_mining": false,
+      "minecraft:destructible_by_explosion": false,
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "bender_titans_portal",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:light_emission": 15,
+      "bender:micro_portal": {}
+    }
+  }
+}

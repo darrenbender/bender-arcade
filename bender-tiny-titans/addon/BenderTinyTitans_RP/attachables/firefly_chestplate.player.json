@@ -1,0 +1,40 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:attachable": {
+    "description": {
+      "identifier": "bender:firefly_chestplate.player",
+      "item": {
+        "bender:firefly_chestplate": "query.owner_identifier == 'minecraft:player'"
+      },
+      "materials": {
+        "default": "armor",
+        "enchanted": "armor_enchanted",
+        "wings": "entity_alphablend"
+      },
+      "textures": {
+        "default": "textures/models/armor/firefly_suit_1",
+        "enchanted": "textures/misc/enchanted_actor_glint",
+        "wings": "textures/models/armor/firefly_wings"
+      },
+      "render_controllers": [
+        "controller.render.armor",
+        "controller.render.bender_firefly_wings"
+      ],
+      "geometry": {
+        "default": "geometry.player.armor.chestplate",
+        "wings": "geometry.bender_firefly_wings"
+      },
+      "scripts": {
+        "parent_setup": "variable.chest_layer_visible = 0.0;",
+        "animate": [
+          "offset",
+          "wings"
+        ]
+      },
+      "animations": {
+        "offset": "animation.armor.chestplate.offset",
+        "wings": "animation.bender_firefly.wings"
+      }
+    }
+  }
+}

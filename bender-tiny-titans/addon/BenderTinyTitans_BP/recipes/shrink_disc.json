@@ -1,0 +1,33 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:shrink_disc"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      " N ",
+      "NLN",
+      " N "
+    ],
+    "key": {
+      "N": {
+        "item": "minecraft:iron_nugget"
+      },
+      "L": {
+        "item": "minecraft:lapis_lazuli"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:shrink_disc",
+      "count": 4
+    }
+  }
+}

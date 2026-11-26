@@ -1,0 +1,170 @@
+{
+ "format_version": "1.8.0",
+ "animations": {
+  "animation.bender_firefly.wings": {
+   "loop": true,
+   "bones": {
+    "wing_left": {
+     "rotation": [
+      0,
+      "q.is_on_ground ? math.sin(q.life_time * 200) * 6 : -5 + math.sin(q.life_time * 2400) * 30",
+      0
+     ]
+    },
+    "wing_right": {
+     "rotation": [
+      0,
+      "q.is_on_ground ? -math.sin(q.life_time * 200) * 6 : 5 - math.sin(q.life_time * 2400) * 30",
+      0
+     ]
+    }
+   }
+  },
+  "animation.bender_titans.worker_ant.walk": {
+   "loop": true,
+   "bones": {
+    "leg_l0": {
+     "rotation": [
+      0,
+      "math.sin(q.modified_distance_moved * 60) * 25 * 1",
+      0
+     ]
+    },
+    "leg_r0": {
+     "rotation": [
+      0,
+      "math.sin(q.modified_distance_moved * 60) * 25 * -1",
+      0
+     ]
+    },
+    "leg_l1": {
+     "rotation": [
+      0,
+      "math.sin(q.modified_distance_moved * 60) * 25 * -1",
+      0
+     ]
+    },
+    "leg_r1": {
+     "rotation": [
+      0,
+      "math.sin(q.modified_distance_moved * 60) * 25 * 1",
+      0
+     ]
+    },
+    "leg_l2": {
+     "rotation": [
+      0,
+      "math.sin(q.modified_distance_moved * 60) * 25 * 1",
+      0
+     ]
+    },
+    "leg_r2": {
+     "rotation": [
+      0,
+      "math.sin(q.modified_distance_moved * 60) * 25 * -1",
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      "math.sin(q.life_time * 120) * 4",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.bender_titans.flying_ant.walk": {
+   "loop": true,
+   "bones": {
+    "leg_l0": {
+     "rotation": [
+      0,
+      "math.sin(q.modified_distance_moved * 60) * 25 * 1",
+      0
+     ]
+    },
+    "leg_r0": {
+     "rotation": [
+      0,
+      "math.sin(q.modified_distance_moved * 60) * 25 * -1",
+      0
+     ]
+    },
+    "leg_l1": {
+     "rotation": [
+      0,
+      "math.sin(q.modified_distance_moved * 60) * 25 * -1",
+      0
+     ]
+    },
+    "leg_r1": {
+     "rotation": [
+      0,
+      "math.sin(q.modified_distance_moved * 60) * 25 * 1",
+      0
+     ]
+    },
+    "leg_l2": {
+     "rotation": [
+      0,
+      "math.sin(q.modified_distance_moved * 60) * 25 * 1",
+      0
+     ]
+    },
+    "leg_r2": {
+     "rotation": [
+      0,
+      "math.sin(q.modified_distance_moved * 60) * 25 * -1",
+      0
+     ]
+    },
+    "head": {
+     "rotation": [
+      "math.sin(q.life_time * 120) * 4",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.bender_titans.flying_ant.fly": {
+   "loop": true,
+   "bones": {
+    "wings_l": {
+     "rotation": [
+      0,
+      0,
+      "q.is_on_ground ? -10 : -10 + math.sin(q.life_time * 2600) * 35"
+     ]
+    },
+    "wings_r": {
+     "rotation": [
+      0,
+      0,
+      "q.is_on_ground ? 10 : 10 - math.sin(q.life_time * 2600) * 35"
+     ]
+    },
+    "root": {
+     "position": [
+      0,
+      "q.is_on_ground ? 0 : math.sin(q.life_time * 180) * 0.8",
+      0
+     ]
+    }
+   }
+  },
+  "animation.bender_titans.disc.spin": {
+   "loop": true,
+   "bones": {
+    "spin": {
+     "rotation": [
+      0,
+      "q.life_time * 1080",
+      0
+     ]
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,31 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:ant_colony"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      " S ",
+      "DDD"
+    ],
+    "key": {
+      "S": {
+        "item": "minecraft:sugar"
+      },
+      "D": {
+        "item": "minecraft:dirt"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:ant_colony"
+    }
+  }
+}

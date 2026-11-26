@@ -1,0 +1,35 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:size_switch"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      " R ",
+      "ILI",
+      " I "
+    ],
+    "key": {
+      "R": {
+        "item": "minecraft:redstone"
+      },
+      "L": {
+        "item": "minecraft:lapis_lazuli"
+      },
+      "I": {
+        "item": "minecraft:iron_ingot"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:size_switch"
+    }
+  }
+}

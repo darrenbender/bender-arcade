@@ -1,0 +1,32 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "bender:shrink_disc_crystal"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "C",
+      "L"
+    ],
+    "key": {
+      "C": {
+        "item": "bender:micro_crystal"
+      },
+      "L": {
+        "item": "minecraft:lapis_lazuli"
+      }
+    },
+    "unlock": [
+      {
+        "context": "AlwaysUnlocked"
+      }
+    ],
+    "result": {
+      "item": "bender:shrink_disc",
+      "count": 8
+    }
+  }
+}
