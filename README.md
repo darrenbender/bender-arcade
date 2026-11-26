@@ -1,6 +1,6 @@
 # Bender Arcade
 
-A small collection of custom browser games built for Michael and James.
+A small collection of custom browser games built for two kids.
 
 🎮 Live at: https://games.darrenbender.com
 

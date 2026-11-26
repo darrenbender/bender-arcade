@@ -58,7 +58,7 @@ import {
   yawTo,
 } from "./security.js";
 
-const PACK_VERSION = "1.0.0";
+const PACK_VERSION = "1.0.1";
 const KIT = "bender:mansion_kit";
 const REMOTE = "bender:security_remote";
 const TURRET = "bender:laser_turret";

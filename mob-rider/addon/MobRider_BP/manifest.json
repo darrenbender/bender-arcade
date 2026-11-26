@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Mob Rider v1.0.2",
-    "description": "Version 1.0.2. Ride any mob with the Magic Saddle. Made for Michael and James.",
+    "name": "Mob Rider v1.0.3",
+    "description": "Version 1.0.3. Ride any mob with the Magic Saddle.",
     "uuid": "f6032221-714a-4b29-b3f3-014cd71db911",
     "version": [
       1,
       0,
-      2
+      3
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        2
+        3
       ]
     },
     {
@@ -33,7 +33,7 @@
       "version": [
         1,
         0,
-        2
+        3
       ]
     }
   ],
@@ -43,7 +43,7 @@
       "version": [
         1,
         0,
-        2
+        3
       ]
     },
     {

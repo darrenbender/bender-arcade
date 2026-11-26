@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Elements Textures v1.0.3",
-    "description": "Version 1.0.3. Models and textures for Bender Elements.",
+    "name": "Bender Elements Textures v1.0.4",
+    "description": "Version 1.0.4. Models and textures for Bender Elements.",
     "uuid": "a5582db0-1594-4f1d-b012-1d7c6469c1b6",
     "version": [
       1,
       0,
-      3
+      4
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        3
+        4
       ]
     }
   ],

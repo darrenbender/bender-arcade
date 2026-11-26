@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Boxing v1.0.3",
-    "description": "Version 1.0.3. Punching bags and boxing gloves. Punch the bags to train and grow extra hearts. Made for Michael and James.",
+    "name": "Bender Boxing v1.0.4",
+    "description": "Version 1.0.4. Punching bags and boxing gloves. Punch the bags to train and grow extra hearts.",
     "uuid": "ddfe134b-e4f5-4ebc-9c7d-41a63060494a",
     "version": [
       1,
       0,
-      3
+      4
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        3
+        4
       ]
     },
     {
@@ -33,7 +33,7 @@
       "version": [
         1,
         0,
-        3
+        4
       ]
     }
   ],
@@ -43,7 +43,7 @@
       "version": [
         1,
         0,
-        3
+        4
       ]
     },
     {

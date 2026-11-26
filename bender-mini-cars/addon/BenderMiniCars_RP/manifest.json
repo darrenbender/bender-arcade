@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Mini Cars Textures v1.0.0",
-    "description": "Version 1.0.0. Cars, trophies, race lights and icons for Bender Mini Cars.",
+    "name": "Bender Mini Cars Textures v1.0.1",
+    "description": "Version 1.0.1. Cars, trophies, race lights and icons for Bender Mini Cars.",
     "uuid": "c7261973-7162-49c9-98b8-29a33090b6df",
     "version": [
       1,
       0,
-      0
+      1
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        0
+        1
       ]
     }
   ],

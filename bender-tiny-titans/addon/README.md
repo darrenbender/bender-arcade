@@ -51,7 +51,7 @@ zip -qrX ../BenderTinyTitans.mcaddon BenderTinyTitans_BP BenderTinyTitans_RP -x 
 
 When you ship a change, bump `version` in both `manifest.json` files (and the
 dependency version in the behavior pack manifest). The pack names end in the version
-(`Bender Tiny Titans v1.0.0`), and `PACK_VERSION` in `scripts/main.js` (announced in chat
+(`Bender Tiny Titans v1.0.1`), and `PACK_VERSION` in `scripts/main.js` (announced in chat
 when you join) must match.
 
 Target: Minecraft Bedrock 1.26.60 or newer, Script API `@minecraft/server` 2.2.0 and

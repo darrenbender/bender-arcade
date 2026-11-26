@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Star Knights v1.0.0",
-    "description": "Version 1.0.0. Glowing Star Blades (rainbow ones too), Star Powers, robot troopers to train against, a Droid Buddy, the Star Dart starfighter and Duel Mode. Made for Michael and James.",
+    "name": "Bender Star Knights v1.0.1",
+    "description": "Version 1.0.1. Glowing Star Blades (rainbow ones too), Star Powers, robot troopers to train against, a Droid Buddy, the Star Dart starfighter and Duel Mode.",
     "uuid": "e22b6db6-dd01-4501-b745-b85b1edfe01f",
     "version": [
       1,
       0,
-      0
+      1
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        0
+        1
       ]
     },
     {
@@ -33,7 +33,7 @@
       "version": [
         1,
         0,
-        0
+        1
       ]
     }
   ],
@@ -43,7 +43,7 @@
       "version": [
         1,
         0,
-        0
+        1
       ]
     },
     {

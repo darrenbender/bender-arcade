@@ -41,7 +41,7 @@ zip -qrX ../BenderSafeMansion.mcaddon BenderSafeMansion_BP BenderSafeMansion_RP 
 
 When you ship a change, bump `version` in both `manifest.json` files (and the
 dependency version in the behavior pack manifest). The pack names end in the version
-(`Bender Safe Mansion v1.0.0`), and `PACK_VERSION` in `scripts/main.js` (announced in
+(`Bender Safe Mansion v1.0.1`), and `PACK_VERSION` in `scripts/main.js` (announced in
 chat when you join) must match. Minecraft keeps old copies of a pack next to new ones,
 so this is how you tell them apart.
 

@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Mini Cars v1.0.0",
-    "description": "Version 1.0.0. 8 kinds of little cars in 16 colors (128 cars!), and a Race Track Kit with countdown lights, laps and trophies. Made for Michael and James.",
+    "name": "Bender Mini Cars v1.0.1",
+    "description": "Version 1.0.1. 8 kinds of little cars in 16 colors (128 cars!), and a Race Track Kit with countdown lights, laps and trophies.",
     "uuid": "7766af6d-cf21-4c22-b612-16d479f5dbec",
     "version": [
       1,
       0,
-      0
+      1
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        0
+        1
       ]
     },
     {
@@ -33,7 +33,7 @@
       "version": [
         1,
         0,
-        0
+        1
       ]
     }
   ],
@@ -43,7 +43,7 @@
       "version": [
         1,
         0,
-        0
+        1
       ]
     },
     {

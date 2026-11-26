@@ -38,7 +38,7 @@ import {
 } from "./minicars.js";
 import { CHECKPOINTS, CONTROL_ID, LIGHT_ID, SIZE_X, SIZE_Z, checkpointAt, planTrack } from "./track.js";
 
-const PACK_VERSION = "1.0.0";
+const PACK_VERSION = "1.0.1";
 const KEY = "bender:car_key";
 const TRACK_KIT = "bender:race_track_kit";
 const WELCOME_KEY = "bender:minicars_welcomed";

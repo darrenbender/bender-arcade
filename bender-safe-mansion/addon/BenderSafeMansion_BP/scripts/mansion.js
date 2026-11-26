@@ -189,9 +189,9 @@ export function planMansion() {
   for (const c of chests) set(c.x, c.y, c.z, "minecraft:chest", { "minecraft:cardinal_direction": CARDINAL.S });
   for (const x of [17, 23]) set(x, ROOF - 1, 11, "minecraft:sea_lantern");
   // bedrooms
-  fill(8, U, 17, 13, U, 22, "minecraft:blue_carpet");                  // Michael's room
+  fill(8, U, 17, 13, U, 22, "minecraft:blue_carpet");                  // the blue bedroom
   bed(9, U, 20, "N");
-  fill(8, U, 8, 13, U, 13, "minecraft:orange_carpet");                 // James's room
+  fill(8, U, 8, 13, U, 13, "minecraft:orange_carpet");                 // the orange bedroom
   bed(9, U, 10, "N");
   fill(19, U, 18, 19, U, 22, "minecraft:iron_bars");                    // railing round the stairwell
   // the control room, with stairs up to the roof

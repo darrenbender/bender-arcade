@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Michael & James's Arcade</title>
+<title>Bender Arcade</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
@@ -43,8 +43,23 @@
     transform: translateY(3px);
     box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 6px 12px rgba(0,0,0,0.12);
   }
-  .btn-michael { background: linear-gradient(180deg, #60a5fa, #2563eb); }
-  .btn-james   { background: linear-gradient(180deg, #fbbf24, #d97706); }
+  /* player colors: each name always gets the same one (see colorOf) */
+  .pc-0 { background: linear-gradient(180deg, #4ade80, #16a34a); }
+  .pc-1 { background: linear-gradient(180deg, #60a5fa, #2563eb); }
+  .pc-2 { background: linear-gradient(180deg, #f472b6, #db2777); }
+  .pc-3 { background: linear-gradient(180deg, #2dd4bf, #0d9488); }
+  .pc-4 { background: linear-gradient(180deg, #fbbf24, #d97706); }
+  .pc-5 { background: linear-gradient(180deg, #f87171, #dc2626); }
+  .player-buttons button { overflow-wrap: anywhere; }
+  .player-buttons.editing button { outline: 4px dashed #ef4444; outline-offset: -8px; }
+  .add-btn { margin: 24px auto 0; background: white; color: #4338ca; border: 3px dashed #a5b4fc; box-shadow: none; padding: 18px 28px; font-size: 1.2rem; }
+  .add-form { display: flex; gap: 12px; margin: 24px auto 0; max-width: 480px; }
+  .add-form input { flex: 1; min-width: 0; font: inherit; font-size: 1.4rem; padding: 16px 18px; border-radius: 18px; border: 3px solid #a5b4fc; }
+  .add-form button { padding: 16px 24px; font-size: 1.3rem; }
+  .small-links { margin-top: 28px; color: #6b7280; font-size: 0.95rem; }
+  .small-links button { display: inline; background: none; color: #4338ca; box-shadow: none; padding: 6px 10px; font-size: 0.95rem; font-weight: 600; text-decoration: underline; }
+  .small-links button:active { transform: none; }
+  .small-links button.hidden { display: none; }
   .game-tile   { background: linear-gradient(180deg, #a78bfa, #7c3aed); padding: 40px 20px; }
   .game-tile .emoji { display: block; font-size: 3em; margin-bottom: 12px; }
   .grownups-title { font-size: 1.2rem; color: #4b5563; margin: 44px 0 14px; }
@@ -81,11 +96,18 @@
 
   <div id="picker">
     <h1>Who's playing?</h1>
-    <p class="subtitle">Tap your name to start</p>
-    <div class="player-buttons">
-      <button class="btn-michael" onclick="pickPlayer('Michael')">Michael</button>
-      <button class="btn-james"   onclick="pickPlayer('James')">James</button>
-    </div>
+    <p class="subtitle" id="picker-hint">Tap your name to start</p>
+    <!-- The players' names are kept on this device only (never in this page). -->
+    <div class="player-buttons" id="player-buttons"></div>
+    <button class="add-btn" id="add-btn" onclick="showAdd()">＋ New player</button>
+    <form class="add-form hidden" id="add-form" onsubmit="addPlayer(event)">
+      <input id="add-name" maxlength="16" autocomplete="off" autocapitalize="words" placeholder="Your name" aria-label="New player's name">
+      <button type="submit" class="pc-1">Add</button>
+    </form>
+    <p class="small-links" id="small-links">
+      Names are saved on this device only.
+      <button id="edit-btn" onclick="toggleEdit()">Remove a player</button>
+    </p>
   </div>
 
   <div id="menu" class="hidden">
@@ -187,6 +209,88 @@
   // localStorage is a tiny bit of storage that lives in this browser only.
   // Nothing leaves the device. We use it to remember who's playing.
   const STORAGE_KEY = 'arcade-current-player';
+  const PLAYERS_KEY = 'arcade-players';
+  let editing = false;
+
+  function store(fn, fallback) {
+    try { return fn(); } catch (e) { return fallback; }
+  }
+  /** Each name always gets the same color. */
+  function colorOf(name) {
+    let sum = 0;
+    for (const ch of name) sum += ch.codePointAt(0);
+    return sum % 6;
+  }
+  function savePlayers(list) {
+    store(() => localStorage.setItem(PLAYERS_KEY, JSON.stringify(list)));
+  }
+  /**
+   * The players on this device: the saved list, plus anyone who already has game saves
+   * here (the games save as "<game>:<player>:<thing>"), so nobody loses their scores.
+   */
+  function players() {
+    const found = new Set(store(() => JSON.parse(localStorage.getItem(PLAYERS_KEY)) || [], []));
+    const games = new Set([...document.querySelectorAll('a.game-tile:not(.grownup-tile)')]
+      .map((a) => a.getAttribute('href').replace(/\/$/, '')));
+    store(() => {
+      const current = localStorage.getItem(STORAGE_KEY);
+      if (current) found.add(current);
+      for (let i = 0; i < localStorage.length; i++) {
+        const parts = (localStorage.key(i) || '').split(':');
+        if (parts.length >= 3 && games.has(parts[0]) && parts[1]) found.add(parts[1]);
+      }
+    });
+    const removed = new Set(store(() => JSON.parse(localStorage.getItem(PLAYERS_KEY + ':removed')) || [], []));
+    const list = [...found].filter((n) => !removed.has(n)).sort((a, b) => colorOf(a) - colorOf(b) || a.localeCompare(b));
+    savePlayers(list);
+    return list;
+  }
+  function drawPlayers() {
+    const list = players();
+    const box = document.getElementById('player-buttons');
+    box.replaceChildren(...list.map((name) => {
+      const b = document.createElement('button');
+      b.className = 'pc-' + colorOf(name);
+      b.textContent = editing ? '✕ ' + name : name;
+      b.onclick = () => (editing ? removePlayer(name) : pickPlayer(name));
+      return b;
+    }));
+    box.classList.toggle('editing', editing);
+    document.getElementById('edit-btn').textContent = editing ? 'Done' : 'Remove a player';
+    document.getElementById('edit-btn').classList.toggle('hidden', list.length === 0);
+    document.getElementById('picker-hint').textContent = list.length ? 'Tap your name to start' : 'Type your name to start';
+    if (list.length === 0) showAdd();
+  }
+  function showAdd() {
+    document.getElementById('add-btn').classList.add('hidden');
+    document.getElementById('add-form').classList.remove('hidden');
+    document.getElementById('add-name').focus();
+  }
+  function addPlayer(event) {
+    event.preventDefault();
+    const name = document.getElementById('add-name').value.replace(/[:\s]+/g, ' ').trim().slice(0, 16);
+    if (!name) return;
+    const list = players();
+    const same = list.find((n) => n.toLowerCase() === name.toLowerCase());
+    const removed = store(() => JSON.parse(localStorage.getItem(PLAYERS_KEY + ':removed')) || [], []);
+    store(() => localStorage.setItem(PLAYERS_KEY + ':removed', JSON.stringify(removed.filter((n) => n !== name))));
+    if (!same) savePlayers([...list, name]);
+    document.getElementById('add-name').value = '';
+    document.getElementById('add-form').classList.add('hidden');
+    document.getElementById('add-btn').classList.remove('hidden');
+    pickPlayer(same || name);
+  }
+  function toggleEdit() {
+    editing = !editing;
+    drawPlayers();
+  }
+  function removePlayer(name) {
+    if (!confirm('Take ' + name + ' off this device? Their scores stay saved, and typing the same name again brings them back.')) return;
+    const removed = store(() => JSON.parse(localStorage.getItem(PLAYERS_KEY + ':removed')) || [], []);
+    store(() => localStorage.setItem(PLAYERS_KEY + ':removed', JSON.stringify([...new Set([...removed, name])])));
+    if (store(() => localStorage.getItem(STORAGE_KEY)) === name) store(() => localStorage.removeItem(STORAGE_KEY));
+    drawPlayers();
+  }
 
   function pickPlayer(name) {
     localStorage.setItem(STORAGE_KEY, name);
@@ -194,6 +298,8 @@
   }
   function switchPlayer() {
     localStorage.removeItem(STORAGE_KEY);
+    editing = false;
+    drawPlayers();
     document.getElementById('menu').classList.add('hidden');
     document.getElementById('picker').classList.remove('hidden');
   }
@@ -204,7 +310,8 @@
   }
 
   // If we already know who's playing, skip straight to the game menu.
-  const saved = localStorage.getItem(STORAGE_KEY);
+  drawPlayers();
+  const saved = store(() => localStorage.getItem(STORAGE_KEY));
   if (saved) showMenu(saved);
 </script>
 

@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Boxing Textures v1.0.3",
-    "description": "Version 1.0.3. Models and textures for Bender Boxing.",
+    "name": "Bender Boxing Textures v1.0.4",
+    "description": "Version 1.0.4. Models and textures for Bender Boxing.",
     "uuid": "97748d07-4ab2-40ef-a3a3-23e55d7a48be",
     "version": [
       1,
       0,
-      3
+      4
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        3
+        4
       ]
     }
   ],

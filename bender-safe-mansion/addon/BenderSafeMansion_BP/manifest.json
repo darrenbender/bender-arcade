@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Safe Mansion v1.0.0",
-    "description": "Version 1.0.0. Build a safe mansion with cameras, lasers, traps, turrets, a secret vault and police vehicles. Made for Michael.",
+    "name": "Bender Safe Mansion v1.0.1",
+    "description": "Version 1.0.1. Build a safe mansion with cameras, lasers, traps, turrets, a secret vault and police vehicles.",
     "uuid": "bf95eeb2-d5f7-42aa-9b6a-2458d8797c4a",
     "version": [
       1,
       0,
-      0
+      1
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        0
+        1
       ]
     },
     {
@@ -33,7 +33,7 @@
       "version": [
         1,
         0,
-        0
+        1
       ]
     }
   ],
@@ -43,7 +43,7 @@
       "version": [
         1,
         0,
-        0
+        1
       ]
     },
     {

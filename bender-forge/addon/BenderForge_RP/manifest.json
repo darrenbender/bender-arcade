@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Forge Textures v1.0.2",
-    "description": "Version 1.0.2. Textures for the Bender Forge weapons and tools.",
+    "name": "Bender Forge Textures v1.0.3",
+    "description": "Version 1.0.3. Textures for the Bender Forge weapons and tools.",
     "uuid": "49571271-daf4-49ac-91d3-f78053b6cd8d",
     "version": [
       1,
       0,
-      2
+      3
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        2
+        3
       ]
     }
   ],

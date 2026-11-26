@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Robo Mobs Textures v1.0.5",
-    "description": "Version 1.0.5. Robot models, textures and icons for Bender Robo Mobs.",
+    "name": "Bender Robo Mobs Textures v1.0.6",
+    "description": "Version 1.0.6. Robot models, textures and icons for Bender Robo Mobs.",
     "uuid": "9eb4588f-a302-4cbe-a8ae-12ca764aa1bf",
     "version": [
       1,
       0,
-      5
+      6
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        5
+        6
       ]
     }
   ],

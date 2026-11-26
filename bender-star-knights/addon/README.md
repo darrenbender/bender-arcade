@@ -46,7 +46,7 @@ zip -qrX ../BenderStarKnights.mcaddon BenderStarKnights_BP BenderStarKnights_RP 
 
 When you ship a change, bump `version` in both `manifest.json` files (and the
 dependency version in the behavior pack manifest). The pack names end in the version
-(`Bender Star Knights v1.0.0`), and `PACK_VERSION` in `scripts/main.js` (announced in
+(`Bender Star Knights v1.0.1`), and `PACK_VERSION` in `scripts/main.js` (announced in
 chat when you join) must match.
 
 Target: Minecraft Bedrock 1.21.120 or newer, Script API `@minecraft/server` 2.2.0 and

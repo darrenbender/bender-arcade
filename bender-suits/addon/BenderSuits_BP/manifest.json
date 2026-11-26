@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Power Suits v1.0.4",
-    "description": "Version 1.0.4. Eight flying power suits, a Power Glove with suit powers, and six gadgets. Made for Michael and James.",
+    "name": "Bender Power Suits v1.0.5",
+    "description": "Version 1.0.5. Eight flying power suits, a Power Glove with suit powers, and six gadgets.",
     "uuid": "ad3c4b73-4c41-4aa7-b47f-445611e42609",
     "version": [
       1,
       0,
-      4
+      5
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        4
+        5
       ]
     },
     {
@@ -33,7 +33,7 @@
       "version": [
         1,
         0,
-        4
+        5
       ]
     }
   ],
@@ -43,7 +43,7 @@
       "version": [
         1,
         0,
-        4
+        5
       ]
     },
     {

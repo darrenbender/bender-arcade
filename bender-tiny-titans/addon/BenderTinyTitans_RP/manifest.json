@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Tiny Titans Textures v1.0.0",
-    "description": "Version 1.0.0. Suits, wings, ants, Size Discs and the Micro Realm for Bender Tiny Titans.",
+    "name": "Bender Tiny Titans Textures v1.0.1",
+    "description": "Version 1.0.1. Suits, wings, ants, Size Discs and the Micro Realm for Bender Tiny Titans.",
     "uuid": "e915f538-c65a-47c7-b40c-2a2009b68bdb",
     "version": [
       1,
       0,
-      0
+      1
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        0
+        1
       ]
     }
   ],

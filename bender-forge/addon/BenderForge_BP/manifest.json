@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Forge v1.0.2",
-    "description": "Version 1.0.2. 10 new weapons and tools with special powers. Made for Michael and James.",
+    "name": "Bender Forge v1.0.3",
+    "description": "Version 1.0.3. 10 new weapons and tools with special powers.",
     "uuid": "53b492b6-8c2b-448a-b0b3-0ee20dcf8909",
     "version": [
       1,
       0,
-      2
+      3
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        2
+        3
       ]
     },
     {
@@ -33,7 +33,7 @@
       "version": [
         1,
         0,
-        2
+        3
       ]
     }
   ],
@@ -43,7 +43,7 @@
       "version": [
         1,
         0,
-        2
+        3
       ]
     },
     {

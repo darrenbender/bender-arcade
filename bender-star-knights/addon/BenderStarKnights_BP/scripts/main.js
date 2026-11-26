@@ -55,7 +55,7 @@ import {
 } from "./knights.js";
 import { CONSOLE_ID, CRYSTAL_ID, SIZE, WORKBENCH_ID, planTemple } from "./temple.js";
 
-const PACK_VERSION = "1.0.0";
+const PACK_VERSION = "1.0.1";
 const COMM = "bender:knight_comm";
 const TEMPLE_KIT = "bender:temple_kit";
 const DROID_KIT = "bender:droid_buddy_kit";

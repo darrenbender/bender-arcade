@@ -45,7 +45,7 @@ import {
 } from "./sizes.js";
 import { CRYSTAL_ID, PORTAL_ID, planRealm } from "./realm.js";
 
-const PACK_VERSION = "1.0.0";
+const PACK_VERSION = "1.0.1";
 const SWITCH = "bender:size_switch";
 const COLONY_ITEM = "bender:ant_colony";
 const CRYSTAL_ITEM = "bender:micro_crystal";

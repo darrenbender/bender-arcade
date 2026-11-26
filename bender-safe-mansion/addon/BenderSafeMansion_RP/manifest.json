@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Safe Mansion Textures v1.0.0",
-    "description": "Version 1.0.0. Models, textures and icons for Bender Safe Mansion.",
+    "name": "Bender Safe Mansion Textures v1.0.1",
+    "description": "Version 1.0.1. Models, textures and icons for Bender Safe Mansion.",
     "uuid": "29c70cc9-a914-47ba-b13e-782b2b2460b8",
     "version": [
       1,
       0,
-      0
+      1
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        0
+        1
       ]
     }
   ],

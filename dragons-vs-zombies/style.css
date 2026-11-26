@@ -1688,7 +1688,7 @@ canvas {
   100% { background: rgba(118, 191, 118, 0.30); transform: scaleX(1); }
 }
 
-/* Tap targets — large circles with the dragon color, big enough for Michael */
+/* Tap targets — large circles with the dragon color, big enough for small hands */
 .rhythm-target {
   position: absolute;
   top: 50%;

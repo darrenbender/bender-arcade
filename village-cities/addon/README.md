@@ -20,7 +20,7 @@ zip -qrX ../VillageCities.mcaddon VillageCities_BP VillageCities_RP -x '*.DS_Sto
 
 When you ship a change, bump `version` in both `manifest.json` files (and the
 dependency version in the behavior pack manifest), or Minecraft will keep the old copy.
-Pack names end in the version (like `Village Cities v1.0.2`): Minecraft keeps old copies of a
+Pack names end in the version (like `Village Cities v1.0.3`): Minecraft keeps old copies of a
 pack next to new ones, and this is how you tell them apart. Keep the name in step with `version`.
 
 Target: Minecraft Bedrock 1.21.110 or newer, Script API `@minecraft/server` 2.2.0 (stable, no experiments needed).

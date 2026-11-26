@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Mechs v1.0.2",
-    "description": "Version 1.0.2. Pilot a giant mech, ride a motorcycle, build a mech base with sliding doors, and team up with a helper bot. Made for Michael and James.",
+    "name": "Bender Mechs v1.0.3",
+    "description": "Version 1.0.3. Pilot a giant mech, ride a motorcycle, build a mech base with sliding doors, and team up with a helper bot.",
     "uuid": "616af76e-86ba-4dd4-aef5-32cd2b702fbc",
     "version": [
       1,
       0,
-      2
+      3
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        2
+        3
       ]
     },
     {
@@ -33,7 +33,7 @@
       "version": [
         1,
         0,
-        2
+        3
       ]
     }
   ],
@@ -43,7 +43,7 @@
       "version": [
         1,
         0,
-        2
+        3
       ]
     },
     {

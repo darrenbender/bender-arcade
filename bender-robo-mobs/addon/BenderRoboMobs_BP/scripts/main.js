@@ -17,7 +17,7 @@ import {
 } from "./robots.js";
 
 // Must match the version in both manifest.json files (checked by the tests).
-const PACK_VERSION = "1.0.5";
+const PACK_VERSION = "1.0.6";
 const WELCOME_KEY = "bender:robo_welcomed";
 const BATTLE_KEY = "bender:robo_battle";
 const KOS_KEY = "bender:robo_kos";

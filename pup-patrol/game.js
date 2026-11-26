@@ -2,7 +2,7 @@
 
 /* =====================================================================
    PUP PATROL: DOGS vs ALIENS
-   2D top-down adventure tuned for Michael (6) first, James (9) second.
+   2D top-down adventure tuned for the younger player first, the older second.
 
    STRUCTURE OF THIS FILE
    ----------------------

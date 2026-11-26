@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Bender Star Knights Textures v1.0.0",
-    "description": "Version 1.0.0. Blades, robots, the droid, the starfighter and icons for Bender Star Knights.",
+    "name": "Bender Star Knights Textures v1.0.1",
+    "description": "Version 1.0.1. Blades, robots, the droid, the starfighter and icons for Bender Star Knights.",
     "uuid": "55c52e4e-f851-4075-a0f3-bf8e35db9268",
     "version": [
       1,
       0,
-      0
+      1
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         1,
         0,
-        0
+        1
       ]
     }
   ],

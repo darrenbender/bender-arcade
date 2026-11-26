@@ -1,6 +1,8 @@
 # Bender Arcade — Project Standards
 
-A custom-built collection of small browser games made by Darren for his two kids, **Michael (age 6)** and **James (age 9)**. Hosted at **games.darrenbender.com**.
+A custom-built collection of small browser games made for two young kids: a **younger player** who is still learning to read and an **older player** who reads well. Hosted at **games.darrenbender.com**.
+
+**Privacy:** never put the kids' names, ages or other personal details in this repository or on the site (it's public). The players' names live only on each device (see section 5).
 
 This document is the single source of truth for how the project is built and run. If anything in a chat or codebase contradicts this file, this file wins (or the file gets updated — whichever is correct).
 
@@ -8,25 +10,25 @@ This document is the single source of truth for how the project is built and run
 
 ## 1. Mission & non-negotiables
 
-**Why this project exists:** to give Michael and James a small library of fun, custom games that have no ads, no tracking, no logins, and no microtransactions. Just play.
+**Why this project exists:** to give the kids a small library of fun, custom games that have no ads, no tracking, no logins, and no microtransactions. Just play.
 
 **Non-negotiables — every game must meet all of these:**
 
-- Fully age-appropriate (6 and 9). No scary themes, no real violence, no mature humor.
+- Fully age-appropriate for young kids. No scary themes, no real violence, no mature humor.
 - No external dependencies loaded at runtime. No CDN fonts, no CDN scripts, no analytics, no ad networks, no third-party anything. Pure self-contained HTML/CSS/JS.
 - No data leaves the browser. Ever. All persistence is `localStorage` only.
 - No accounts, no logins, no email, no passwords.
-- Big buttons, big text, forgiving controls. The 6-year-old must be able to play solo without help.
+- Big buttons, big text, forgiving controls. The younger player must be able to play solo without help.
 
 ---
 
 ## 2. Audience profiles
 
-**Michael (6)** — Still learning to read; relies on color, icons, and audio cues. Needs huge tap targets, no fail states that feel punishing, lots of positive feedback. Loves dogs and silly characters.
+**The younger player** — Still learning to read; relies on color, icons, and audio cues. Needs huge tap targets, no fail states that feel punishing, lots of positive feedback. Loves dogs and silly characters.
 
-**James (9)** — Reads fluently; enjoys high-score chases, levels, and visible progress. Tolerates a bit more challenge but still wants forgiving controls.
+**The older player** — Reads fluently; enjoys high-score chases, levels, and visible progress. Tolerates a bit more challenge but still wants forgiving controls.
 
-**Design implication:** when a game has to choose between accommodating Michael or James, accommodate Michael. James can handle a too-easy game; Michael cannot handle a too-hard one.
+**Design implication:** when a game has to choose between the two, accommodate the younger player. The older one can handle a too-easy game; the younger one cannot handle a too-hard one.
 
 ---
 
@@ -68,6 +70,8 @@ bender-arcade/
 
 Every game starts by knowing who's playing. The landing page (`/index.html`) handles initial player selection and stores the result in `localStorage` under the key `arcade-current-player`.
 
+The names are never written into the site: the landing page builds its name buttons from the players saved on that device (`arcade-players`, plus anyone who already has game saves there), and a new device asks the player to type a name once. Each name always gets the same button color.
+
 Individual games should:
 
 1. On load, read `arcade-current-player` from localStorage.
@@ -90,9 +94,9 @@ All keys are prefixed with the game's folder name to avoid collisions:
 
 ```
 arcade-current-player              ← global: who's playing right now
-pup-patrol:Michael:highScore       ← per-game, per-player
-pup-patrol:Michael:dogsRescued     ← per-game, per-player
-rainbow-sound-garden:James:level   ← per-game, per-player
+pup-patrol:<player>:highScore      ← per-game, per-player
+pup-patrol:<player>:dogsRescued    ← per-game, per-player
+rainbow-sound-garden:<player>:level ← per-game, per-player
 ```
 
 **Format:** `<game-folder>:<player-name>:<dataKey>`
@@ -132,7 +136,7 @@ Every game needs two ways out: back to its own start screen, and back to the arc
 
 Each button is 64×64 px minimum with 12 px between them.
 
-**Mid-game safeguard.** If gameplay is active when either button is tapped, show a soft confirm dialog: *"Leave game? Your score won't be saved."* with two big buttons — "Keep Playing" and "Yes, Leave." This protects Michael from accidental taps mid-run.
+**Mid-game safeguard.** If gameplay is active when either button is tapped, show a soft confirm dialog: *"Leave game? Your score won't be saved."* with two big buttons — "Keep Playing" and "Yes, Leave." This protects the younger player from accidental taps mid-run.
 
 If the player is on the game's own menu or win screen, no confirm is needed — go straight back.
 
@@ -192,7 +196,7 @@ A new game is ready to deploy when:
 - [ ] The folder name follows naming convention (lowercase, hyphens).
 - [ ] No `console.log` debug noise in the production code.
 - [ ] No external network requests (check DevTools).
-- [ ] Both Michael and James have played it at least once and given feedback.
+- [ ] Both kids have played it at least once and given feedback.
 
 ---
 
@@ -212,8 +216,8 @@ A running list of game ideas to pull from:
 - Color Tap (reflex: tap the named color)
 - Memory Match (card pairs)
 - Whack-a-Mole variant with friendly creatures
-- Sight word racer (reading practice for Michael)
-- Math fact dash (practice for James)
+- Sight word racer (reading practice for the younger player)
+- Math fact dash (practice for the older player)
 - Simple maze with collectibles
 - Drawing pad with stickers
 - [add more as the kids request them]
